@@ -1,0 +1,35 @@
+#!/bin/sh -ex
+
+source "$HOME/Applications/emsdk/emsdk_env.sh"
+cd primordialsoup
+./build os=emscripten arch=wasm
+cd ..
+
+mkdir -p out
+cp primordialsoup/out/ReleaseEmscriptenWASM/primordialsoup.* out
+cp primordialsoup/out/snapshots/*.vfuel out
+cp primordialsoup/newspeak/*.ns out
+mkdir -p out/CodeMirror/lib
+mkdir -p out/CodeMirror/addon/display
+cp CodeMirror/lib/codemirror.js out/CodeMirror/lib/codemirror.js
+cp CodeMirror/lib/codemirror.css out/CodeMirror/lib/codemirror_css.css
+cp CodeMirror/addon/display/autorefresh.js out/CodeMirror/addon/display/autorefresh.js
+cp src/* out
+
+cd out
+../primordialsoup/out/ReleaseX64/primordialsoup \
+    ../primordialsoup/out/snapshots/CompilerApp.vfuel \
+    *.ns \
+    RuntimeWithMirrorsForPrimordialSoup WebCompiler WebCompiler.vfuel
+../primordialsoup/out/ReleaseX64/primordialsoup \
+    WebCompiler.vfuel \
+    *.ns \
+    *.png \
+    CodeMirror/lib/codemirror.js \
+    CodeMirror/lib/codemirror_css.css \
+    CodeMirror/addon/display/autorefresh.js \
+    RuntimeWithMirrorsForPrimordialSoup HopscotchIDE HopscotchIDE.vfuel \
+    RuntimeForPrimordialSoup Particles Particles.vfuel \
+    RuntimeWithMirrorsForPrimordialSoup TestRunner TestRunner.vfuel \
+    RuntimeForPrimordialSoup BenchmarkRunner BenchmarkRunner.vfuel
+cd ..

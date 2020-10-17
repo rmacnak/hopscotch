@@ -1,0 +1,261 @@
+class Namespacing usingPlatform: p ide: ide = (
+(* Unlike most languages, Newspeak has no global namespace. The IDE, however, as an extra-linguistic tool does provide a namespace. This namespace is stateless and only contains Values, typically top-level classes or other namespaces. It is used by an application definition in its #packageUsing: to collect the pieces of a program or by a test configuration in #packageTestsUsing:.
+
+Copyright 2008 Cadence Design Systems, Inc.
+Copyright 2012 Cadence Design Systems, Inc.
+Copyright 2013 Ryan Macnak
+Copyright 2013 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the ''License''); you may not use this file except in compliance with the License.  You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
+*)
+|
+	private ClassMirror = p mirrors ClassMirror.
+	private ObjectMirror = p mirrors ObjectMirror.
+	private List = p collections List.
+	private Map = p collections Map.
+	private Set = p collections Set.
+	private Subject = p hopscotch Subject.
+	private ProgrammingPresenter = ide browsing ProgrammingPresenter.
+	private MethodSubject = ide browsing MethodSubject.
+	private ClassHeaderSubject = ide browsing ClassHeaderSubject.
+
+	public Root = p collections Map new.
+	public manifest = Manifest forNamespace: Root.
+
+	selectors ::= Map new.
+|) (
+class AllSelectorsPresenter onSubject: s = ProgrammingPresenter onSubject: s (
+) (
+definition ^<Fragment> = (
+	(* No Senders.
+	   No Implementors.
+	   All. *)
+	|
+	selectors = subject selectorSubjects.
+	noSenders = selectors select: [:s | s hasNoSenders].
+	noImplementors = selectors select: [:s | s hasNoImplementors].
+	|
+	^column: {
+		majorHeadingBlock: (label: 'Selectors (', selectors size asString, ')').
+		mediumBlank.
+
+		minorHeadingBlock: (label: 'No Senders (', noSenders size asString, ')').
+		smallBlank.
+		column:
+			(noSenders collect:
+				[:ea | link: ea selector action: [enterSubject: ea]]).
+		smallBlank.
+
+		minorHeadingBlock: (label: 'No Implementors (', noImplementors size asString, ')').
+		smallBlank.
+		column:
+			(noImplementors collect:
+				[:ea | link: ea selector action: [enterSubject: ea]]).
+		smallBlank.
+
+		minorHeadingBlock: (label: 'All (', selectors size asString, ')').
+		smallBlank.
+		column:
+			(selectors collect:
+				[:ea | link: ea selector action: [enterSubject: ea]]).
+		smallBlank.
+	}
+)
+) : (
+)
+public class AllSelectorsSubject new = Subject onModel: nil (
+) (
+public = other ^<Boolean> = (
+	^other isKindOfAllSelectorsSubject
+)
+public createPresenter = (
+	^AllSelectorsPresenter onSubject: self
+)
+public hash ^<Boolean> = (
+	^class hash
+)
+public isKindOfAllSelectorsSubject ^<Boolean> = (
+	^true
+)
+public selectorSubjects = (
+	^selectors values collect: [:ea | SelectorSubject onModel: ea name].
+)
+) : (
+)
+class Manifest forNamespace: ns = (
+	|
+	private namespace = ns.
+	|
+) (
+protected doesNotUnderstand: message <Message> = (
+	^namespace at: message selector
+)
+) : (
+)
+class Namespace = (
+(* A mapping between unary selectors and Values. *)
+|
+	protected _dictionary ::= Map new.
+|) (
+public at: symbol <Symbol> ^<Value> = (
+	^_dictionary at: symbol
+)
+public at: symbol <Symbol> ifAbsent: onAbsent <[Value]> ^<Value> = (
+	^_dictionary at: symbol ifAbsent: onAbsent
+)
+public at: symbol <Symbol> ifAbsentPut: onAbsent <Value> ^<Value> = (
+	(*assert: [symbol isSymbol and: [symbol isUnary]] message: 'Invalid key', symbol printString.*)
+	^_dictionary at: symbol ifAbsentPut: onAbsent
+)
+public at: symbol <Symbol> put: value <Value> ^<Value> = (
+	(*assert: [symbol isSymbol and: [symbol isUnary]] message: 'Invalid key'.*)
+	^_dictionary at: symbol put: value
+)
+public includesKey: symbol <Symbol> ^<Boolean> = (
+	^_dictionary includesKey: symbol
+)
+public isKindOfNamespace ^ <Boolean> = (
+	^true
+)
+public keys ^ <Collection[Symbol]> = (
+	^_dictionary keys
+)
+public keysAndValuesDo: binaryBlock <[:Symbol :Value]> = (
+	_dictionary keysAndValuesDo: binaryBlock
+)
+public removeAll = (
+	_dictionary: Map new.
+)
+public removeKey: name <Symbol> ^<Value> = (
+	^_dictionary removeKey: name
+)
+public removeKey: name <Symbol> ifAbsent: onAbsent ^<Value> = (
+	^_dictionary removeKey: name ifAbsent: onAbsent
+)
+) : (
+)
+class Selector name: n = (|
+	public name = n.
+	public senders = Set new.
+	public implementors = Set new.
+|) (
+) : (
+)
+class SelectorPresenter onSubject: s = ProgrammingPresenter onSubject: s (
+) (
+definition ^<Fragment> = (
+	|
+	implementors = subject implementors.
+	senders = subject senders.
+	|
+	^column: {
+		majorHeadingBlock: (label: subject selector, ' implementors (', implementors size asString, ')').
+		mediumBlank.
+		list: (implementors collect: [:ea | ea presenter showClassName: true]).
+		mediumBlank.
+		majorHeadingBlock: (label: subject selector, ' senders (', senders size asString, ')').
+		mediumBlank.
+		list: (senders collect: [:ea | ea presenter showClassName: true]).
+		mediumBlank.
+	}
+)
+) : (
+)
+public class SelectorSubject onModel: m = Subject onModel: m (
+) (
+public = other ^<Boolean> = (
+	other isKindOfSelectorSubject ifFalse: [^false].
+	^other model = model
+)
+public createPresenter = (
+	^SelectorPresenter onSubject: self
+)
+public hasNoImplementors ^<Boolean> = (
+	^(selectors at: model ifAbsent: [^true]) implementors isEmpty
+)
+public hasNoSenders ^<Boolean> = (
+	^(selectors at: model ifAbsent: [^true]) senders isEmpty
+)
+public hash ^<Integer> = (
+	^model hash
+)
+public implementors ^<List[Subject]> = (
+	| result = List new. |
+	(selectors at: model ifAbsent: [^result]) implementors do:
+		[:ea |
+		 ea isKindOfMethodMirror ifTrue:
+			[result add: (MethodSubject onModel: ea)].
+		 ea isKindOfClassHeaderMirror ifTrue:
+			[result add: (ClassHeaderSubject onModel: ea)]].
+	^result
+)
+public isKindOfSelectorSubject ^<Boolean> = (
+	^true
+)
+public selector ^<String> = (
+	^model
+)
+public senders ^<List[Subject]> = (
+	| result = List new. |
+	(selectors at: model ifAbsent: [^result]) senders do:
+		[:ea |
+		 ea isKindOfMethodMirror ifTrue:
+			[result add: (MethodSubject onModel: ea)].
+		 ea isKindOfClassHeaderMirror ifTrue:
+			[result add: (ClassHeaderSubject onModel: ea)]].
+	^result
+)
+public title ^<String> = (
+	^'#', model
+)
+) : (
+)
+public freshNamespace = (
+	^Namespace new
+)
+public indexClass: klass <Behavior> = (
+	indexClassDeclaration: (ClassMirror reflecting: klass) mixin declaration.
+)
+indexClassDeclaration: klass <ClassDeclarationMirror> = (
+	indexClassHeader: klass.
+	indexMixin: klass instanceSide.
+	indexMixin: klass classSide.
+)
+indexClassHeader: klass <ClassDeclarationMirror> = (
+	| header = klass header. |
+	note: header implements: header name.
+	note: header implements: header primaryFactorySelector.
+	klass instanceSide slots do:
+		[:slot |
+		 note: header implements: slot name.
+		 slot isMutable ifTrue: [note: header implements: slot name, ':']].
+	header selectors do: [:s | note: header sends: s].
+)
+indexMethod: method <MethodMirror> = (
+	note: method implements: method name.
+	method selectors do: [:s | note: method sends: s].
+)
+indexMixin: mixin <MixinMirror> = (
+	mixin nestedClasses do: [:c | indexClassDeclaration: c].
+	mixin methods do: [:m | indexMethod: m].
+)
+note: methodOrHeader <ClassHeaderMirror | MethodMirror> implements: selector <String> = (
+	(selectors at: selector ifAbsentPut: [Selector name: selector])
+		implementors add: methodOrHeader.
+)
+note: methodOrHeader <ClassHeaderMirror | MethodMirror> sends: selector <String> = (
+	(selectors at: selector ifAbsentPut: [Selector name: selector])
+		senders add: methodOrHeader.
+)
+public reindex = (
+	selectors:: Map new.
+	Root do: [:member | member isKindOfBehavior ifTrue: [indexClass: member]].
+)
+public removeKey: key <Symbol> ^ <Object> = (
+	| value <Object> |
+	#NAMESPACEBOGUS.
+	value:: Root removeKey: key.
+	^value
+)
+) : (
+)

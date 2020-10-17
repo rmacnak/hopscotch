@@ -1,0 +1,3 @@
+[submodule "primordialsoup"]
+	path = primordialsoup
+	url = https://github.com/rmacnak/primordialsoup

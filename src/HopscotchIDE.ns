@@ -1,0 +1,116 @@
+class HopscotchIDE packageUsing: manifest = (
+	(* The Newspeak IDE in the web browser. *)
+	|
+	private hopscotchRuntime = manifest HopscotchForHTML5Runtime packageUsing: manifest.
+	private Browsing = manifest Browsing.
+	private CombinatorialParsing = manifest CombinatorialParsing.
+	private Debugging = manifest Debugging.
+	private Minitest = manifest Minitest.
+	private MinitestUI = manifest MinitestUI.
+	private Namespacing = manifest Namespacing.
+	private NewspeakColorization = manifest NewspeakColorization.
+	private NewspeakGrammar = manifest NewspeakGrammar.
+	private WorkspaceManager = manifest WorkspaceManager.
+
+	private allModules = manifest allModules.
+
+	private imagesOuter = HopscotchImages packageUsing: manifest.
+	|
+
+	manifest codemirror.
+	manifest codemirror_css.
+	manifest autorefresh.
+) (
+class HopscotchImages packageUsing: manifest = (
+	|
+	public publicAccessImage = manifest publicImage.
+	public protectedAccessImage = manifest protectedImage.
+	public privateAccessImage = manifest privateImage.
+	public addImage = manifest hsAddImage.
+	public addOutImage = manifest hsAddOutImage.
+	public addOverImage = manifest hsAddOverImage.
+	public dropDownImage = manifest hsDropdownImage.
+	public dropDownOutImage = manifest hsDropdownOutImage.
+	public dropDownOverImage = manifest hsDropdownOverImage.
+	public itemReferencesImage = manifest itemReferencesImage.
+	public expandImage = manifest hsExpandImage.
+	public expandOverImage = manifest hsExpandOverImage.
+	public expandDownImage = manifest hsExpandDownImage.
+	public collapseImage = manifest hsCollapseImage.
+	public collapseOverImage = manifest hsCollapseOverImage.
+	public collapseDownImage = manifest hsCollapseDownImage.
+	public homeImage = manifest hsHomeImage.
+	public homeOverImage = manifest hsHomeOverImage.
+	public homeOutImage = manifest hsHomeOutImage.
+	public homeDownImage = manifest hsHomeDownImage.
+	public refreshImage = manifest hsRefreshImage.
+	public refreshOverImage = manifest hsRefreshOverImage.
+	public refreshOutImage = manifest hsRefreshOutImage.
+	public refreshDownImage = manifest hsRefreshDownImage.
+	public classPresenterIcon = manifest classPresenterImage.
+	public classUnknownIcon = manifest classUnknownImage.
+	public classIcon = manifest languageNewspeak3.
+|) (
+public addToNamespace: ns = (
+	ns at: #publicImage put: publicAccessImage.
+	ns at: #protectedImage put: protectedAccessImage.
+	ns at: #privateImage put: privateAccessImage.
+	ns at: #hsAddImage put: addImage.
+	ns at: #hsAddOutImage put: addOutImage.
+	ns at: #hsAddOverImage put: addOverImage.
+	ns at: #hsDropdownImage put: dropDownImage.
+	ns at: #hsDropdownOutImage put: dropDownOutImage.
+	ns at: #hsDropdownOverImage put: dropDownOverImage.
+	ns at: #itemReferencesImage put: itemReferencesImage.
+	ns at: #hsExpandImage put: expandImage.
+	ns at: #hsExpandOverImage put: expandOverImage.
+	ns at: #hsExpandDownImage put: expandDownImage.
+	ns at: #hsCollapseImage put: collapseImage.
+	ns at: #hsCollapseOverImage put: collapseOverImage.
+	ns at: #hsCollapseDownImage put: collapseDownImage.
+	ns at: #hsHomeImage put: homeImage.
+	ns at: #hsHomeOverImage put: homeOverImage.
+	ns at: #hsHomeOutImage put: homeOutImage.
+	ns at: #hsHomeDownImage put: homeDownImage.
+	ns at: #hsRefreshImage put: refreshImage.
+	ns at: #hsRefreshOverImage put: refreshOverImage.
+	ns at: #hsRefreshOutImage put: refreshOutImage.
+	ns at: #hsRefreshDownImage put: refreshDownImage.
+	ns at: #classPresenterImage put: classPresenterIcon.
+	ns at: #classUnknownImage put: classUnknownIcon.
+	ns at: #languageNewspeak3 put: classIcon.
+)
+) : (
+)
+class IDE usingPlatform: p = (
+	|
+	public images = imagesOuter.
+	public browsing = Browsing usingPlatform: p ide: self.
+	public debugging = Debugging usingPlatform: p ide: self.
+	public namespacing = Namespacing usingPlatform: p ide: self.
+	public theWorkspaceManager = WorkspaceManager usingPlatform: p ide: self.
+	public minitest = Minitest usingPlatform: p.
+	public minitestUI = MinitestUI usingPlatform: p minitest: minitest ide: self.
+	public parserLib = CombinatorialParsing usingPlatform: p.
+	public grammar = NewspeakGrammar usingPlatform: p parsers: parserLib.
+	public colorizer = (NewspeakColorization usingPlatform: p grammar: grammar) NS3BrowserColorizer new.
+	|
+	populateNamespace.
+) (
+populateNamespace = (
+	|
+	Root <Namespace> = namespacing Root.
+	|
+	images addToNamespace: Root.
+	allModules do: [:module | Root at: module name put: module].
+)
+) : (
+)
+public main: platform <Platform> args: args <Tuple[String]> = (
+	| hopscotchPlatform ide |
+	hopscotchPlatform:: hopscotchRuntime using: platform.
+	ide:: IDE usingPlatform: hopscotchPlatform.
+	hopscotchPlatform hopscotch core HopscotchWindow openSubject: ide browsing HomeSubject new.
+)
+) : (
+)
