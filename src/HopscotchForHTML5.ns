@@ -1695,7 +1695,7 @@ computeContentForMenu: menuSupplier <[Menu]> ^ <Alien[Div]> = (
 		at: 'color' put: 'black';
 		at: 'backgroundColor' put: 'lightgray';
 		at: 'position' put: 'absolute';
-		at: 'z-index' put: 1;
+		at: 'z-index' put: 10;
 		at: 'padding-left' put: '6px';
 		at: 'padding-right' put: '10px';
 		at: 'border-radius' put: '5px';
