@@ -484,14 +484,12 @@ public threadMirror ^<ThreadMirror> = (
 )
 ) : (
 )
-lexicallyLessOrEqual: a <String> than: b <String> ^ <Boolean> = (
-	(* BOGUS: This should be a utility somewhere *)
-	| length = a size min: b size. |
-	1 to: length do:
+lexicallyLessOrEqual: a <String> than: b <String> ^<Boolean> = (
+	1 to: (a size min: b size) do:
 		[:index |
 		 (a at: index) < (b at: index) ifTrue: [^true].
 		 (a at: index) > (b at: index) ifTrue: [^false]].
-	^true
+	^a size <= b size
 )
 ) : (
 )
