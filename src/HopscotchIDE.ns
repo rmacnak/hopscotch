@@ -50,6 +50,11 @@ class HopscotchImages packageUsing: manifest = (
 	public classPresenterIcon = manifest classPresenterImage.
 	public classUnknownIcon = manifest classUnknownImage.
 	public classIcon = manifest languageNewspeak3.
+	public accept16px = manifest accept16px.
+	public cancel16px = manifest cancel16px.
+	public disclosureClosedImage = manifest disclosureClosedImage.
+	public disclosureTransitionImage = manifest disclosureTransitionImage.
+	public disclosureOpenImage = manifest disclosureOpenImage.
 |) (
 public addToNamespace: ns = (
 	ns at: #publicImage put: publicAccessImage.
@@ -79,6 +84,11 @@ public addToNamespace: ns = (
 	ns at: #classPresenterImage put: classPresenterIcon.
 	ns at: #classUnknownImage put: classUnknownIcon.
 	ns at: #languageNewspeak3 put: classIcon.
+	ns at: #accept16px put: accept16px.
+	ns at: #cancel16px put: cancel16px.
+	ns at: #disclosureClosedImage put: disclosureClosedImage.
+	ns at: #disclosureTransitionImage put: disclosureTransitionImage.
+	ns at: #disclosureOpenImage put: disclosureOpenImage.
 )
 ) : (
 )

@@ -82,11 +82,34 @@ public text: s image: i ^ <BitOfWisdom> = (
 )
 class ClassActionsPresenter onSubject: s = ProgrammingPresenter onSubject: s () (
 definition = (
-	^row: {testActions. (*benchmarkActions. applicationActions*) }
+	subject isApplicationConfiguration ifTrue:
+		[^row: {
+			link: '[run]' action: [respondToRunApp: false].
+			link: '[debug]' action: [respondToRunApp: true].
+		}].
+	subject isTestConfiguration ifTrue:
+		[^link: '[run tests]' action: [respondToRunTests]].
+	^nothing
 )
-testActions = (
-	subject isTestConfiguration ifFalse: [^nothing].
-	^link: '[run tests]' action: [enterSubject:: subject testingSubject].
+respondToRunApp: paused = (
+	(* bogus: The subject might not be in the root namespace. *)
+	| appConfig manifest platform args thread |
+	appConfig:: ide namespacing Root at: subject name.
+	manifest:: ide namespacing manifest.
+	platform:: cachedPlatform.
+	args:: {}.
+	thread:: platform mirrors ActivationMirror invokeSuspended:
+		[(appConfig packageUsing: manifest) main: platform args: args].
+	paused ifFalse: [thread resume].
+	thread isFulfilled ifFalse:
+		[enterSubject:: ide debugging ThreadSubject onModel: thread].
+)
+respondToRunTests = (
+	(* bogus: The subject might not be in the root namespace. *)
+	enterSubject:: ide minitestUI TestingInProgressSubject
+		onConfiguration: (ide namespacing Root at: subject name)
+		platform: cachedPlatform
+		minitest: ide minitest
 )
 ) : (
 )
@@ -633,9 +656,15 @@ public enclosingClassSubjects = (
 	[c isNil] whileFalse: [them add: (ClassSubject onModel: c). c:: c enclosingClass].
 	^them
 )
+public isApplicationConfiguration = (
+	isTopLevel ifFalse: [^false].
+	model header primaryFactorySelector = #packageUsing: ifTrue: [^true].
+	^model classSide methods anySatisfy: [:method | method name = #packageUsing:].
+)
 public isTestConfiguration = (
-	(* bogus, but compatible. *)
-	^isTopLevel and: [(model header source indexOf: 'packageTestsUsing:') > 0]
+	isTopLevel ifFalse: [^false].
+	model header primaryFactorySelector = #packageTestsUsing: ifTrue: [^true].
+	^model classSide methods anySatisfy: [:method | method name = #packageTestsUsing:].
 )
 public isTopLevel = (
 	^nil = model enclosingClass
@@ -665,13 +694,6 @@ public name = (
 )
 public nestedClassesSubject ^ <NestedClassGroupSubject> = (
 	^NestedClassGroupSubject onModel: classMirror instanceSide nestedClasses within: classMirror instanceSide
-)
-public testingSubject = (
-	#NAMESPACEBOGUS.
-	^ide minitestUI TestingInProgressSubject
-		onConfiguration: (ide namespacing Root at: name)
-		platform: cachedPlatform
-		minitest: ide minitest
 )
 public title = (
 	^name
