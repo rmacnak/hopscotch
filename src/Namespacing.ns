@@ -31,7 +31,7 @@ definition ^<Fragment> = (
 	   No Implementors.
 	   All. *)
 	|
-	selectors = subject selectorSubjects.
+	selectors = subject selectorSubjects sort: [:a :b | lexicallyLessOrEqual: a selector than: b selector].
 	noSenders = selectors select: [:s | s hasNoSenders].
 	noImplementors = selectors select: [:s | s hasNoImplementors].
 	|
@@ -238,6 +238,13 @@ indexMethod: method <MethodMirror> = (
 indexMixin: mixin <MixinMirror> = (
 	mixin nestedClasses do: [:c | indexClassDeclaration: c].
 	mixin methods do: [:m | indexMethod: m].
+)
+lexicallyLessOrEqual: a <String> than: b <String> ^ <Boolean> = (
+	1 to: (a size min: b size) do:
+		[:index |
+		 (a at: index) < (b at: index) ifTrue: [^true].
+		 (a at: index) > (b at: index) ifTrue: [^false]].
+	^a size <= b size
 )
 note: methodOrHeader <ClassHeaderMirror | MethodMirror> implements: selector <String> = (
 	(selectors at: selector ifAbsentPut: [Selector name: selector])
