@@ -97,6 +97,7 @@ public class CodeMirrorFragment onText: t <String>  = LeafFragment (
 	public changeResponse <[:TextEditorFragment]>
 	public acceptResponse <[:TextEditorFragment]>
 	public cancelResponse <[:TextEditorFragment]>
+	public enterResponse <[:TextEditorFragment]>
 	styles ::= List new.
 |
 ) (
@@ -121,7 +122,7 @@ controlBarColor = (
 )
 createVisual = (
 	| frame  <Alien[Div]> accept  <Alien[Img]> cancel <Alien[Img]> textArea <Alien[Span]> options <Alien[JSObject]> |
-	
+
 	frame:: document createElement: 'div'.
 	(frame at: 'style')
 		at: 'display' put: 'flex';
@@ -144,15 +145,20 @@ createVisual = (
 	counterfactualBar appendChild: cancel.
 	textArea:: document createElement: 'textarea'.
 	textArea
-		at: 'value' put:  textSlot;
+		at: 'value' put: textSlot;
 		at: 'resize' put: true.
 	frame appendChild: textArea.
 	options:: JSObject new.
 	options at: 'lineWrapping' put: true.
 	editor:: CodeMirror fromTextArea: textArea with: options.
-      editor on: 'change' respondToChange:
+	editor on: 'change' respondToChange:
 		[:codeMirror :change | respondToChange: codeMirror. nil].
-	((textArea at: 'nextSibling') at: 'style') 
+	nil = enterResponse ifFalse:
+		[editor setOption: 'extraKeys' with:
+			(JSObject new
+				at: 'Enter' put: [:codeMirror | respondToEnter: codeMirror. nil];
+				yourself)].
+	((textArea at: 'nextSibling') at: 'style')
 		at: 'height' put: 'unset';
 		at: 'width' put: '100%';
 		at: 'fontFamily' put: 'TimesNewRoman';
@@ -205,6 +211,10 @@ respondToChange: event <Alien[Event]> = (
 	nil = changeResponse
 		ifTrue: [defaultChangeResponse]
 		ifFalse: [changeResponse cull: self cull: event]
+)
+respondToEnter: event <Alien[Event]> = (
+	nil = enterResponse
+		ifFalse: [enterResponse cull: self cull: event]
 )
 public showMessage: message <String> = (
 	message out.

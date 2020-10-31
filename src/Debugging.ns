@@ -213,8 +213,11 @@ public className = (
 public createPresenter = (
 	^ActivationPresenter onSubject: self
 )
-public evaluate: expression <String> ^<ThreadMirror> = (
-	^model evaluate: expression with: ide theWorkspaceManager evaluationScope
+public evaluate: expression <String> suspended: suspended <Boolean> ^<ThreadMirror> = (
+	| thread |
+	thread:: model evaluateSuspended: expression with: ide theWorkspaceManager evaluationScope.
+	suspended ifFalse: [thread resume].
+	^thread
 )
 public homeMirror ^<ActivationMirror> = (
 	| result ::= model. |
@@ -431,11 +434,17 @@ public includesActivation: activation <ActivationMirror> = (
 		 a:: a sender].
 	^false
 )
+public isBroken = (
+	^model isBroken
+)
 public isFulfilled = (
 	^model isFulfilled
 )
 public isKindOfThreadSubject ^<Boolean> = (
 	^true
+)
+public isSuspended = (
+	^model isSuspended
 )
 public refreshActivationChain ^<List[ActivationSubject]> = (
 	| oldActivations newActivations activation overlapSize |

@@ -804,43 +804,58 @@ row1: row1 row2: row2 = (
 )
 public class EvaluationPresenter onSubject: s <ObjectSubject | ActivationSubject> = ProgrammingPresenter onSubject: s (
 	|
-	resultHolder
+	editor
+	results
 	|
 ) (
+addDiscardIfNeeded = (
+	results presenters isEmpty ifTrue:
+		[results add: discardResultsDefinition].
+)
+clearResults = (
+	results presenters: {}.
+)
 definition = (
 	^column: {
 		row: {
-			editorDefinition
+			editor:: editorDefinition
 				width: 0 elasticity: 1.
 			smallBlank.
-			button: 'Eval' action: [respondToEvaluate].
+			button: 'Evaluate' action: [respondToEvaluate: false].
 			smallBlank.
-			button: 'Debug' action: [respondToDebug].
+			button: 'Debug' action: [respondToEvaluate: true].
 		}.
-		resultHolder:: holder: [nothing].
+		results:: list: {}.
+	}
+)
+discardResultsDefinition = (
+	^row: {
+		filler.
+		(link: 'discard results' action: [clearResults]) (* tinyFont *)
 	}
 )
 editorDefinition ^ <CodeMirrorFragment> = (
 	| initialSource cm <CodeMirrorFragment> |
 	initialSource:: ''.
-	cm:: (codeMirror: initialSource) changeResponse:
+	cm:: (codeMirror: initialSource).
+	cm changeResponse:
 		[:editor <CodeMirrorFragment>  |
 		| src <String> =  editor textBeingAccepted. |
-		resultHolder content: (evaluate: (withoutNbsp: src)).
 		ide colorizer colorizeDoIt: src fromClass: nil via: (colorizingBlockFor: editor)].
+	cm enterResponse:
+		[:editor <CodeMirrorFragment> |
+		 respondToEvaluate: false].
 	ide colorizer colorizeDoIt: initialSource fromClass: nil via: (colorizingBlockFor: cm).
 	^cm
 )
-evaluate: expression <String> ^<Fragment> = (
+evaluate: expression <String> suspended: suspended <Boolean> ^<Fragment> = (
 	| thread <ThreadMirror> |
-	expression isEmpty ifTrue: [^nothing].
 
-	[thread:: subject evaluate: expression]
+	[thread:: subject evaluate: expression suspended: suspended]
 		on: Error do: [:e | ^linkForCompileError: e].
 
-	thread isFulfilled ifTrue: [^linkForResult: thread].
-	thread isBroken ifTrue: [^linkForError: thread].
-	^nothing
+	^EvaluationResultPresenter onSubject:
+		(ide debugging ThreadSubject onModel: thread)
 )
 linkForCompileError: error <Exception> = (
 	^column: {
@@ -850,25 +865,40 @@ linkForCompileError: error <Exception> = (
 				color: (Color r: 1 g: 0 b: 0).
 	}
 )
-linkForError: thread <ThreadMirror> = (
-	^column: {
-		smallBlank.
-		(link: thread result reflectee printString action:
-			[enterSubject:: ide debugging ThreadSubject onModel: thread])
-				color: (Color r: 1 g: 0 b: 0).
-	}
-)
-linkForResult: thread <ThreadMirror> = (
-	^column: {
-		smallBlank.
-		(link: thread result reflectee printString action:
-			[enterSubject:: ObjectSubject onModel: thread result]).
-	}
+respondToEvaluate: suspended <Boolean> = (
+	| src = editor textBeingAccepted. |
+	addDiscardIfNeeded.
+	results addFirst: (evaluate: (withoutNbsp: src) suspended: suspended).
+	ide colorizer colorizeDoIt: src fromClass: nil via: (colorizingBlockFor: editor)
 )
 withoutNbsp: string = (
 	| bytes = ByteArray withAll: string. |
 	1 to: bytes size do: [:index | (bytes at: index) = 160 ifTrue: [bytes at: index put: 32]].
 	^bytes asString
+)
+) : (
+)
+class EvaluationResultPresenter onSubject: s <ThreadSubject> = ProgrammingPresenter onSubject: s (
+) (
+definition = (
+	^holder: [definitionX]
+)
+definitionX = (
+	subject isFulfilled ifTrue:
+		[^link: subject threadMirror result reflectee printString
+		  action: [enterSubject:: ObjectSubject onModel: subject threadMirror result]].
+
+	subject isBroken ifTrue:
+		[^(link: subject threadMirror result reflectee printString
+		   action: [enterSubject:: subject])
+			color: (Color r: 1 g: 0 b: 0)].
+
+	subject isSuspended ifTrue:
+		[^(link: subject refreshActivationChain first title
+		   action: [enterSubject:: subject])
+			color: (Color r: 1 g: 0 b: 0)].
+
+	^label: 'Unknown state'
 )
 ) : (
 )
@@ -1791,8 +1821,11 @@ public classSubject = (
 public createPresenter = (
 	^ObjectPresenter onSubject: self
 )
-public evaluate: expression <String> ^<ThreadMirror> = (
-	^objectMirror evaluate: expression with: ide theWorkspaceManager evaluationScope
+public evaluate: expression <String> suspended: suspended <Boolean> ^<ThreadMirror> = (
+	| thread |
+	thread:: objectMirror evaluateSuspended: expression with: ide theWorkspaceManager evaluationScope.
+	suspended ifFalse: [thread resume].
+	^thread
 )
 public isModelKindOfArray ^<Boolean> = (
 	classMirror = (ClassMirror reflecting: Array) ifTrue: [^true].
