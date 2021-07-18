@@ -1,8 +1,10 @@
-import SimpleHTTPServer
-import SocketServer
+#!/usr/bin/env python3
 
-Handler = SimpleHTTPServer.SimpleHTTPRequestHandler
+import http.server
+import socketserver
+
+Handler = http.server.SimpleHTTPRequestHandler
 Handler.extensions_map[".wasm"] = "application/wasm"
-httpd = SocketServer.TCPServer(("", 1984), Handler)
+httpd = socketserver.TCPServer(("", 1984), Handler)
 print("Serving at http://localhost:1984/")
 httpd.serve_forever()

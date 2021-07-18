@@ -20,7 +20,7 @@ cd out
 ../primordialsoup/out/ReleaseX64/primordialsoup \
     ../primordialsoup/out/snapshots/CompilerApp.vfuel \
     *.ns \
-    RuntimeWithMirrorsForPrimordialSoup WebCompiler WebCompiler.vfuel
+    RuntimeWithMirrors WebCompiler WebCompiler.vfuel
 ../primordialsoup/out/ReleaseX64/primordialsoup \
     WebCompiler.vfuel \
     *.ns \
@@ -28,8 +28,8 @@ cd out
     CodeMirror/lib/codemirror.js \
     CodeMirror/lib/codemirror_css.css \
     CodeMirror/addon/display/autorefresh.js \
-    RuntimeWithMirrorsForPrimordialSoup HopscotchIDE HopscotchIDE.vfuel \
-    RuntimeForPrimordialSoup Particles Particles.vfuel \
-    RuntimeWithMirrorsForPrimordialSoup TestRunner TestRunner.vfuel \
-    RuntimeForPrimordialSoup BenchmarkRunner BenchmarkRunner.vfuel
+    RuntimeWithMirrors HopscotchIDE HopscotchIDE.vfuel \
+    Runtime Particles Particles.vfuel \
+    RuntimeWithMirrors TestRunner TestRunner.vfuel \
+    Runtime BenchmarkRunner BenchmarkRunner.vfuel
 cd ..
