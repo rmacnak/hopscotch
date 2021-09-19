@@ -12,6 +12,7 @@ class Browsing usingPlatform: p ide: webIde = (
 	private WeakArray = p kernel WeakArray.
 	private List = p collections List.
 	private Map = p collections Map.
+	private OrderedMap = p collections OrderedMap.
 	private ClassMirror = p mirrors ClassMirror.
 	private ObjectMirror = p mirrors ObjectMirror.
 	private ClassDeclarationBuilder = p mirrors ClassDeclarationBuilder.
@@ -1062,6 +1063,18 @@ label: label radix: radix = (
 )
 ) : (
 )
+class JSAlienView onSubject: s = ProgrammingPresenter onSubject: s (
+) (
+public definition = (
+	^column:
+		(subject jsProperties collect:
+			[:slot <SlotSubject> | slot presenter])
+)
+public title = (
+	^'JavaScript'
+)
+) : (
+)
 class KeysAndValuesView title: t onSubject: s = ProgrammingPresenter onSubject: s (
 	|
 	public title <String> = t.
@@ -1728,7 +1741,9 @@ availableObjectViews = (
 	subject isModelKindOfInteger ifTrue:
 		[^{IntegerView onSubject: subject}].
 	subject isModelKindOfString ifTrue:
-		[^{StringView onSubject: subject}].
+		[^{StringView onSubject: subject. BasicView onSubject: subject}].
+	subject isModelKindOfJSAlien ifTrue:
+		[^{JSAlienView onSubject: subject. BasicView onSubject: subject}].
 
 	subject isModelKindOfList ifTrue:
 		[^{KeysAndValuesView title: 'List' onSubject: subject. BasicView onSubject: subject}].
@@ -1752,20 +1767,11 @@ public definition = (
 	^column: {
 		captionBar: (column: {
 			selfInfoLine.
-			(* enclosingInfoLine. *)
 			classInfoLine.
 			smallBlank.
 			EvaluationPresenter onSubject: subject.
 		}).
 		objectDetails.
-	}
-)
-enclosingInfoLine = (
-	^row: {
-		(label: 'enclosingObject')
-			width: 0 elasticity: 1.
-		(link: subject enclosingObjectName action: [navigateToEnclosingObject])
-			width: 0 elasticity: detailAreaRatio.
 	}
 )
 navigateToClass = (
@@ -1833,16 +1839,44 @@ public isModelKindOfArray ^<Boolean> = (
 	^false
 )
 public isModelKindOfInteger ^<Boolean> = (
+	(* bogus - should not send message to inspectee *)
 	^objectMirror reflectee isKindOfInteger
+)
+public isModelKindOfJSAlien ^<Boolean> = (
+	(* bogus - should not send message to inspectee *)
+	^objectMirror reflectee isKindOfJSAlien
 )
 public isModelKindOfList ^<Boolean> = (
 	^classMirror = (ClassMirror reflecting: List)
 )
 public isModelKindOfMap ^<Boolean> = (
-	^classMirror = (ClassMirror reflecting: Map)
+	classMirror = (ClassMirror reflecting: Map) ifTrue: [^true].
+	classMirror = (ClassMirror reflecting: OrderedMap) ifTrue: [^true].
+	^false
 )
 public isModelKindOfString ^<Boolean> = (
 	^classMirror = (ClassMirror reflecting: String)
+)
+public jsProperties ^<Collection[SlotSubject]> = (
+	| result propertyNames |
+	result:: List new.
+	(* Object.getPrototypeOf(undefined) throws *)
+	objectMirror reflectee isUndefined ifTrue: [^result].
+	result add:
+		(SlotSubject name: '[[Prototype]]' value:
+			(ObjectMirror reflecting: (JSObject getPrototypeOf: objectMirror reflectee))).
+	propertyNames:: JSObject getOwnPropertyNames: objectMirror reflectee.
+	0 to: (propertyNames at: #length) - 1 do:
+		[:index |
+		 |
+		 name = propertyNames at: index.
+		 descriptor = JSObject getOwnPropertyDescriptor: objectMirror reflectee with: name.
+		 |
+		 descriptor isUndefined ifFalse:
+			[result add:
+				(SlotSubject name: name value:
+					(ObjectMirror reflecting: (descriptor at: #value)))]].
+	^result
 )
 public keysAndValues ^<Collection[SlotSubject]> = (
 	| result |
@@ -1874,14 +1908,10 @@ public slots ^<Collection[SlotSubject]> = (
 	^result
 )
 slotsX ^<Collection[SlotSubject]> = (
-	(* Arrays have slots that aren't defined by their class. *)
-	(* :todo: Push this down to `ObjectMirror slots` because which classes this applies to is implementation specific. *)
-	isModelKindOfArray ifTrue: [^keysAndValues].
-
-	^classMirror slots collect:
-		[:slot <SlotDeclarationMirror> |
-		 | val <ObjectMirror> = objectMirror getSlot: slot name. |
-		 SlotSubject name: slot name value: val]
+	^objectMirror slots collect:
+		[:slotMirror | | name ::= slotMirror name. |
+		 name isKindOfInteger ifTrue: [name:: 'at: ', name asString].
+		 SlotSubject name: name value: slotMirror value]
 )
 public title = (
 	^objectMirror reflectee printString
@@ -2062,6 +2092,9 @@ public definition = (
 	^column: {
 		editor
 	}
+)
+public title = (
+	^'String'
 )
 ) : (
 )
