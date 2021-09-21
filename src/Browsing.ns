@@ -12,6 +12,7 @@ class Browsing usingPlatform: p ide: webIde = (
 	private WeakArray = p kernel WeakArray.
 	private List = p collections List.
 	private Map = p collections Map.
+	private Set = p collections Set.
 	private OrderedMap = p collections OrderedMap.
 	private ClassMirror = p mirrors ClassMirror.
 	private ObjectMirror = p mirrors ObjectMirror.
@@ -321,6 +322,7 @@ classActionsMenu = (
 	^menuWithLabelsAndActions: {
 		{'Inspect Mirror'. [inspectObject: subject classMirror]}.
 		{'Inspect Presenter'. [respondToInspectPresenter]}.
+		{'Inspect Instances'. [respondToInspectInstances]}.
 		{'Delete'. [respondToDelete]}.
 	}
 )
@@ -346,6 +348,18 @@ classNameAndContainmentDefinition ^<Fragment> = (
 		refreshButton.
 	}
 )
+classes: classes labelled: name = (
+	| parts = List new. |
+	parts add: (label: name).
+	classes do:
+		[:each |
+		 parts add: smallBlank.
+		 parts add: (link: each name action: [enterSubject: each])].
+	classes isEmpty ifTrue:
+		 [parts add: smallBlank.
+		  parts add: (label: '(none)')].
+	^flow: parts
+)
 public definition ^<Fragment> = (
 	^column: {
 		headingDefinition.
@@ -357,8 +371,12 @@ public definition ^<Fragment> = (
 	}
 )
 headingDefinition ^<Fragment> = (
-	^(padded: classNameAndContainmentDefinition with: {10. 5. 10. 5.})
-		color: (Color h: 240 s: 0.05 v: 0.9).
+	^(padded: (column: {
+		classNameAndContainmentDefinition.
+		smallBlank.
+		classes: subject superclassSubjects labelled: 'Superclasses:'.
+		classes: subject subclassSubjects labelled: 'Subclasses:'.
+	}) with: {10. 5. 10. 5.}) color: (Color h: 240 s: 0.05 v: 0.9).
 )
 minorClassHeadingBlock: body = (
 	^(padded: body with: {10. 5. 10. 5.})
@@ -379,6 +397,13 @@ respondToDelete = (
 	| enclosing = subject enclosingClassSubject. |
 	subject deleteClass.
 	enterSubject: enclosing.
+)
+respondToInspectInstances = (
+	| instances = List new. |
+	subject classMirror instanceSide applications do:
+		[:application | application instances reflectee do:
+			[:instance | instances add: instance]].
+	inspectObject: instances.
 )
 sectionLabelled: title <String> presenting: groupSubject <MirrorGroupSubject> = (
 	| groupPresenter = groupSubject presenter. |
@@ -477,6 +502,24 @@ public nestedClassesSubject ^ <NestedClassGroupSubject> = (
 )
 public primaryFactorySelector = (
 	^model header primaryFactorySelector
+)
+public subclassSubjects = (
+	| them ::= Set new. |
+	classMirror instanceSide applications do:
+		[:each | each subclasses do:
+			[:each | them add: each mixin declaration]].
+	them:: them asArray.
+	them sort: [:a :b | lexicallyLessOrEqual: a name than: b name].
+	^them collect: [:each | ClassSubject onModel: each]
+)
+public superclassSubjects = (
+	| them ::= Set new. |
+	classMirror instanceSide applications do:
+		[:each | nil = each superclass ifFalse:
+			[them add: each superclass mixin declaration]].
+	them:: them asArray.
+	them sort: [:a :b | lexicallyLessOrEqual: a name than: b name].
+	^them collect: [:each | ClassSubject onModel: each]
 )
 public title = (
 	^name
@@ -1542,6 +1585,7 @@ actionsMenu = (
 	^menuWithLabelsAndActions: {
 		{'Inspect Mirror'. [respondToInspectMirror]}.
 		{'Inspect Presenter'. [respondToInspectPresenter]}.
+		{'References to this object'. [respondToReferences]}.
 	}
 )
 availableObjectViews = (
@@ -1603,6 +1647,9 @@ objectDetails = (
 )
 respondToInspectMirror = (
 	inspectObject: subject objectMirror.
+)
+respondToReferences = (
+	shell enterPresenter: ((ReverseObjectPresenter onSubject: subject) selfCaption: 'references to').
 )
 selfInfoLine = (
 	^row: {
@@ -1701,6 +1748,22 @@ public keysAndValues ^<Collection[SlotSubject]> = (
 )
 public objectMirror ^<ObjectMIrror> = (
 	^model
+)
+public references ^<Collection[SlotSubject]> = (
+	| result |
+	result:: List new.
+	objectMirror referringObjects reflectee do:
+		[:referringObject |
+		 | m = ObjectMirror reflecting: referringObject. |
+		 m getClass = objectMirror ifTrue:
+		 	[result add:
+				(SlotSubject name: '<class>' value: m)].
+		 m slots do:
+			[:slot |
+			 slot value = objectMirror ifTrue:
+				[result add:
+					(SlotSubject name: slot name value: m)]]].
+	^result
 )
 public slots ^<Collection[SlotSubject]> = (
 	| result enclosing |
@@ -1851,6 +1914,34 @@ smallBlank = (
 )
 tertiaryTextColor = (
 	^Color gray: 0.8
+)
+) : (
+)
+class ReverseObjectPresenter onSubject: s = ObjectPresenter onSubject: s (
+) (
+public definition = (
+	^column: {
+		captionBar: (column: {
+			selfInfoLine.
+		}).
+		objectDetails.
+	}
+)
+objectDetails = (
+	^column:
+		(subject references collect:
+			[:slot <SlotSubject> | ReverseSlotPresenter onSubject: slot])
+)
+public title = (
+	^'References to ', subject title
+)
+) : (
+)
+class ReverseSlotPresenter onSubject: s = SlotPresenter onSubject: s (
+) (
+details ^<Fragment> = (
+	^(ReverseObjectPresenter onSubject: (objectSubjectForMirror: subject objectMirror))
+		selfCaption: subject name
 )
 ) : (
 )

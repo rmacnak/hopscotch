@@ -876,6 +876,9 @@ expanded: expanded <[Fragment]> collapsed: collapsed <[Fragment]> ^<Fragment> = 
 filler = (
 	^BlankFragment new expansibility: 1; compressibility: 1
 )
+flow: definitions = (
+	^(row: definitions) flow
+)
 holder: def <Fragment | [Fragment]> = (
 	^HolderComposer withContent: def
 )
@@ -1178,6 +1181,7 @@ class SequenceComposer definitions: fs <List[Fragment]> = Composer (|
 	protected alignItems ::= 'center'.
 	protected childAlignSelf ::= 'center'.
 	protected justifyContent ::= 'flex-start'.
+	protected flexWrap ::= ''.
 |) (
 public childrenDo: aBlock = (
 	definitions do: aBlock
@@ -1189,6 +1193,7 @@ createVisual ^ <Alien[HTMLElement]> = (
 		at: 'overflow' put: 'hidden';
 		at: 'display' put: 'flex';
 		at: 'flex-direction' put: flexDirection;
+		at: 'flex-wrap' put: flexWrap;
 		at: 'align-content' put: alignItems;
 		at: 'justify-content' put: justifyContent.
 	nil = color ifFalse:
@@ -1223,6 +1228,9 @@ public crossAxisAlignToStart = (
 public crossAxisStretch = (
 	alignItems:: 'stretch'.
 	childAlignSelf:: nil.
+)
+public flow = (
+	flexWrap:: 'wrap'.
 )
 public mainAxisAlignToCenter = (
 	justifyContent:: 'center'.
