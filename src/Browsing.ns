@@ -114,107 +114,6 @@ respondToRunTests = (
 )
 ) : (
 )
-class ClassCommentPresenter onSubject: s <ClassSubject> = ProgrammingPresenter onSubject: s (
-|
-  editor
-  isEditing ::= false.
-  showPartialIfLong ::= true.
-  showingPartial
-|
-) (
-definition = (
-	^holder:
-		[isEditing
-			ifTrue: [editorDefinition]
-			ifFalse: [viewerDefinition]]
-)
-definitionText = (
-	(* In this class, only used by the editor side of the presenter to get the text to show in the editor. *)
-
-	^fullCommentText
-)
-editorDefinition = (
-	editor:: TextEditorFragment new.
-	editor
-		text: definitionText;
-		cancelResponse: [respondToCancel];
-		acceptResponse: [respondToAccept];
-		enterEditState.
-	^editor
-)
-enterEditState = (
-	isEditing:: true.
-	refresh
-)
-fullCommentText = (
-	^subject classCommentText asString
-)
-hash = (
-	^self identityHash
-)
-public leaveEditState = (
-	isEditing:: false.
-	refresh
-)
-maybePartialCommentText ^<String> = (
-  ^fullCommentText size > 500 ifTrue: [
-	showingPartial:: true.
-	subject classCommentSummary
-	] ifFalse: [
-	showingPartial:: false.
-	fullCommentText
-	]
-)
-presentationDefinition = (
-	| textToDisplay |
-	textToDisplay:: retrieveComment.
-	textToDisplay isEmpty ifTrue:
-		[textToDisplay:: '(no comment)'].
-	^column:
-		{textDisplay: textToDisplay.
-		showingPartial
-			ifTrue: [(link: 'show full comment' action: [showFullComment])]
-			ifFalse: [(link: 'hide full comment' action: [showLessComment])].
-		}
-)
-respondToAccept = (
-	subject classCommentText: editor textBeingAccepted. leaveEditState.
-)
-respondToCancel = (
-	leaveEditState
-)
-respondToEdit = (
-	enterEditState
-)
-retrieveComment ^<String> = (
-	(* Get the text to display--either the whole thing or the first paragraph, depending on the text and the settings--and set the showingPartial slot accordingly. *)
-
-	^showPartialIfLong
-		ifTrue:
-			[maybePartialCommentText]
-		ifFalse:
-			[showingPartial:: false.
-			fullCommentText]
-)
-showFullComment = (
-	showPartialIfLong:: false.
-	refresh
-)
-showLessComment = (
-	showPartialIfLong:: true.
-	refresh
-)
-viewerDefinition = (
-^
-	row: {
-		elastic:
-			presentationDefinition.
-		smallBlank.
-		(* linkImage:  editImage action: [respondToEdit]*)
-		}
-)
-) : (
-)
 class ClassEntryPresenter onSubject: s <ClassSubject> = EntryPresenter onSubject: s () (
 accessIndicator = (
 	^image: (iconForAccessModifier: subject accessModifier).
@@ -252,15 +151,18 @@ class ClassHeaderPresenter onSubject: s = ProgrammingPresenter onSubject: s (
 	public showClassName ::= false.
 	|
 ) (
-acceptResponse ^ <[:CodeMirrorFragment :Event]> = (
+acceptResponse ^<[:CodeMirrorFragment :Event]> = (
 	^[:ed <CodeMirrorFragment> :event <Event> |
-		| b <MixinBuilder> = subject methodMirror definingMixin asBuilder. |
+		| b <ClassDeclarationBuilder> = subject classDeclaration asBuilder. |
 		(*('ed text:', ed textBeingAccepted) out.*)
-		b methods addFromSource: ed textBeingAccepted.
-		b declaration install.
+		b header source: ed textBeingAccepted.
+		b install.
 		colorizeHeaderSource: ed textBeingAccepted withEditor: ed.
 		ed leaveEditState.
 		]
+)
+accessIndicator = (
+	^image: (iconForAccessModifier: subject accessModifier).
 )
 actionMenu = (
 	^dropDownMenu:
@@ -268,7 +170,7 @@ actionMenu = (
 			{{'Delete ', subject name. [subject delete. refresh]}.
 			 {'Inspect Presenter'. [respondToInspectPresenter]}}]
 )
-changeResponse ^ <[:CodeMirrorFragment :Event]> = (
+changeResponse ^<[:CodeMirrorFragment :Event]> = (
 	^[:ed <CodeMirrorFragment> :event <Event> | | cp <Integer> |
 		colorizeHeaderSource: ed textBeingAccepted withEditor: ed.
 		ed enterEditState.
@@ -280,19 +182,20 @@ public collapse = (
 colorizeHeaderSource: s <String> withEditor: cm <CodeMirrorFragment> = (
 	ide colorizer colorizeHeader: s fromClass: subject classDeclaration via: (colorizingBlockFor: cm)
 )
-public definition ^ <Fragment> = (
+public definition ^<Fragment> = (
 	| toggle |
 	toggle::
 		collapsed:
 			[row: {
-				image: (iconForAccessModifier: subject accessModifier).
+				accessIndicator.
 				blank: 3.
-				(link: subject name action: [toggle expand]) color: actionLinkColor.
+				(link: subject primaryFactoryName action: [toggle expand]) color: actionLinkColor.
 				nestingInformationLine.
 				filler.
 				referencesMenu.
 				smallBlank.
-				dropDownMenu: [methodMenuFor: subject name]
+				actionMenu.
+				smallBlank.
 			}]
 		expanded:
 			[ |  src = subject source. cm = codeMirror: src. |
@@ -300,14 +203,15 @@ public definition ^ <Fragment> = (
 			colorizeHeaderSource: src withEditor: cm.
 			column: {
 				row: {
-					image: (iconForAccessModifier: subject accessModifier).
+					accessIndicator.
 					blank: 3.
-					(link: subject name action: [toggle collapse]) color: actionLinkColor.
+					(link: subject primaryFactoryName action: [toggle collapse]) color: actionLinkColor.
 					nestingInformationLine.
 					filler.
 					referencesMenu.
 					smallBlank.
 					actionMenu.
+					smallBlank.
 				}.
 				cm
 			}].
@@ -322,11 +226,12 @@ linkToBrowseEnclosing: mixin <MixinMirror> = (
 		color: secondaryTextColor
 )
 nestingInformationLine = (
-	| enclosingClasses rowElements |
+	| rowElements |
 	showClassName ifFalse: [^nothing].
-	enclosingClasses:: subject enclosingClasses.
 	rowElements:: List new.
-	enclosingClasses do:
+	rowElements add: ((label: ' in ') color: tertiaryTextColor).
+	rowElements add: (linkToBrowseEnclosing: subject classDeclaration instanceSide).
+	subject enclosingClasses do:
 		[:each |
 		rowElements add: ((label: ' in ') color: tertiaryTextColor).
 		rowElements add: (linkToBrowseEnclosing: each)].
@@ -379,6 +284,9 @@ public messages = (
 public name = (
 	^model name
 )
+public primaryFactoryName = (
+	^model primaryFactorySelector
+)
 public source = (
 	^model source
 )
@@ -386,30 +294,9 @@ public source = (
 )
 class ClassPresenter onSubject: s = ProgrammingPresenter onSubject: s (
 |
-descriptionOrSourceSwitcherHolder
-descriptionOrSourceHolder
 public showClassName ::= false.
 |
 ) (
-acceptResponse ^ <[:CodeMirrorFragment :Event]> = (
-	^[:ed <CodeMirrorFragment> :event <Event> |
-		| b <ClassDeclarationBuilder> = subject classMirror asBuilder. |
-		(*('ed text:', ed textBeingAccepted) out.*)
-		b header source: ed textBeingAccepted.
-		b install.
-		colorizeHeaderSource: ed textBeingAccepted withEditor: ed.
-		ed leaveEditState.
-		]
-)
-accessIndicator = (
-	^image: (iconForAccessModifier: subject accessModifier).
-)
-changeResponse ^ <[:CodeMirrorFragment :Event]> = (
-	^[:ed <CodeMirrorFragment> :event <Event>  |  | cp <Integer> |
-		colorizeHeaderSource: ed textBeingAccepted withEditor: ed.
-		ed enterEditState.
-	  ]
-)
 classActionsMenu = (
 	^menuWithLabelsAndActions: {
 		{'Inspect Mirror'. [inspectObject: subject classMirror]}.
@@ -417,101 +304,46 @@ classActionsMenu = (
 		{'Delete'. [respondToDelete]}.
 	}
 )
-classDescriptionDefinition = (
-	| slotList <Fragment> |
-	^column: {
-		ClassCommentPresenter onSubject: subject.
-		mediumBlank.
-           (slotList:: subject classMirror instanceSide slots) size > 0
-		   ifTrue: [
-			column: {
-				label: 'Slots'.
-				row: {
-					mediumBlank.
-					column: (slotList collect: [:ea | label: ea name]).
-				}
-			}.
-		] ifFalse: [nothing].
-		initializerDefinition.
-		}
-)
-classNameAndContainmentDefinition ^ <Fragment> = (
+classNameAndContainmentDefinition ^<Fragment> = (
 	| parts <List[Fragment]> |
 	parts:: List new.
 	subject enclosingClassSubjects
 		do: [:ecs | parts add: (link: ecs name action: [enterSubject:: ecs])]
-		separatedBy: [parts add: ( label: ' in ')].
-	^column: {
-		row: {
-			blank: 5.
-			image: ide images classIcon.
-			blank: 5.
-			row: parts.
-			filler.
-			ClassActionsPresenter onSubject: subject.
-			smallBlank.
-			referencesMenu.
-			smallBlank.
-			dropDownMenu: [classActionsMenu].
-			largeBlank.
-			homeButton.
-			smallBlank.
-			refreshButton.
-			smallBlank.
-		}.
-		preambleLine.
-		label: subject classCommentSummary.
-	}
-)
-classSourceDefinition = (
-	| src = subject classHeaderSource. editor = codeMirror: src. |
-	editor changeResponse: changeResponse;
-		acceptResponse: acceptResponse.
-	colorizeHeaderSource: src withEditor: editor.
-	^editor
-)
-collapsedHeadingDefinition = (
+		separatedBy: [parts add: (label: ' in ')].
 	^row: {
 		blank: 5.
 		image: ide images classIcon.
 		blank: 5.
-		link: subject name action: [enterSubject:: ClassSubject onModel: subject classMirror (* Why do we need a copy? *)]
-		}.
+		row: parts.
+		filler.
+		ClassActionsPresenter onSubject: subject.
+		smallBlank.
+		referencesMenu.
+		smallBlank.
+		dropDownMenu: [classActionsMenu].
+		largeBlank.
+		homeButton.
+		smallBlank.
+		refreshButton.
+		smallBlank.
+	}
 )
-colorizeHeaderSource: s <String> withEditor: cm <CodeMirrorFragment> = (
-	ide colorizer colorizeHeader: s fromClass: subject classMirror via: (colorizingBlockFor: cm)
-)
-public definition ^ <Fragment> = (
+public definition ^<Fragment> = (
 	^column: {
 		headingDefinition.
+		minorClassHeadingBlock: (label: 'Header').
+		subject classHeaderSubject presenter.
 		sectionLabelled: 'Classes' presenting: subject nestedClassesSubject.
 		sectionLabelled: 'Methods' presenting: subject methodsSubject.
 		sectionLabelled: 'Class Methods' presenting: subject classMethodsSubject.
 	}
 )
-expandedHeadingDefinition ^ <Fragment> = (
-	|  slotList <Fragment> |
+headingDefinition ^<Fragment> = (
 	^(column: {
-		blank: 5.
 		classNameAndContainmentDefinition.
-		blank: 15.
-		descriptionOrSourceSwitcherHolder:: holder: (switcherShowingSource: false).
-		(row: {}) color: (Color gray: 0.8).
-		mediumBlank.
-		descriptionOrSourceHolder:: holder: (classDescriptionDefinition)
-	})
-)
-headingDefinition ^ <Fragment> = (
-	^(column: {
-		expanded: [expandedHeadingDefinition]
-		collapsed: [collapsedHeadingDefinition].
+		smallBlank.
+		label: subject classCommentSummary.
 	}) color: (Color h: 240 s: 0.05 v: 0.9).
-)
-initializerDefinition ^ <Fragment> = (
-	^nothing
-)
-inspectSelf ^ <Fragment> = (
-	^row: {filler. link: 'Inspect Presenter' action: [enterSubject:: ObjectSubject onModel: (ObjectMirror reflecting: self)]}
 )
 minorClassHeadingBlock: body = (
 	^(padded: body with: {10. 5. 10. 5.})
@@ -521,37 +353,6 @@ minorClassHeadingColor = (
 	^Gradient
 		from: (Color h: 240 s: 0.02 v: 0.94)
 		to: (Color h: 240 s: 0.02 v: 0.9)
-)
-nestedClass: cdm = (
-	^collapsed: [row: {
-					image: (iconForAccessModifier: cdm accessModifier).
-					blank: 3.
-					link: cdm simpleName action: [enterSubject:: ClassSubject onModel: cdm]
-					}
-				]
-	expanded: [(ClassSubject onModel: cdm) presenter]
-)
-preambleLine = (
-	(* The line showing the class constructor syntax, e.g. 'Foo foo: x = Bar'. The superclass clause, if present, becomes a link to browse the superclass. *)
-
-	| preamble <String> equalIndex <Integer> prefix <String> suffix <String> |
-	preamble:: subject classMirror header preamble.
-	equalIndex:: preamble indexOf: "=".
-	equalIndex = 0
-		ifTrue:
-			[prefix:: preamble.
-			suffix:: '']
-		ifFalse:
-			[prefix:: (preamble copyFrom: 1 to: equalIndex - 1).
-			suffix:: (preamble copyFrom: equalIndex + 1 to: preamble size)].
-	^suffix isEmpty
-		ifTrue:
-			[label: prefix]
-		ifFalse:
-			[row: {
-				label: prefix, ' = '.
-				link: suffix action: [respondToBrowseSuperclass]
-				}]
 )
 referencesMenu = (
 	^referencesMenu:
@@ -565,9 +366,8 @@ respondToDelete = (
 	enterSubject: enclosing.
 )
 sectionLabelled: title <String> presenting: groupSubject <MirrorGroupSubject> = (
-	| groupPresenter |
-^
-	column: {
+	| groupPresenter = groupSubject presenter. |
+	^column: {
 		minorClassHeadingBlock: (
 			row: {
 				label: title.
@@ -579,32 +379,8 @@ sectionLabelled: title <String> presenting: groupSubject <MirrorGroupSubject> = 
 				collapseButtonWithAction: [groupPresenter collapseAll].
 				}
 			).
-		groupPresenter:: groupSubject presenter.
+		groupPresenter.
 		}
-)
-switchToDescription = (
-	descriptionOrSourceSwitcherHolder content: (switcherShowingSource: false).
-	descriptionOrSourceHolder content: classDescriptionDefinition.
-)
-switchToSource = (
-	descriptionOrSourceSwitcherHolder content: (switcherShowingSource: true).
-	descriptionOrSourceHolder content: classSourceDefinition.
-	descriptionOrSourceHolder refresh.
-)
-switcherShowingSource: showingSourceNow <Boolean> ^ <Fragment> = (
-	^showingSourceNow
-		ifTrue:
-			[row: {
-				(link: 'Description' action: [switchToDescription]).
-				mediumBlank.
-				(label: 'Source').
-			}]
-		ifFalse:
-			[row: {
-				(label: 'Description').
-				mediumBlank.
-				(link: 'Source' action: [switchToSource]).
-			}]
 )
 ) : (
 )
@@ -631,6 +407,9 @@ public classCommentText ^<String> = (
 )
 public classHeaderSource = (
 	^classMirror header source
+)
+public classHeaderSubject = (
+	^ClassHeaderSubject onModel: classMirror header
 )
 public classMethodsSubject ^ <MethodGroupSubject> = (
 	^MethodGroupSubject onModel: classMirror classSide methods within: classMirror classSide
@@ -684,8 +463,6 @@ public messages = (
 	sent sort: [:a :b | lexicallyLessOrEqual: a than: b].
 	result addAll: sent.
 	^result
-
-
 )
 public methodsSubject ^ <MethodGroupSubject> = (
 	^MethodGroupSubject onModel: classMirror instanceSide methods within: classMirror instanceSide
@@ -695,6 +472,9 @@ public name = (
 )
 public nestedClassesSubject ^ <NestedClassGroupSubject> = (
 	^NestedClassGroupSubject onModel: classMirror instanceSide nestedClasses within: classMirror instanceSide
+)
+public primaryFactorySelector = (
+	^model header primaryFactorySelector
 )
 public title = (
 	^name
@@ -1193,6 +973,9 @@ acceptResponse ^ <[:CodeMirrorFragment :Event]> = (
 		ed leaveEditState.
 		]
 )
+accessIndicator = (
+	^image: (iconForAccessModifier: subject accessModifier).
+)
 actionMenu = (
 	^dropDownMenu:
 		[menuWithLabelsAndActions:
@@ -1216,14 +999,15 @@ public definition ^ <Fragment> = (
 	toggle::
 		collapsed:
 			[row: {
-				image: (iconForAccessModifier: subject accessModifier).
+				accessIndicator.
 				blank: 3.
 				(link: subject name action: [toggle expand]) color: actionLinkColor.
 				nestingInformationLine.
 				filler.
 				referencesMenu.
 				smallBlank.
-				dropDownMenu: [methodMenuFor: subject name]
+				actionMenu.
+				smallBlank.
 			}]
 		expanded:
 			[ |  src = subject source. cm = codeMirror: src. |
@@ -1231,7 +1015,7 @@ public definition ^ <Fragment> = (
 			colorizeMethodSource: src withEditor: cm.
 			column: {
 				row: {
-					image: (iconForAccessModifier: subject accessModifier).
+					accessIndicator.
 					blank: 3.
 					(link: subject name action: [toggle collapse]) color: actionLinkColor.
 					nestingInformationLine.
@@ -1239,6 +1023,7 @@ public definition ^ <Fragment> = (
 					referencesMenu.
 					smallBlank.
 					actionMenu.
+					smallBlank.
 				}.
 				cm
 			}].
