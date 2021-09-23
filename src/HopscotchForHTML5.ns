@@ -319,10 +319,14 @@ toggleContent = (
 updateContent ^ <Alien[Element]> = (
 	| menuContent <Alien[Div]> |
 	menuContent:: computeContentForMenu: menuSupplier.
-	(menuContent at: 'style') 
+	(menuContent at: 'style')
 	   at: alignment put: 0;
 	   at: 'display' put: 'block'.
 	visual appendChild: menuContent.
+	menuContent addEventListener: 'blur' action:
+		[:event | visual removeChild: menuContent. menuActive:: false. nil].
+	menuContent at: 'tabIndex' put: 0.
+	menuContent focus.
 	^menuContent
 )
 ) : (
@@ -932,6 +936,10 @@ openMenu: aMenu <Menu> ^ <Alien[Div]> = (
 	visual appendChild: menuContent.
 	menuContent addEventListener: 'click' action:
 		[:event | visual removeChild: menuContent. nil].
+	menuContent addEventListener: 'blur' action:
+		[:event | visual removeChild: menuContent. nil].
+	menuContent at: 'tabIndex' put: 0.
+	menuContent focus.
 	^menuContent
 (* so the issue here is to actually open a menu that was not in the tree before? And how to close it*)
 )
