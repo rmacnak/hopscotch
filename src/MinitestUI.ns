@@ -1,5 +1,5 @@
+(* Hopscotch UI for unit testing using Minitest. *)
 class MinitestUI usingPlatform: platform minitest: minitest ide: ide = (
-	(* Hopscotch UI for unit testing using Minitest. *)
 	|
 	private List = platform collections List.
 	private Map = platform collections Map.
@@ -20,8 +20,8 @@ class MinitestUI usingPlatform: platform minitest: minitest ide: ide = (
 	private minitest = minitest.
 	|
 ) (
-class TestResultListPresenter onSubject: s = AssortedMethodsPresenter onSubject: s (
 (* A presenter for a list of TestResults, such as a list of successes or failures of a test run. *)
+class TestResultListPresenter onSubject: s = AssortedMethodsPresenter onSubject: s (
 ) (
 public collapseAll = (
   respondToCollapse: content presenters
@@ -42,8 +42,8 @@ runAll = (
 )
 ) : (
 )
-class TestResultListSubject onModel: list = Subject onModel: list (
 (* The subject of a list of test results, such as a list of successes or failures of a test run. The model is a list of TestResult instances. *)
+class TestResultListSubject onModel: list = Subject onModel: list (
 ) (
 public createPresenter = (
 	^TestResultListPresenter onSubject: self
@@ -56,8 +56,8 @@ public results = (
 )
 ) : (
 )
-class TestResultPresenter onSubject: s = ProgrammingPresenter onSubject: s (
 (* Shows a single TestResult as an expandable selector of the method defining the test. If the result is a failure, also shows the description of the failure. *)
+class TestResultPresenter onSubject: s = ProgrammingPresenter onSubject: s (
 |
 	public showIndicatorBar <Boolean> ::= true.
 	methodPresenterSlot <ExpandableMethodPresenter>
@@ -130,8 +130,8 @@ statusColor ^ <Color> = (
 )
 ) : (
 )
-class TestResultSubject onModel: m <TestResult> = Subject onModel: m (
 (* The subject for presenting a single TestResult. *)
+class TestResultSubject onModel: m <TestResult> = Subject onModel: m (
 ) (
 public = x <Object> ^ <Boolean> = (
 	x class = class ifFalse: [^false].
@@ -176,8 +176,8 @@ public testCase = (
 )
 ) : (
 )
-class TestingInProgressPresenter onSubject: subject = Presenter onSubject: subject (
 (* Presents a Tester in the process of running tests. *)
+class TestingInProgressPresenter onSubject: subject = Presenter onSubject: subject (
 |
 	progressBar
 	currentSelector
@@ -190,7 +190,7 @@ definition = (
 	errorCountHolder:: holder: [nothing].
 	failureCountHolder:: holder: [nothing].
 	(* progressBar:: progress. *)
-	currentSelector:: label: 'no tests yet'.	
+	currentSelector:: label: 'no tests yet'.
 	^column: {
 		(* progressBar. *)
 		row: {label: 'Running '. currentSelector . label: '...'}.
@@ -226,8 +226,8 @@ tester = (
 )
 ) : (
 )
-public class TestingInProgressSubject tester: tester <Tester> configClass: configClass = Subject onModel: tester (
 (* Represents a Tester instance, in the process of running tests. *)
+public class TestingInProgressSubject tester: tester <Tester> configClass: configClass = Subject onModel: tester (
 |
 	public configClass = configClass.
 |) (
@@ -252,8 +252,8 @@ public onConfiguration: configClass <Class> platform: platform minitest: minites
 	^self tester: tester configClass: configClass.
 )
 )
-class TestingOutcomePresenter onSubject: s <TestingOutcomeSubject> = ProgrammingPresenter onSubject: s (
 (* Shows an outcome of running a suite of tests, as a page with separate sections for errors, failures and successes. *)
+class TestingOutcomePresenter onSubject: s <TestingOutcomeSubject> = ProgrammingPresenter onSubject: s (
 ) (
 definition ^ <Fragment> = (
 	^column: {

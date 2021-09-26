@@ -1,4 +1,3 @@
-class Namespacing usingPlatform: p ide: ide = (
 (* Unlike most languages, Newspeak has no global namespace. The IDE, however, as an extra-linguistic tool does provide a namespace. This namespace is stateless and only contains Values, typically top-level classes or other namespaces. It is used by an application definition in its #packageUsing: to collect the pieces of a program or by a test configuration in #packageTestsUsing:.
 
 Copyright 2008 Cadence Design Systems, Inc.
@@ -8,6 +7,7 @@ Copyright 2013 Google Inc.
 
 Licensed under the Apache License, Version 2.0 (the ''License''); you may not use this file except in compliance with the License.  You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
 *)
+class Namespacing usingPlatform: p ide: ide = (
 |
 	private ClassMirror = p mirrors ClassMirror.
 	private ObjectMirror = p mirrors ObjectMirror.
@@ -92,8 +92,8 @@ protected doesNotUnderstand: message <Message> = (
 )
 ) : (
 )
-class Namespace = (
 (* A mapping between unary selectors and Values. *)
+class Namespace = (
 |
 	protected _dictionary ::= Map new.
 |) (

@@ -1,7 +1,7 @@
-class Browsing usingPlatform: p ide: webIde = (
 (* An IDE for Newspeak on the web.
     Copyright 2016-2017 Google Inc.
 *)
+class Browsing usingPlatform: p ide: webIde = (
 |
 	private StringBuilder = p kernel StringBuilder.
 	private Subject = p hopscotch core Subject.
@@ -27,12 +27,12 @@ class Browsing usingPlatform: p ide: webIde = (
 	private cssConverter = cssConversionTable.
 |
 ) (
-public class AssortedMethodsPresenter onSubject: s = DefinitionListPresenter onSubject: s (
 (* The subject is a collection of MethodSubjects that can come from diverse sources (in the sense that they do not have to belong to the same class). The presenter displays them as a column of expandable method presenters and takes care of reasonably handling the various creation and deletion requests coming from them.  I group my methods by their containing package.
 
 Slots
 	title	<String>	The title to use for the presenter
 	methodPresenters <List[ExpandableMethodPresenter]> Because the method presenters are grouped by package, if we need to expand or collapse those presenters, we only want to expand or collapse the method presenters.  The group heading is not expandable (or collapsable). *)
+public class AssortedMethodsPresenter onSubject: s = DefinitionListPresenter onSubject: s (
 |
 	public title ::= 'Assorted Methods'.
 	methodPresenters ::= List new.
@@ -126,13 +126,11 @@ collapsedDefinition = (
 		smallBlank.
 		link: subject name action: [enterSubject:: ClassSubject onModel: subject classMirror].
 	} row2: {
-		(row: {deferred: [(label: subject classCommentSummary)
+		(label: subject commentSummary)
 			smallFont;
-			color: secondaryTextColor]})
-				compressibility: 1.
-		filler
-			compressibility: 0.
-
+			expansibility: 1;
+			compressibility: 1;
+			color: secondaryTextColor.
 		ClassActionsPresenter onSubject: subject.
 		mediumBlank.
 		entryActionsMenu.
@@ -186,39 +184,53 @@ public definition ^<Fragment> = (
 	| toggle |
 	toggle::
 		collapsed:
-			[row: {
-				accessIndicator.
-				blank: 3.
-				(link: subject primaryFactoryName action: [toggle expand]) color: actionLinkColor.
-				nestingInformationLine.
-				filler.
-				referencesMenu.
-				smallBlank.
-				actionMenu.
-				smallBlank.
-			}]
+			[heading: [toggle expand]]
 		expanded:
-			[ |  src = subject source. cm = codeMirror: src. |
-			cm changeResponse: changeResponse; acceptResponse: acceptResponse.
-			colorizeHeaderSource: src withEditor: cm.
-			column: {
-				row: {
-					accessIndicator.
-					blank: 3.
-					(link: subject primaryFactoryName action: [toggle collapse]) color: actionLinkColor.
-					nestingInformationLine.
-					filler.
-					referencesMenu.
-					smallBlank.
-					actionMenu.
-					smallBlank.
-				}.
-				cm
+			[column: {
+				heading: [toggle collapse].
+				editor.
 			}].
 	^toggle
 )
+editor ^<Fragment> = (
+	| src = subject source. cm = codeMirror: src. |
+	cm changeResponse: changeResponse; acceptResponse: acceptResponse.
+	colorizeHeaderSource: src withEditor: cm.
+	^cm
+)
 public expand = (
 	^substance expand
+)
+heading: action ^<Fragment> = (
+	showClassName ifTrue:
+		[^row: {
+			accessIndicator.
+			blank: 3.
+			(link: subject primaryFactoryName action: action) color: actionLinkColor.
+			nestingInformationLine.
+			filler.
+			referencesMenu.
+			smallBlank.
+			actionMenu.
+			smallBlank.
+		}].
+
+	^row1: {
+		accessIndicator.
+		blank: 3.
+		(link: subject primaryFactoryName action: action) color: actionLinkColor.
+	} row2: {
+		(label: subject commentSummary)
+			smallFont;
+			expansibility: 1;
+			compressibility: 1;
+			color: secondaryTextColor.
+		mediumBlank.
+		referencesMenu.
+		smallBlank.
+		actionMenu.
+		smallBlank.
+	}
 )
 linkToBrowseEnclosing: mixin <MixinMirror> = (
 	^(link: mixin name
@@ -227,7 +239,6 @@ linkToBrowseEnclosing: mixin <MixinMirror> = (
 )
 nestingInformationLine = (
 	| rowElements |
-	showClassName ifFalse: [^nothing].
 	rowElements:: List new.
 	rowElements add: ((label: ' in ') color: tertiaryTextColor).
 	rowElements add: (linkToBrowseEnclosing: subject classDeclaration instanceSide).
@@ -243,6 +254,12 @@ referencesMenu = (
 			(subject messages collect:
 				[:selector | { selector. [navigateToSelector: selector] }])]
 )
+row1: row1 row2: row2 = (
+	^row: {
+		(row: row1) width: 0 elasticity: 1.
+		(row: {mediumBlank}, row2) width: 0 elasticity: 2.
+	}
+)
 ) : (
 )
 public class ClassHeaderSubject onModel: m <ClassHeaderMirror> = Subject onModel: m (
@@ -253,11 +270,14 @@ public accessModifier = (
 public classDeclaration = (
 	^model declaration
 )
+public commentSummary ^<String> = (
+	^summarizeComment: model comment
+)
 public createPresenter = (
 	^ClassHeaderPresenter onSubject: self
 )
+(* Returns all classes the model is nested in, beginning with the immediately enclosing class and up to the top level. *)
 public enclosingClasses ^<List[MixinMirror]> = (
-	(* Returns all classes the model is nested in, beginning with the immediately enclosing class and up to the top level. *)
 	| classes currentClass |
 	classes:: List new.
 	currentClass:: model declaration enclosingClass.
@@ -311,7 +331,6 @@ classNameAndContainmentDefinition ^<Fragment> = (
 		do: [:ecs | parts add: (link: ecs name action: [enterSubject:: ecs])]
 		separatedBy: [parts add: (label: ' in ')].
 	^row: {
-		blank: 5.
 		image: ide images classIcon.
 		blank: 5.
 		row: parts.
@@ -325,7 +344,6 @@ classNameAndContainmentDefinition ^<Fragment> = (
 		homeButton.
 		smallBlank.
 		refreshButton.
-		smallBlank.
 	}
 )
 public definition ^<Fragment> = (
@@ -339,11 +357,8 @@ public definition ^<Fragment> = (
 	}
 )
 headingDefinition ^<Fragment> = (
-	^(column: {
-		classNameAndContainmentDefinition.
-		smallBlank.
-		label: subject classCommentSummary.
-	}) color: (Color h: 240 s: 0.05 v: 0.9).
+	^(padded: classNameAndContainmentDefinition with: {10. 5. 10. 5.})
+		color: (Color h: 240 s: 0.05 v: 0.9).
 )
 minorClassHeadingBlock: body = (
 	^(padded: body with: {10. 5. 10. 5.})
@@ -389,22 +404,6 @@ public class ClassSubject onModel: m <ClassDeclarationMirror> = Subject onModel:
 public accessModifier = (
 	^classMirror accessModifier
 )
-public classCommentSummary ^<String> = (
-	|
-	comment <String> = classCommentText.
-	start ::= 1.
-	stop ::= (comment indexOf: '.') - 1.
-	|
-	[start <= comment size and: [(comment at: start) <= 32]]
-		whileTrue: [start:: start + 1].
-	stop < start ifTrue: [stop:: comment size].
-	^comment copyFrom: start to: stop
-)
-public classCommentText ^<String> = (
-	| comment = model header classComment. |
-	nil = comment ifTrue: [^''].
-	^comment
-)
 public classHeaderSource = (
 	^classMirror header source
 )
@@ -416,6 +415,9 @@ public classMethodsSubject ^ <MethodGroupSubject> = (
 )
 public classMirror ^ <ClassDeclarationMirror> = (
 	^model
+)
+public commentSummary ^<String> = (
+	^summarizeComment: model header comment
 )
 public createPresenter = (
 	^ClassPresenter onSubject: self
@@ -481,8 +483,8 @@ public title = (
 )
 ) : (
 )
-public class DefinitionListPresenter onSubject: s = ProgrammingPresenter onSubject: s (
 (* DefinitionListPresenter is an abstract superclass of presenters that displays helper ''transient'' presenters that visually appear to belong to the main list of subject presenters. One common example is a method list presenter which can at times include presenters for methods being added or residue presenters of removed methods. *)
+public class DefinitionListPresenter onSubject: s = ProgrammingPresenter onSubject: s (
 | 
 prefixes <PresenterList> 
 content <PresenterList> 
@@ -867,8 +869,8 @@ public definition = (
 )
 ) : (
 )
-class MethodGroupPresenter onSubject: s <Subject> = MirrorGroupPresenter onSubject: s (
 (* Presents the subject, an NSMethodGroup, as a column of presenters for the methods in the group. Automatically gets updated after the subject mirror group. Anything that has to do with adding, editing or deleting NS methods goes here. *)
+class MethodGroupPresenter onSubject: s <Subject> = MirrorGroupPresenter onSubject: s (
 | groupedByCategory <Boolean> ::=false. |
 ) (
 public addNewItemTemplate = (
@@ -916,8 +918,8 @@ elementPresenterClass ^ <ProgrammingPresenter class> = (
 )
 ) : (
 )
-public class MethodGroupSubject onModel: m <MirrorGroup[MethodMirror]> within: dm <MixinMirror> = MirrorGroupSubject onModel: m within: dm  (
 (* Represents the collection of methods of a Newspeak class. Holds onto the mirror group for the methods. *)
+public class MethodGroupSubject onModel: m <MirrorGroup[MethodMirror]> within: dm <MixinMirror> = MirrorGroupSubject onModel: m within: dm  (
 ) (
 public colorizeSource: source <String> editor: cm <CodeMirrorFragment> ^ <TextFragment> = (
 	^ide colorizer
@@ -957,8 +959,8 @@ modelMirrorCollection ^ <Collection[MethodMirror]> = (
 )
 ) : (
 )
+(* A presenter for a single method. *)
 class MethodPresenter onSubject: s <MethodSubject> = ProgrammingPresenter onSubject: s (
-	(* A presenter for a single method. *)
 	|
 	public showClassName ::= false.
 	|
@@ -994,43 +996,57 @@ public collapse = (
 colorizeMethodSource: s <String> withEditor: cm <CodeMirrorFragment> = (
 	ide colorizer colorizeMethod: s fromClass: subject classDeclaration via: (colorizingBlockFor: cm)
 )
-public definition ^ <Fragment> = (
+public definition ^<Fragment> = (
 	| toggle |
 	toggle::
 		collapsed:
-			[row: {
-				accessIndicator.
-				blank: 3.
-				(link: subject name action: [toggle expand]) color: actionLinkColor.
-				nestingInformationLine.
-				filler.
-				referencesMenu.
-				smallBlank.
-				actionMenu.
-				smallBlank.
-			}]
+			[heading: [toggle expand]]
 		expanded:
-			[ |  src = subject source. cm = codeMirror: src. |
-			cm changeResponse: changeResponse; acceptResponse: acceptResponse.
-			colorizeMethodSource: src withEditor: cm.
-			column: {
-				row: {
-					accessIndicator.
-					blank: 3.
-					(link: subject name action: [toggle collapse]) color: actionLinkColor.
-					nestingInformationLine.
-					filler.
-					referencesMenu.
-					smallBlank.
-					actionMenu.
-					smallBlank.
-				}.
-				cm
+			[column: {
+				heading: [toggle collapse].
+				editor.
 			}].
 	^toggle
 )
+editor ^<Fragment> = (
+	| src = subject source. cm = codeMirror: src. |
+	cm changeResponse: changeResponse; acceptResponse: acceptResponse.
+	colorizeMethodSource: src withEditor: cm.
+	^cm
+)
 public expand = (
 	^substance expand
+)
+heading: action ^<Fragment> = (
+	showClassName ifTrue:
+		[^row: {
+			accessIndicator.
+			blank: 3.
+			(link: subject name action: action) color: actionLinkColor.
+			nestingInformationLine.
+			filler.
+			referencesMenu.
+			smallBlank.
+			actionMenu.
+			smallBlank.
+		}].
+
+	^row1: {
+		accessIndicator.
+		blank: 3.
+		(link: subject name action: action) color: actionLinkColor.
+	} row2: {
+		(label: subject commentSummary)
+			smallFont;
+			expansibility: 1;
+			compressibility: 1;
+			color: secondaryTextColor.
+		mediumBlank.
+		referencesMenu.
+		smallBlank.
+		actionMenu.
+		smallBlank.
+	}
 )
 linkToBrowseEnclosing: mixin <MixinMirror> = (
 	^(link: mixin name
@@ -1039,7 +1055,6 @@ linkToBrowseEnclosing: mixin <MixinMirror> = (
 )
 nestingInformationLine = (
 	| enclosingClasses rowElements |
-	showClassName ifFalse: [^nothing].
 	enclosingClasses:: subject enclosingClasses.
 	rowElements:: List new.
 	enclosingClasses do:
@@ -1054,16 +1069,25 @@ referencesMenu = (
 			(subject messages collect:
 				[:selector | { selector. [navigateToSelector: selector] }])]
 )
+row1: row1 row2: row2 = (
+	^row: {
+		(row: row1) width: 0 elasticity: 1.
+		(row: {mediumBlank}, row2) width: 0 elasticity: 2.
+	}
+)
 ) : (
 )
-public class MethodSubject onModel: mm <MethodMirror> = Subject onModel: mm (
 (* Manages the UI for a method. *)
+public class MethodSubject onModel: mm <MethodMirror> = Subject onModel: mm (
 ) (
 public accessModifier ^ <Symbol> = (
 	^methodMirror accessModifier
 )
 public classDeclaration ^ <ClassDeclarationMirror> = (
 	^methodMirror definingMixin declaration
+)
+public commentSummary ^<String> = (
+	^summarizeComment: model comment
 )
 public createPresenter ^ <Presenter> = (
 	^MethodPresenter onSubject: self
@@ -1074,8 +1098,8 @@ public delete = (
 	b methods removeMirrorNamed: methodMirror name.
 	b declaration install.
 )
+(* Returns all classes the model is nested in, beginning with the immediately enclosing class and up to the top level. *)
 public enclosingClasses ^<List[MixinMirror]> = (
-	(* Returns all classes the model is nested in, beginning with the immediately enclosing class and up to the top level. *)
 	| classes currentClass |
 	classes:: List new.
 	currentClass:: methodMirror definingMixin.
@@ -1169,11 +1193,10 @@ collapsedDefinition = (
 			enterSubject:: subject refreshmentSubject]}.
 	} row2: {
 		(label: subject summaryText)
-				smallFont;
-				compressibility: 1;
-				color: secondaryTextColor.
-		filler
-			compressibility: 0.
+			smallFont;
+			expansibility: 1;
+			compressibility: 1;
+			color: secondaryTextColor.
 		mediumBlank.
 		dropDownMenu: [entryActionsMenuFor: subject key]
 	}.
@@ -1194,10 +1217,9 @@ collapsedDefinition = (
 	} row2: {
 		(label: subject title)
 			smallFont;
+			expansibility: 1;
 			compressibility: 1;
 			color: secondaryTextColor.
-		filler
-			compressibility: 0.
 		mediumBlank.
 		dropDownMenu: [entryActionsMenuFor: key]
 	}
@@ -1428,8 +1450,8 @@ public new = (
 	^self onModel: ide namespacing Root key: 'Root'
 )
 )
-class NestedClassGroupPresenter onSubject: s <Subject> = MirrorGroupPresenter onSubject: s (
 (* Presents the subject, a NestedClassGroupSubject, as a column of presenters for the nested classes in the group. Automatically gets updated after the subject mirror group. Anything that has to do with adding, editing or deleting NS nested classes goes here. *)
+class NestedClassGroupPresenter onSubject: s <Subject> = MirrorGroupPresenter onSubject: s (
 ) (
 acceptNewClassDefinitionFrom: aTemplate = (
 	subject
@@ -1469,8 +1491,8 @@ elementPresenterClass ^ <ProgrammingPresenter class> = (
 )
 ) : (
 )
-public class NestedClassGroupSubject onModel: m <MirrorGroup[ClassDeclarationMirror]> within: dm <MixinMirror> = MirrorGroupSubject onModel: m within: dm  (
 (* Represents the collection of nested classes of a Newspeak class. Holds onto the mirror group for the classes. *)
+public class NestedClassGroupSubject onModel: m <MirrorGroup[ClassDeclarationMirror]> within: dm <MixinMirror> = MirrorGroupSubject onModel: m within: dm  (
 ) (
 public addClassFromDefinition: source <String> ifSuccess: successBlock <[:ClassDeclarationMirror]> ifFailure: failureBlock <[:String]> = (
 	[ | builder <MixinBuilder> newBuilder <ClassDeclarationBuilder> newMirror <ClassDeclarationMirror> |
@@ -1703,8 +1725,8 @@ public title = (
 )
 ) : (
 )
-public class ProgrammingPresenter onSubject: s <Subject> = Presenter onSubject: s (
 (* Common superclass for presenters of programming constructs. *)
+public class ProgrammingPresenter onSubject: s <Subject> = Presenter onSubject: s (
 ) (
 actionLinkColor = (
 	^Color black
@@ -1999,6 +2021,16 @@ lexicallyLessOrEqual: a <String> than: b <String> ^ <Boolean> = (
 		 (a at: index) < (b at: index) ifTrue: [^true].
 		 (a at: index) > (b at: index) ifTrue: [^false]].
 	^a size <= b size
+)
+summarizeComment: comment <String> ^<String> = (
+	| start stop |
+	nil = comment ifTrue: [^''].
+	start:: 1.
+	stop:: (comment indexOf: '.') - 1.
+	[start <= comment size and: [(comment at: start) <= 32]]
+		whileTrue: [start:: start + 1].
+	stop < start ifTrue: [stop:: comment size].
+	^comment copyFrom: start to: stop
 )
 ) : (
 )

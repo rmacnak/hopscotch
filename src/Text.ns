@@ -1,8 +1,8 @@
-class Text usingPlatform: p <Platform> = (
 (*
 Top level module for text, HTML version. Experimental.
 Copyright 2016-2017 Google Inc.
 *)
+class Text usingPlatform: p <Platform> = (
 ) (
 public class Text properties: tps = (
 (*Abstract supertype of all texts.*)
@@ -43,8 +43,8 @@ public units: tus <List[Text]> ^ <Instance> = (
 	^self units: tus properties: TextProperties new
 )
 )
-public class TextProperties = (
 (*The properties of text: font, weight, color, size etc.*)
+public class TextProperties = (
 |
 	public font
 	public weight <Symbol>

@@ -1,5 +1,5 @@
+(* The Newspeak IDE in the web browser. *)
 class HopscotchIDE packageUsing: manifest = (
-	(* The Newspeak IDE in the web browser. *)
 	|
 	private hopscotchRuntime = manifest HopscotchForHTML5Runtime packageUsing: manifest.
 	private Browsing = manifest Browsing.

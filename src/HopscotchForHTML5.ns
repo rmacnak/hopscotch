@@ -1,8 +1,8 @@
-class HopscotchForHTML5 usingPlatform: p images: images = (
 (* Hopscotch is Newspeak's UI framework. This version is implemented on top of HTML and CSS.
 
 Copyright Google Inc. 2012 -2017
 *)
+class HopscotchForHTML5 usingPlatform: p images: images = (
 |
 	private Color = p graphics Color.
 	private Context = p graphics Context.
@@ -87,8 +87,8 @@ public mouseMovedAction: onMouseMoved <[:Point]> = (
 )
 ) : (
 )
-public class CodeMirrorFragment onText: t <String>  = LeafFragment (
 (* An experiment to see how to integrate CodeMirror as editor. *)
+public class CodeMirrorFragment onText: t <String>  = LeafFragment (
 |
       public editor <Alien[CodeMIrror]>
 	textSlot <TextFragment | String> ::= t.
@@ -251,8 +251,8 @@ flexDirection ^ <String> = (
 class Composer = Fragment () (
 ) : (
 )
-public class Decorator = (
 (* A Decorator is attached to a fragment and is called by the fragment to change the various attributes of the Brazil visual created by the fragment itself. *)
+public class Decorator = (
 ) (
 public decorate: aVisual = (
 	(* Change properties of aVisual or wrap it into a new visual that applies whatever decorating we represent to aVisual. Answer aVisual or the new visual. *)
@@ -286,7 +286,6 @@ createVisual = (
 )
 ) : (
 )
-class DropDownMenuFragment menu: ms images: ims <Array[Image]> alignment: side <Symbol> = ImageButtonFragment images: ims (
 (*
 Create a drop down menu based on dynamic content. This means that the menu contents may vary every time the menu button
 is clicked.  The contents are computed by a closure provided by the ms argument to the factory, and stored in the
@@ -295,6 +294,7 @@ or the left; ideally, the system would figure the best alignment dynamically, bu
 
 Class methods that provide convenient defaults for the button images and the alignment are provided as well.
 *)
+class DropDownMenuFragment menu: ms images: ims <Array[Image]> alignment: side <Symbol> = ImageButtonFragment images: ims (
 	|
 	menuSupplier <[Tuple[Symbol | Tuple[String, []]]]> = ms. (* Skip formal menu structure for now*)
 	menuActive <Boolean> ::= false.
@@ -605,8 +605,8 @@ createVisual = (
 )
 ) : (
 )
-class ImageButtonFragment images: imageArray <Array[Image]> = LeafFragment (
 (* A button displayed as an image; or an image that acts as a button. *)
+class ImageButtonFragment images: imageArray <Array[Image]> = LeafFragment (
 |
 	public action <[]>
 	stateImages <Array[Image]> = imageArray, (Array new: 3).
@@ -632,7 +632,6 @@ public childrenDo: aBlock = (
 )
 ) : (
 )
-class LocalNavigationHistory = (
 (* LocalNavigationHistory is a richly structured collection that maintains a web browser-like history of ''visits''. Visits are arbitrary objects. NavigationHistory makes no assumptions about visits other than that they can be compared using #=.
 
 The important attributes of a history are: the ''current'' visit, the ''past'', the ''future'' and ''allVisits''. A history starts off empty. To visit an object, send the #visit: message to the history with the object as the argument. This makes the object the ''current'' object of the history.
@@ -643,6 +642,7 @@ All visits visited by a history are remembered in the ''allVisits'' set. This se
 
 A history can optionally be configured with a transientTestBlock. The test block is applied to visits to determine whether they are transient or not. Transient visits are not recorded in the ''past'' and ''future'' queues and in the ''allVisits'' set. By default all visits are considered to be non-transient.
 *)
+class LocalNavigationHistory = (
 	|
 	currentVisitSlot
 	public allVisits <List>
@@ -932,7 +932,6 @@ noticeSubstanceCreation = (
 openMenu: aMenu <Menu> ^ <Alien[Div]> = (
 	| menuContent <Alien[Div]> |
 	menuContent:: computeContentForMenu: [aMenu].
-	(menuContent at: 'style') at: 'display' put: 'block'.
 	visual appendChild: menuContent.
 	menuContent addEventListener: 'click' action:
 		[:event | visual removeChild: menuContent. nil].
@@ -989,7 +988,6 @@ zebra: sequence <Sequence[Fragment]> ^ <Sequence[Fragment]> = (
 )
 ) : (
 )
-class PresenterList = Fragment (
 (* PresenterList is a fragment that manages a sequence of Presenters, displaying them as a column. The interesting functionality it provides beyond that is updating itself intelligently when receiving a new sequence of presenters to display. New presenters equal (as determined by #=) to those currently displayed remain displayed as before, with any state they had unaffected even if their order in the list has changed.
 
 The presenters can be given to the list either as a collection or as a niladic block that evaluates to a collection. In the latter case, a PresenterList will re-evaluate the block and update itself from the result each time it receives the #refresh message.
@@ -1000,6 +998,7 @@ presenterSourceX. The presenters to display or the block providing them, as give
 
 presentersX. If presenterSourceX is a collection, this slot holds the same object as presenterSourceX. It it is the block, it holds the last result produced by the block.
 *)
+class PresenterList = Fragment (
 |
 	presenterSourceX <Sequence[Presenter] | [Sequence[Presenter]]> ::= List new.
 	presentersX <Sequence[Presenter]>
@@ -1546,8 +1545,8 @@ public updateCursor = (
 )
 ) : (
 )
-class TextFragment onText: t <Text> = Fragment (
 (*Abstract supertype of all texts.*)
+class TextFragment onText: t <Text> = Fragment (
 |
 	public text <Text> = t.
 |) (
@@ -1559,8 +1558,8 @@ public isKindOfTextFragment ^ <Boolean> = (
 )
 ) : (
 )
-class TextStringFragment onText: t <Text> = TextFragment onText: t (
 (*A formatted string.*)
+class TextStringFragment onText: t <Text> = TextFragment onText: t (
 ) (
 public createVisual = (
 	| span = document createElement: 'span'. |
@@ -1718,8 +1717,8 @@ computeContentForMenu: menuSupplier <[Menu]> ^ <Alien[Div]> = (
 		at: 'padding-right' put: '10px';
 		at: 'border-radius' put: '5px';
 		at: 'box-shadow' put: '5px 5px 5px darkgrey';
-		at: 'display' put: 'none'.
-	menuSupplier value do: 
+		at: 'display' put: 'inline-block'.
+	menuSupplier value do:
 		[:menuItem <MenuItem | Symbol> |
 		 | itemContent <Alien[Element]> |
 		 itemContent:: contentFor: menuItem within: dropDownContent.

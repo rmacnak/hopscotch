@@ -1,9 +1,9 @@
-class NewspeakColorization usingPlatform: p grammar: grammar = (
 (*
 Newspeak code colorizer.
 
 Copyright Google Inc. 2016 - 2017.
 *)
+class NewspeakColorization usingPlatform: p grammar: grammar = (
 	|
 	private Color = p graphics Color.
 	private Map = p collections Map.
@@ -16,7 +16,6 @@ Copyright Google Inc. 2016 - 2017.
 	private TextBlock = p text TextBlock.
 	|
 ) (
-public class NS3BrowserColorizer = NS3Colorizer (
 (* The colorizer maps different kinds of language constructs to different text properties via the mapping defined
 by computePropertiesMap, which it stores in propertiesMap. The parsing process defined by the superclass produces an
 a list of ranges in the source, where each range identifies the kind of construct in that range (see class Range in the surrounding module).  Not every section of text has a range computed for it; only sections that define constructs with special textual properties are computed. Later we will compute a set of text objects which covers the entire source, filling in the parts that lack an entry in the range list with text objects with default properties.
@@ -25,18 +24,21 @@ We convert the list to an array (incidental), rangeArray and sort it in ascendin
 The ranges in the range list may overlap.  In consolidateRanges,  overlaps are eliminated by iterating over the sorted range list and comparing adjacent ranges pairwise. If they overlap, they may or may not have the same kind. If the kinds are the same, we merge the ranges into one. If they differ, we truncate the first range to eliminate the overlap.
 
 We then traverse the range array and, using propertiesMap, compute a corresponding set of text objects that have the appropriate properties, and filling in the gaps with text objects that have default properties, as described above.
-*)|
+*)
+public class NS3BrowserColorizer = NS3Colorizer (
+|
 	propertiesMap <Map[Symbol, TextProperties]> = computePropertiesMap.
 	textSegments <List[TextString]>
 	inputString <String>
 	priorSegmentEnd <Integer>
 	rangeArray <Array>
 |) (
-class Range kind: k start: s end: e = (
 (*
 Instances of this class describe a range of text in the source. The start and end of the range are given as indices into the source.
 The kind is a descriptor for what sort of element the code describes - a type, an error, a literal etc. The kind will serve as a key for the colorizer to decide what color to use for the text described by the range.
-*)|
+*)
+class Range kind: k start: s end: e = (
+|
 	public kind <Symbol> = k.
 	public start <Integer> = s.
 	public end <Integer> = e.
@@ -283,14 +285,15 @@ setString: s <String> class: c <ClassDeclarationMirror | Mixin> = (
 	cachedScopeStack: nil.)
 ) : (
 )
-class NS3Colorizer = TypedNS3Grammar (
 (*
 This class subclasses the grammar so that it can parse Newspeak source with specialized semantic actions that determine how to colorize the code. This is done by calling the noteRange:from:to: method.
 
 Because colorization is used to identify shadowing and undefined names, a notion of scoping is needed. Therefore a stack of scopes, cachedScopeStack, is maintained. Scopes are represented by maps from symbols to symbols. The keys are names of declarations, and the values are kinds.
 
 It might be better to produce an actual AST (or a subset thereof) and visit it in order to colorize. In the existing scheme, subexpressions may induce colorizations that are subsumed by their enclosing expressions or statements, and we are forced to explicitly account for these situations and withdraw colorizations. See for example the blockType method, or worse, binaryMsgPattern.
-*)|
+*)
+class NS3Colorizer = TypedNS3Grammar (
+|
 	cachedScopeStack
 	klass
 	rangeMap <List[Range]>
