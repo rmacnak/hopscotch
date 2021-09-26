@@ -36,7 +36,12 @@ class HopscotchForHTML5 usingPlatform: p images: images = (
 	private deferredContentQueue = List new.
 	public core = self. (* Polymorphic with HopscotchForBrazil *)
 	public fragments = self. (* Polymorphic with HopscotchForBrazil *)
-	|) (
+	|
+
+	(body at: 'style')
+		at: 'background-color' put: (Color h: 41 s: 0.15 v: 0.95) asCSSString;
+		at: 'color' put: (Color h: 31 s: 0.85 v: 0.40) asCSSString.
+) (
 class BlankFragment = LeafFragment (
 ) (
 createVisual = (
@@ -572,7 +577,7 @@ public openSubject: s = (
 class HyperlinkFragment label: l action: a = LeafFragment (|
 	label = l.
 	action = a.
-	public color ::= Color r: 0 g: 0 b: 1.
+	public color ::= Color h: 0 s: 1.0 v: 0.70.
 |) (
 createVisual = (
 	| anchor |
@@ -1708,10 +1713,10 @@ public decorate: aVisual = (
 )
 ) : (
 public darkerColorFirst = (
-	^self firstColor: (Color gray: 0.97) secondColor: Color white
+	^self firstColor: (Color r: 0 g: 0 b: 0 a: 0) secondColor: (Color h: 41 s: 0.15 v: 0.92)
 )
 public lighterColorFirst = (
-	^self firstColor: Color white secondColor: (Color gray: 0.97)
+	^self firstColor: (Color h: 41 s: 0.15 v: 0.90) secondColor: (Color r: 0 g: 0 b: 0 a: 0)
 )
 )
 computeContentForMenu: menuSupplier <[Menu]> ^ <Alien[Div]> = (

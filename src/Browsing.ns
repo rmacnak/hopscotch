@@ -24,7 +24,7 @@ class Browsing usingPlatform: p ide: webIde = (
 	private cachedPlatform = p.
 	private ide = webIde.
 	private detailAreaRatio = 3 asFloat.
-	private captionColor = Color h: 240 s: 0.05 asFloat v: 0.9 asFloat.
+	private captionColor = Color h: 41 s: 0.20 v: 0.80.
 	private cssConverter = cssConversionTable.
 |
 ) (
@@ -376,7 +376,7 @@ headingDefinition ^<Fragment> = (
 		smallBlank.
 		classes: subject superclassSubjects labelled: 'Superclasses:'.
 		classes: subject subclassSubjects labelled: 'Subclasses:'.
-	}) with: {10. 5. 10. 5.}) color: (Color h: 240 s: 0.05 v: 0.9).
+	}) with: {10. 5. 10. 5.}) color: (Color h: 41 s: 0.20 v: 0.80).
 )
 minorClassHeadingBlock: body = (
 	^(padded: body with: {10. 5. 10. 5.})
@@ -384,8 +384,8 @@ minorClassHeadingBlock: body = (
 )
 minorClassHeadingColor = (
 	^Gradient
-		from: (Color h: 240 s: 0.02 v: 0.94)
-		to: (Color h: 240 s: 0.02 v: 0.9)
+		from: (Color h: 41 s: 0.20 v: 0.90)
+		to: (Color h: 41 s: 0.20 v: 0.80)
 )
 referencesMenu = (
 	^referencesMenu:
@@ -1792,7 +1792,7 @@ public title = (
 public class ProgrammingPresenter onSubject: s <Subject> = Presenter onSubject: s (
 ) (
 actionLinkColor = (
-	^Color black
+	^Color h: 31 s: 0.85 v: 0.40
 )
 addButtonWithAction: aBlock = (
 	^imageButton:
@@ -1869,8 +1869,8 @@ majorHeadingBlock: body = (
 majorHeadingColor = (
 	(* This color is used for major definitions such as class headings. *)
 	^Gradient
-		from: (Color h: 240 s: 0.05 v: 0.92)
-		to: (Color h: 240 s: 0.05 v: 0.86)
+		from: (Color h: 41 s: 0.20 v: 0.85)
+		to: (Color h: 41 s: 0.20 v: 0.75)
 )
 minorHeadingBlock: body = (
 	^(padded: body with: {10. 5. 10. 5.})
@@ -1878,8 +1878,8 @@ minorHeadingBlock: body = (
 )
 minorHeadingColor = (
 ^Gradient
-	from: (Color h: 240 s: 0.02 v: 0.94)
-	to: (Color h: 240 s: 0.02 v: 0.9)
+	from: (Color h: 41 s: 0.20 v: 0.90)
+	to: (Color h: 41 s: 0.20 v: 0.80)
 )
 navigateToSelector: selector <String> = (
 	ide namespacing reindex.
@@ -1907,13 +1907,13 @@ respondToInspectPresenter = (
 	inspectObject: self.
 )
 secondaryTextColor ^ <Color> = (
-	^Color gray: 0.6
+	^Color h: 31 s: 0.85 v: 0.60
 )
 smallBlank = (
 	^blank: 5
 )
 tertiaryTextColor = (
-	^Color gray: 0.8
+	^Color h: 31 s: 0.85 v: 0.80
 )
 ) : (
 )
