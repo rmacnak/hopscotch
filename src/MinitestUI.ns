@@ -351,6 +351,8 @@ public runToDebugFailure: testCase = (
 	| thread <ThreadMirror> |
 	thread:: platform mirrors ActivationMirror invokeSuspended:
 		[subject tester runToDebugFailure: testCase].
+	[thread suspendedActivation method name = testCase selector] whileFalse:
+		[thread stepInto].
 	enterSubject:: ide debugging ThreadSubject onModel: thread.
 )
 public runWithNoExceptionHandling: testCase = (
