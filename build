@@ -24,7 +24,7 @@ cd out
 ../primordialsoup/out/ReleaseX64/primordialsoup \
     WebCompiler.vfuel \
     *.ns \
-    *.png \
+    *.webp \
     CodeMirror/lib/codemirror.js \
     CodeMirror/lib/codemirror_css.css \
     CodeMirror/addon/display/autorefresh.js \

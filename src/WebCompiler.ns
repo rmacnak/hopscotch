@@ -68,18 +68,37 @@ loadResource: path <String> ^<Array> = (
 	| from |
 	from:: (path lastIndexOf: '/') + 1.
 
-    (path endsWith: '.ns') ifTrue:
+	(path endsWith: '.ns') ifTrue:
 		[ | klass = compileFile: path. |
-		 ^{klass name. 'ns'. klass}].
+		 ^{klass name. 'obj'. klass}].
+
 	(path endsWith: '.txt') ifTrue:
 		[ | name = path copyFrom: from to: path size - 4. |
-		 ^{name. 'txt'. readFileAsString: path}].
+		 ^{name. 'obj'. readFileAsString: path}].
+	(path endsWith: '.bin') ifTrue:
+		[ | name = path copyFrom: from to: path size - 4. |
+		 ^{name. 'obj'. readFileAsString: path}].
+
+	(path endsWith: '.jpg') ifTrue:
+		[ | name = path copyFrom: from to: path size - 4. |
+		 ^{name. 'img'. path}].
+	(path endsWith: '.gif') ifTrue:
+		[ | name = path copyFrom: from to: path size - 4. |
+		 ^{name. 'img'. path}].
 	(path endsWith: '.png') ifTrue:
 		[ | name = path copyFrom: from to: path size - 4. |
-		 ^{name. 'png'. path}].
+		 ^{name. 'img'. path}].
+	(path endsWith: '.webp') ifTrue:
+		[ | name = path copyFrom: from to: path size - 5. |
+		 ^{name. 'img'. path}].
+	(path endsWith: '.webm') ifTrue:
+		[ | name = path copyFrom: from to: path size - 5. |
+		 ^{name. 'img'. path}].
+
 	(path endsWith: '.js') ifTrue:
 		[ | name = path copyFrom: from to: path size - 3. |
 		 ^{name. 'js'. path}].
+
 	(path endsWith: '.css') ifTrue:
 		[ | name = path copyFrom: from to: path size - 4. |
 		 ^{name. 'css'. path}].
@@ -140,11 +159,9 @@ public main: platform args: args = (
 					main: platform args: args]]].
 )
 unpackResourceType: type payload: payload platform: platform = (
-	'ns' = type ifTrue:
+	'obj' = type ifTrue:
 		[^payload].
-	'txt' = type ifTrue:
-		[^payload].
-	'png' = type ifTrue:
+	'img' = type ifTrue:
 		[^(platform js global at: 'Image') new at: 'src' put: payload; yourself].
 	'js' = type ifTrue:
 		[ | resolver document script |
