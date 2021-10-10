@@ -145,10 +145,7 @@ expandedDefinition = (
 )
 ) : (
 )
-class ClassHeaderPresenter onSubject: s = ProgrammingPresenter onSubject: s (
-	|
-	public showClassName ::= false.
-	|
+class ClassHeaderPresenter onSubject: s = MemberPresenter onSubject: s (
 ) (
 acceptResponse ^<[:CodeMirrorFragment :Event]> = (
 	^[:ed <CodeMirrorFragment> :event <Event> |
@@ -156,110 +153,12 @@ acceptResponse ^<[:CodeMirrorFragment :Event]> = (
 		(*('ed text:', ed textBeingAccepted) out.*)
 		b header source: ed textBeingAccepted.
 		b install.
-		colorizeHeaderSource: ed textBeingAccepted withEditor: ed.
+		colorizeSource: ed textBeingAccepted withEditor: ed.
 		ed leaveEditState.
 		]
 )
-accessIndicator = (
-	^image: (iconForAccessModifier: subject accessModifier).
-)
-actionMenu = (
-	^dropDownMenu:
-		[menuWithLabelsAndActions:
-			{{'Delete ', subject name. [subject delete. refresh]}.
-			 {'Inspect Presenter'. [respondToInspectPresenter]}}]
-)
-changeResponse ^<[:CodeMirrorFragment :Event]> = (
-	^[:ed <CodeMirrorFragment> :event <Event> | | cp <Integer> |
-		colorizeHeaderSource: ed textBeingAccepted withEditor: ed.
-		ed enterEditState.
-	 ]
-)
-public collapse = (
-	^substance collapse
-)
-colorizeHeaderSource: s <String> withEditor: cm <CodeMirrorFragment> = (
+colorizeSource: s <String> withEditor: cm <CodeMirrorFragment> = (
 	ide colorizer colorizeHeader: s fromClass: subject classDeclaration via: (colorizingBlockFor: cm)
-)
-public definition ^<Fragment> = (
-	| toggle |
-	toggle::
-		collapsed:
-			[heading: [toggle expand]]
-		expanded:
-			[column: {
-				heading: [toggle collapse].
-				editor.
-			}].
-	^toggle
-)
-editor ^<Fragment> = (
-	| src = subject source. cm = codeMirror: src. |
-	cm changeResponse: changeResponse; acceptResponse: acceptResponse.
-	colorizeHeaderSource: src withEditor: cm.
-	^cm
-)
-public expand = (
-	^substance expand
-)
-heading: action ^<Fragment> = (
-	showClassName ifTrue:
-		[^row: {
-			accessIndicator.
-			blank: 3.
-			(link: subject primaryFactoryName action: action) color: actionLinkColor.
-			nestingInformationLine.
-			filler.
-			referencesMenu.
-			smallBlank.
-			actionMenu.
-			smallBlank.
-		}].
-
-	^row1: {
-		accessIndicator.
-		blank: 3.
-		(link: subject primaryFactoryName action: action) color: actionLinkColor.
-	} row2: {
-		(label: subject commentSummary)
-			smallFont;
-			expansibility: 1;
-			compressibility: 1;
-			color: secondaryTextColor.
-		mediumBlank.
-		referencesMenu.
-		smallBlank.
-		actionMenu.
-		smallBlank.
-	}
-)
-linkToBrowseEnclosing: mixin <MixinMirror> = (
-	^(link: mixin name
-		action: [browseMixinMirror: mixin])
-		color: secondaryTextColor
-)
-nestingInformationLine = (
-	| rowElements |
-	rowElements:: List new.
-	rowElements add: ((label: ' in ') color: tertiaryTextColor).
-	rowElements add: (linkToBrowseEnclosing: subject classDeclaration instanceSide).
-	subject enclosingClasses do:
-		[:each |
-		rowElements add: ((label: ' in ') color: tertiaryTextColor).
-		rowElements add: (linkToBrowseEnclosing: each)].
-	^row: rowElements asArray
-)
-referencesMenu = (
-	^referencesMenu:
-		[menuWithLabelsAndActions:
-			(subject messages collect:
-				[:selector | { selector. [navigateToSelector: selector] }])]
-)
-row1: row1 row2: row2 = (
-	^row: {
-		(row: row1) width: 0 elasticity: 1.
-		(row: {mediumBlank}, row2) width: 0 elasticity: 2.
-	}
 )
 ) : (
 )
@@ -281,7 +180,7 @@ public createPresenter = (
 public enclosingClasses ^<List[MixinMirror]> = (
 	| classes currentClass |
 	classes:: List new.
-	currentClass:: model declaration enclosingClass.
+	currentClass:: model declaration.
 	[currentClass isNil]
 		whileFalse:
 			[classes add: currentClass instanceSide.
@@ -304,9 +203,6 @@ public messages = (
 	^result
 )
 public name = (
-	^model name
-)
-public primaryFactoryName = (
 	^model primaryFactorySelector
 )
 public source = (
@@ -315,9 +211,6 @@ public source = (
 ) : (
 )
 class ClassPresenter onSubject: s = ProgrammingPresenter onSubject: s (
-|
-public showClassName ::= false.
-|
 ) (
 classActionsMenu = (
 	^menuWithLabelsAndActions: {
@@ -367,6 +260,7 @@ public definition ^<Fragment> = (
 		minorClassHeadingBlock: (label: 'Header').
 		subject classHeaderSubject presenter.
 		sectionLabelled: 'Classes' presenting: subject nestedClassesSubject.
+		sectionLabelled: 'Transient Slots' presenting: subject transientSlotsSubject.
 		sectionLabelled: 'Methods' presenting: subject methodsSubject.
 		sectionLabelled: 'Class Methods' presenting: subject classMethodsSubject.
 	}
@@ -525,6 +419,9 @@ public superclassSubjects = (
 )
 public title = (
 	^name
+)
+public transientSlotsSubject ^ <TransientSlotGroupSubject> = (
+	^TransientSlotGroupSubject onModel: classMirror instanceSide transientSlots within: classMirror instanceSide
 )
 ) : (
 )
@@ -914,112 +811,11 @@ public definition = (
 )
 ) : (
 )
-(* Presents the subject, an NSMethodGroup, as a column of presenters for the methods in the group. Automatically gets updated after the subject mirror group. Anything that has to do with adding, editing or deleting NS methods goes here. *)
-class MethodGroupPresenter onSubject: s <Subject> = MirrorGroupPresenter onSubject: s (
-| groupedByCategory <Boolean> ::=false. |
-) (
-public addNewItemTemplate = (
-	(* Handle a user's request to create a new method by displaying a new method template. *)
-	addNewItemTemplate: subject methodTemplateText
-)
-addNewItemTemplate: src = (
-	(* Handle a user's request to create a new method by displaying a new method template. *)
-
-	| template |
-	template:: DefinitionTemplate
-		caption: 'Adding new method:'
-		initialText: src
-		colorizerBlock:
-			[:text <String> :cm <CodeMIrrorFragment> | subject colorizeSource: text editor: cm]
-		acceptResponse:
-			[:ed | createNewMethodFromTemplate: template]
-		cancelResponse:
-			[:ed | prefixes remove: template].
-	prefixes add: template.
-	prefixes refresh.
-	^template
-)
-createNewMethodFromTemplate: template <DefinitionTemplate> = (
-	subject
-		compileSource: template text
-		ifSuccess:
-			[:newMethod <MethodMirror> |
-			|
-			newSubject <MethodSubject> = MethodSubject onModel: newMethod.
-			newPresenter <MethodPresenter> = createPresenterForSubject: newSubject.
-			|
-			prefixes remove: template.
-			content add: newPresenter.
-			newPresenter expand]
-		ifFailure:
-			[:message | template editor showMessage: message]
-)
-public deleteMethodInPresenter: presenter <Presenter> ifSuccess: successResponse <[]> ifFailure: failureResponse <[]> = (
-	subject deleteMethodWithSubject: presenter subject.
-	successResponse value
-)
-elementPresenterClass ^ <ProgrammingPresenter class> = (
-	^MethodPresenter
-)
-) : (
-)
-(* Represents the collection of methods of a Newspeak class. Holds onto the mirror group for the methods. *)
-public class MethodGroupSubject onModel: m <MirrorGroup[MethodMirror]> within: dm <MixinMirror> = MirrorGroupSubject onModel: m within: dm  (
-) (
-public colorizeSource: source <String> editor: cm <CodeMirrorFragment> ^ <TextFragment> = (
-	^ide colorizer
-		colorizeMethod: source
-		fromClass: definingMixin declaration
-		via: (colorizingBlockFor: cm)
-)
-public compileSource: source <String> ifSuccess: successBlock <[:MethodMirror]> ifFailure: failureBlock <[:String]> = (
-	[ | builder <MixinBuilder> newBuilder <MethodBuilder> newMirror <MethodMirror> |
-	builder:: definingMixin asBuilder.
-	newBuilder:: builder methods addFromSource: source.
-	builder declaration install.
-	newMirror:: definingMixin methods findMirrorNamed: newBuilder name.
-	successBlock value: newMirror]
-		on: Error
-		do: [:ex <Exception> | failureBlock value: ex printString].
-)
-public createPresenter = (
-	^MethodGroupPresenter onSubject: self
-)
-public deleteMethodWithSubject: methodSubject <MethodSubject> = (
-	| builder <MixinBuilder> |
-	builder:: definingMixin asBuilder.
-	builder methods removeMirrorNamed: methodSubject selector.
-	builder declaration install.
-)
-elementSubjectClass ^ <MethodSubject class> = (
-	^MethodSubject
-)
-public methodTemplateText ^ <String> = (
-^
-'messageSelector = (
-)'
-)
-modelMirrorCollection ^ <Collection[MethodMirror]> = (
-	^super modelMirrorCollection (*asSortedList: [:a :b | a simpleName < b simpleName]*)
-)
-) : (
-)
-(* A presenter for a single method. *)
-class MethodPresenter onSubject: s <MethodSubject> = ProgrammingPresenter onSubject: s (
+class MemberPresenter onSubject: s = ProgrammingPresenter onSubject: s (
 	|
 	public showClassName ::= false.
 	|
 ) (
-acceptResponse ^ <[:CodeMirrorFragment :Event]> = (
-	^[:ed <CodeMirrorFragment> :event <Event> |
-		| b <MixinBuilder> = subject methodMirror definingMixin asBuilder. |
-		(*('ed text:', ed textBeingAccepted) out.*)
-		b methods addFromSource: ed textBeingAccepted.
-		b declaration install.
-		colorizeMethodSource: ed textBeingAccepted withEditor: ed.
-		ed leaveEditState.
-		]
-)
 accessIndicator = (
 	^image: (iconForAccessModifier: subject accessModifier).
 )
@@ -1031,15 +827,12 @@ actionMenu = (
 )
 changeResponse ^ <[:CodeMirrorFragment :Event]> = (
 	^[:ed <CodeMirrorFragment> :event <Event> | | cp <Integer> |
-		colorizeMethodSource: ed textBeingAccepted withEditor: ed.
+		colorizeSource: ed textBeingAccepted withEditor: ed.
 		ed enterEditState.
 	 ]
 )
 public collapse = (
 	^substance collapse
-)
-colorizeMethodSource: s <String> withEditor: cm <CodeMirrorFragment> = (
-	ide colorizer colorizeMethod: s fromClass: subject classDeclaration via: (colorizingBlockFor: cm)
 )
 public definition ^<Fragment> = (
 	| toggle |
@@ -1056,7 +849,7 @@ public definition ^<Fragment> = (
 editor ^<Fragment> = (
 	| src = subject source. cm = codeMirror: src. |
 	cm changeResponse: changeResponse; acceptResponse: acceptResponse.
-	colorizeMethodSource: src withEditor: cm.
+	colorizeSource: src withEditor: cm.
 	^cm
 )
 public expand = (
@@ -1122,6 +915,103 @@ row1: row1 row2: row2 = (
 )
 ) : (
 )
+(* Presents the subject, an NSMethodGroup, as a column of presenters for the methods in the group. Automatically gets updated after the subject mirror group. Anything that has to do with adding, editing or deleting NS methods goes here. *)
+class MethodGroupPresenter onSubject: s <Subject> = MirrorGroupPresenter onSubject: s (
+) (
+public addNewItemTemplate = (
+	(* Handle a user's request to create a new method by displaying a new method template. *)
+	addNewItemTemplate: subject methodTemplateText
+)
+addNewItemTemplate: src = (
+	(* Handle a user's request to create a new method by displaying a new method template. *)
+
+	| template |
+	template:: DefinitionTemplate
+		caption: 'Adding new method:'
+		initialText: src
+		colorizerBlock:
+			[:text <String> :cm <CodeMIrrorFragment> | subject colorizeSource: text editor: cm]
+		acceptResponse:
+			[:ed | createNewMethodFromTemplate: template]
+		cancelResponse:
+			[:ed | prefixes remove: template].
+	prefixes add: template.
+	prefixes refresh.
+	^template
+)
+createNewMethodFromTemplate: template <DefinitionTemplate> = (
+	subject
+		compileSource: template text
+		ifSuccess:
+			[:newMethod <MethodMirror> |
+			|
+			newSubject <MethodSubject> = MethodSubject onModel: newMethod.
+			newPresenter <MethodPresenter> = createPresenterForSubject: newSubject.
+			|
+			prefixes remove: template.
+			content add: newPresenter.
+			newPresenter expand]
+		ifFailure:
+			[:message | template editor showMessage: message]
+)
+elementPresenterClass ^ <ProgrammingPresenter class> = (
+	^MethodPresenter
+)
+) : (
+)
+(* Represents the collection of methods of a Newspeak class. Holds onto the mirror group for the methods. *)
+public class MethodGroupSubject onModel: m <MirrorGroup[MethodMirror]> within: dm <MixinMirror> = MirrorGroupSubject onModel: m within: dm  (
+) (
+public colorizeSource: source <String> editor: cm <CodeMirrorFragment> ^ <TextFragment> = (
+	^ide colorizer
+		colorizeMethod: source
+		fromClass: definingMixin declaration
+		via: (colorizingBlockFor: cm)
+)
+public compileSource: source <String> ifSuccess: successBlock <[:MethodMirror]> ifFailure: failureBlock <[:String]> = (
+	[ | builder <MixinBuilder> newBuilder <MethodBuilder> newMirror <MethodMirror> |
+	builder:: definingMixin asBuilder.
+	newBuilder:: builder methods addFromSource: source.
+	builder declaration install.
+	newMirror:: definingMixin methods findMirrorNamed: newBuilder name.
+	successBlock value: newMirror]
+		on: Error
+		do: [:ex <Exception> | failureBlock value: ex printString].
+)
+public createPresenter = (
+	^MethodGroupPresenter onSubject: self
+)
+elementSubjectClass ^ <MethodSubject class> = (
+	^MethodSubject
+)
+public methodTemplateText ^ <String> = (
+^
+'messageSelector = (
+)'
+)
+modelMirrorCollection ^ <Collection[MethodMirror]> = (
+	^super modelMirrorCollection (*asSortedList: [:a :b | a simpleName < b simpleName]*)
+)
+) : (
+)
+(* A presenter for a single method. *)
+class MethodPresenter onSubject: s <MethodSubject> = MemberPresenter onSubject: s (
+) (
+acceptResponse ^ <[:CodeMirrorFragment :Event]> = (
+	^[:ed <CodeMirrorFragment> :event <Event> |
+		| b <MixinBuilder> = subject methodMirror definingMixin asBuilder. |
+		(*('ed text:', ed textBeingAccepted) out.*)
+		b methods addFromSource: ed textBeingAccepted.
+		b declaration install.
+		colorizeSource: ed textBeingAccepted withEditor: ed.
+		ed leaveEditState.
+		]
+)
+colorizeSource: s <String> withEditor: cm <CodeMirrorFragment> = (
+	ide colorizer colorizeMethod: s fromClass: subject classDeclaration via: (colorizingBlockFor: cm)
+)
+) : (
+)
 (* Manages the UI for a method. *)
 public class MethodSubject onModel: mm <MethodMirror> = Subject onModel: mm (
 ) (
@@ -1139,7 +1029,6 @@ public createPresenter ^ <Presenter> = (
 )
 public delete = (
 	| b <MixinBuilder> = methodMirror definingMixin asBuilder. |
-	('Deleting ', name) out.
 	b methods removeMirrorNamed: methodMirror name.
 	b declaration install.
 )
@@ -1996,6 +1885,155 @@ public definition = (
 )
 public title = (
 	^'String'
+)
+) : (
+)
+(* Presents the subject, an NSMethodGroup, as a column of presenters for the methods in the group. Automatically gets updated after the subject mirror group. Anything that has to do with adding, editing or deleting NS methods goes here. *)
+class TransientSlotGroupPresenter onSubject: s <Subject> = MirrorGroupPresenter onSubject: s (
+) (
+public addNewItemTemplate = (
+	(* Handle a user's request to create a new method by displaying a new method template. *)
+	addNewItemTemplate: subject methodTemplateText
+)
+addNewItemTemplate: src = (
+	(* Handle a user's request to create a new method by displaying a new method template. *)
+
+	| template |
+	template:: DefinitionTemplate
+		caption: 'Adding new transient slot'
+		initialText: src
+		colorizerBlock:
+			[:text <String> :cm <CodeMIrrorFragment> | subject colorizeSource: text editor: cm]
+		acceptResponse:
+			[:ed | createNewTransientSlotFromTemplate: template]
+		cancelResponse:
+			[:ed | prefixes remove: template].
+	prefixes add: template.
+	prefixes refresh.
+	^template
+)
+createNewTransientSlotFromTemplate: template <DefinitionTemplate> = (
+	subject
+		compileSource: template text
+		ifSuccess:
+			[:newTransientSlot <MethodMirror> |
+			|
+			newSubject <MethodSubject> = TransientSlotSubject onModel: newTransientSlot.
+			newPresenter <MethodPresenter> = createPresenterForSubject: newSubject.
+			|
+			prefixes remove: template.
+			content add: newPresenter.
+			newPresenter expand]
+		ifFailure:
+			[:message | template editor showMessage: message]
+)
+public deleteTransientSlotInPresenter: presenter <Presenter> ifSuccess: successResponse <[]> ifFailure: failureResponse <[]> = (
+	subject deleteTransientSlotWithSubject: presenter subject.
+	successResponse value
+)
+elementPresenterClass ^ <ProgrammingPresenter class> = (
+	^TransientSlotPresenter
+)
+) : (
+)
+(* Represents the collection of transient slots of a Newspeak class. Holds onto the mirror group for the transient slots. *)
+public class TransientSlotGroupSubject onModel: m <MirrorGroup[TransientSlotMirror]> within: dm <MixinMirror> = MirrorGroupSubject onModel: m within: dm  (
+) (
+public colorizeSource: source <String> editor: cm <CodeMirrorFragment> ^ <TextFragment> = (
+	^ide colorizer
+		colorizeTransientSlot: source
+		fromClass: definingMixin declaration
+		via: (colorizingBlockFor: cm)
+)
+public compileSource: source <String> ifSuccess: successBlock <[:MethodMirror]> ifFailure: failureBlock <[:String]> = (
+	[ | builder <MixinBuilder> newBuilder <MethodBuilder> newMirror <MethodMirror> |
+	builder:: definingMixin asBuilder.
+	newBuilder:: builder transientSlots addFromSource: source.
+	builder declaration install.
+	newMirror:: definingMixin transientSlots findMirrorNamed: newBuilder name.
+	successBlock value: newMirror]
+		on: Error
+		do: [:ex <Exception> | failureBlock value: ex printString].
+)
+public createPresenter = (
+	^TransientSlotGroupPresenter onSubject: self
+)
+elementSubjectClass ^<TransientSlotSubject class> = (
+	^TransientSlotSubject
+)
+public methodTemplateText ^ <String> = (
+^
+'transient slotName = initializer.'
+)
+modelMirrorCollection ^<Collection[TransientSlotMirror]> = (
+	^super modelMirrorCollection (*asSortedList: [:a :b | a simpleName < b simpleName]*)
+)
+) : (
+)
+class TransientSlotPresenter onSubject: s <TransientSlotSubject> = MemberPresenter onSubject: s (
+) (
+acceptResponse ^ <[:CodeMirrorFragment :Event]> = (
+	^[:ed <CodeMirrorFragment> :event <Event> |
+		| b <MixinBuilder> = subject transientSlotMirror definingMixin asBuilder. |
+		(*('ed text:', ed textBeingAccepted) out.*)
+		b transientSlots addFromSource: ed textBeingAccepted.
+		b declaration install.
+		colorizeSource: ed textBeingAccepted withEditor: ed.
+		ed leaveEditState.
+		]
+)
+colorizeSource: s <String> withEditor: cm <CodeMirrorFragment> = (
+	ide colorizer colorizeTransientSlot: s fromClass: subject classDeclaration via: (colorizingBlockFor: cm)
+)
+) : (
+)
+public class TransientSlotSubject onModel: tsm <TransientSlotMirror> = Subject onModel: tsm (
+) (
+public accessModifier ^<Symbol> = (
+	^transientSlotMirror accessModifier
+)
+public classDeclaration ^<ClassDeclarationMirror> = (
+	^transientSlotMirror definingMixin declaration
+)
+public commentSummary ^<String> = (
+	^summarizeCommentFromMetadata: model metadata
+)
+public createPresenter ^<Presenter> = (
+	^TransientSlotPresenter onSubject: self
+)
+public delete = (
+	| b <MixinBuilder> = transientSlotMirror definingMixin asBuilder. |
+	b transientSlots removeMirrorNamed: transientSlotMirror name.
+	b declaration install.
+)
+(* Returns all classes the model is nested in, beginning with the immediately enclosing class and up to the top level. *)
+public enclosingClasses ^<List[MixinMirror]> = (
+	| classes currentClass |
+	classes:: List new.
+	currentClass:: transientSlotMirror definingMixin.
+	[classes add: currentClass.
+	 currentClass:: currentClass declaration enclosingClass.
+	 currentClass isNil]
+		whileFalse: [currentClass:: currentClass instanceSide].
+	^classes
+)
+public messages = (
+	| result |
+	result:: List withAll: transientSlotMirror selectors.
+	result sort: [:a :b | lexicallyLessOrEqual: a than: b].
+	model isMutable ifTrue: [result addFirst: model name, ':'].
+	result addFirst: model name.
+	result addAll: ((methodMirror metadata collect: [:ea | ea tag]) reject: [:ea | nil = ea]).
+	^result
+)
+public name ^<Symbol> = (
+	^transientSlotMirror name
+)
+public source ^<String> = (
+	^transientSlotMirror source
+)
+public transientSlotMirror ^<TransientSlotMirror> = (
+	^model
 )
 ) : (
 )

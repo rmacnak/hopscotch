@@ -17,11 +17,11 @@ cp CodeMirror/addon/display/autorefresh.js out/CodeMirror/addon/display/autorefr
 cp src/* out
 
 cd out
-../primordialsoup/out/ReleaseX64/primordialsoup \
+../primordialsoup/out/ReleaseARM64/primordialsoup \
     ../primordialsoup/out/snapshots/CompilerApp.vfuel \
     *.ns \
     RuntimeWithMirrors WebCompiler WebCompiler.vfuel
-../primordialsoup/out/ReleaseX64/primordialsoup \
+../primordialsoup/out/ReleaseARM64/primordialsoup \
     WebCompiler.vfuel \
     *.ns \
     *.webp \

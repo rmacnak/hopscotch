@@ -71,6 +71,10 @@ colorizeString: s <String> withProduction: parser <CombinatorialParser> via: cf 
 	consolidateRanges.
 	rangeArray do: [:r | nil = r ifFalse: [cf value: r]].
 )
+public colorizeTransientSlot: s <String> fromClass: c <Class> via: cf <[:Range]> = (
+      setString: s class: c.
+      colorizeString: s withProduction: transientSlotDecl via: cf
+)
 computePropertiesMap ^ <Map[Symbol, TextProperties]> = (
 (* compute a mapping from 'kinds', which are symbols denoting logical categories of code, to textual properties used to colorize them*)
   |

@@ -17,6 +17,7 @@ class Namespacing usingPlatform: p ide: ide = (
 	private Subject = p hopscotch Subject.
 	private ProgrammingPresenter = ide browsing ProgrammingPresenter.
 	private MethodSubject = ide browsing MethodSubject.
+	private TransientSlotSubject = ide browsing TransientSlotSubject.
 	private ClassHeaderSubject = ide browsing ClassHeaderSubject.
 
 	public Root = p collections Map new.
@@ -191,6 +192,8 @@ public implementors ^<List[Subject]> = (
 		[:ea |
 		 ea isKindOfMethodMirror ifTrue:
 			[result add: (MethodSubject onModel: ea)].
+		 ea isKindOfTransientSlotDeclarationMirror ifTrue:
+			[result add: (TransientSlotSubject onModel: ea)].
 		 ea isKindOfClassHeaderMirror ifTrue:
 			[result add: (ClassHeaderSubject onModel: ea)]].
 	^result
@@ -207,6 +210,8 @@ public senders ^<List[Subject]> = (
 		[:ea |
 		 ea isKindOfMethodMirror ifTrue:
 			[result add: (MethodSubject onModel: ea)].
+		 ea isKindOfTransientSlotDeclarationMirror ifTrue:
+			[result add: (TransientSlotSubject onModel: ea)].
 		 ea isKindOfClassHeaderMirror ifTrue:
 			[result add: (ClassHeaderSubject onModel: ea)]].
 	^result
@@ -257,7 +262,13 @@ indexMethod: method <MethodMirror> = (
 )
 indexMixin: mixin <MixinMirror> = (
 	mixin nestedClasses do: [:c | indexClassDeclaration: c].
+	mixin transientSlots do: [:c | indexTransientSlot: c].
 	mixin methods do: [:m | indexMethod: m].
+)
+indexTransientSlot: slot <MethodMirror> = (
+	note: slot implements: slot name.
+	slot isMutable ifTrue: [note: slot implements: slot name, ':'].
+	slot selectors do: [:s | note: slot sends: s].
 )
 lexicallyLessOrEqual: a <String> than: b <String> ^ <Boolean> = (
 	1 to: (a size min: b size) do:
