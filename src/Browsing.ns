@@ -272,7 +272,7 @@ public classDeclaration = (
 	^model declaration
 )
 public commentSummary ^<String> = (
-	^summarizeComment: model comment
+	^summarizeCommentFromMetadata: model metadata
 )
 public createPresenter = (
 	^ClassHeaderPresenter onSubject: self
@@ -300,6 +300,7 @@ public messages = (
 	sent:: Array withAll: model selectors.
 	sent sort: [:a :b | lexicallyLessOrEqual: a than: b].
 	result addAll: sent.
+	result addAll: ((methodMirror metadata collect: [:ea | ea tag]) reject: [:ea | nil = ea]).
 	^result
 )
 public name = (
@@ -442,7 +443,7 @@ public classMirror ^ <ClassDeclarationMirror> = (
 	^model
 )
 public commentSummary ^<String> = (
-	^summarizeComment: model header comment
+	^summarizeCommentFromMetadata: model header metadata
 )
 public createPresenter = (
 	^ClassPresenter onSubject: self
@@ -489,6 +490,7 @@ public messages = (
 	sent:: Array withAll: header selectors.
 	sent sort: [:a :b | lexicallyLessOrEqual: a than: b].
 	result addAll: sent.
+	result addAll: ((methodMirror metadata collect: [:ea | ea tag]) reject: [:ea | nil = ea]).
 	^result
 )
 public methodsSubject ^ <MethodGroupSubject> = (
@@ -1130,7 +1132,7 @@ public classDeclaration ^ <ClassDeclarationMirror> = (
 	^methodMirror definingMixin declaration
 )
 public commentSummary ^<String> = (
-	^summarizeComment: model comment
+	^summarizeCommentFromMetadata: model metadata
 )
 public createPresenter ^ <Presenter> = (
 	^MethodPresenter onSubject: self
@@ -1154,6 +1156,7 @@ public enclosingClasses ^<List[MixinMirror]> = (
 )
 public messages = (
 	^List new
+		addAll: ((methodMirror metadata collect: [:ea | ea tag]) reject: [:ea | nil = ea]);
 		addAll: methodMirror selectors;
 		sort: [:a :b | lexicallyLessOrEqual: a than: b];
 		addFirst: methodMirror name;
@@ -2115,13 +2118,17 @@ lexicallyLessOrEqual: a <String> than: b <String> ^ <Boolean> = (
 )
 summarizeComment: comment <String> ^<String> = (
 	| start stop |
-	nil = comment ifTrue: [^''].
 	start:: 1.
 	stop:: (comment indexOf: '.') - 1.
 	[start <= comment size and: [(comment at: start) <= 32]]
 		whileTrue: [start:: start + 1].
 	stop < start ifTrue: [stop:: comment size].
 	^comment copyFrom: start to: stop
+)
+summarizeCommentFromMetadata: metadata = (
+	nil = metadata ifTrue: [^''].
+	metadata do: [:ea | ea tag = nil ifTrue: [^summarizeComment: ea payload]].
+	^''
 )
 ) : (
 )

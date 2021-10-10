@@ -248,6 +248,7 @@ public isKindOfActivationSubject ^<Boolean> = (
 )
 public messages = (
 	^List new
+		addAll: ((methodMirror metadata collect: [:ea | ea tag]) reject: [:ea | nil = ea]);
 		addAll: methodMirror selectors;
 		sort: [:a :b | lexicallyLessOrEqual: a than: b];
 		addFirst: methodMirror name;

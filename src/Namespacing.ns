@@ -138,6 +138,7 @@ class Selector name: n = (|
 	public name = n.
 	public senders = Set new.
 	public implementors = Set new.
+	public taggers = Set new.
 |) (
 ) : (
 )
@@ -147,6 +148,7 @@ definition ^<Fragment> = (
 	|
 	implementors = subject implementors.
 	senders = subject senders.
+	taggers = subject taggers.
 	|
 	^column: {
 		majorHeadingBlock: (label: subject selector, ' implementors (', implementors size asString, ')').
@@ -156,6 +158,10 @@ definition ^<Fragment> = (
 		majorHeadingBlock: (label: subject selector, ' senders (', senders size asString, ')').
 		mediumBlank.
 		list: (senders collect: [:ea | ea presenter showClassName: true]).
+		mediumBlank.
+		majorHeadingBlock: (label: subject selector, ' taggers (', taggers size asString, ')').
+		mediumBlank.
+		list: (taggers collect: [:ea | ea presenter showClassName: true]).
 		mediumBlank.
 	}
 )
@@ -205,6 +211,18 @@ public senders ^<List[Subject]> = (
 			[result add: (ClassHeaderSubject onModel: ea)]].
 	^result
 )
+public taggers ^<List[Subject]> = (
+	| result = List new. |
+	(selectors at: model ifAbsent: [^result]) taggers do:
+		[:ea |
+		 ea isKindOfMethodMirror ifTrue:
+			[result add: (MethodSubject onModel: ea)].
+		 ea isKindOfTransientSlotDeclarationMirror ifTrue:
+			[result add: (TransientSlotSubject onModel: ea)].
+		 ea isKindOfClassHeaderMirror ifTrue:
+			[result add: (ClassHeaderSubject onModel: ea)]].
+	^result
+)
 public title ^<String> = (
 	^'#', model
 )
@@ -230,10 +248,12 @@ indexClassHeader: klass <ClassDeclarationMirror> = (
 		 note: header implements: slot name.
 		 slot isMutable ifTrue: [note: header implements: slot name, ':']].
 	header selectors do: [:s | note: header sends: s].
+	note: header hasMetadata: header metadata.
 )
 indexMethod: method <MethodMirror> = (
 	note: method implements: method name.
 	method selectors do: [:s | note: method sends: s].
+	note: method hasMetadata: method metadata.
 )
 indexMixin: mixin <MixinMirror> = (
 	mixin nestedClasses do: [:c | indexClassDeclaration: c].
@@ -245,6 +265,12 @@ lexicallyLessOrEqual: a <String> than: b <String> ^ <Boolean> = (
 		 (a at: index) < (b at: index) ifTrue: [^true].
 		 (a at: index) > (b at: index) ifTrue: [^false]].
 	^a size <= b size
+)
+note: methodOrHeader <ClassHeaderMirror | MethodMirror> hasMetadata: metadata <String> = (
+	metadata do:
+		[:each | each tag = nil ifFalse:
+			[(selectors at: each tag ifAbsentPut: [Selector name: each tag])
+				taggers add: methodOrHeader]].
 )
 note: methodOrHeader <ClassHeaderMirror | MethodMirror> implements: selector <String> = (
 	(selectors at: selector ifAbsentPut: [Selector name: selector])
