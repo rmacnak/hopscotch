@@ -314,11 +314,8 @@ createVisual ^ <Alien[Element]> = (
 		at: 'cursor' put: 'pointer'.
 	^column
 )
-removeContent ^ <Alien[Element]> = (
-	^visual removeChild: (visual at: 'lastChild')
-)
 toggleContent = (
-	menuActive ifTrue: [removeContent] ifFalse: [updateContent].
+	menuActive ifTrue: [(visual at: 'lastChild') blur] ifFalse: [updateContent].
 	menuActive:: menuActive not.
 )
 updateContent ^ <Alien[Element]> = (
