@@ -199,7 +199,7 @@ public messages = (
 	sent:: Array withAll: model selectors.
 	sent sort: [:a :b | lexicallyLessOrEqual: a than: b].
 	result addAll: sent.
-	result addAll: ((methodMirror metadata collect: [:ea | ea tag]) reject: [:ea | nil = ea]).
+	result addAll: ((model metadata collect: [:ea | ea tag]) reject: [:ea | nil = ea]).
 	^result
 )
 public name = (
