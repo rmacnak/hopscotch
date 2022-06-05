@@ -629,7 +629,7 @@ The output type of the wrapped parser, S, is also the input to the wrapper. The 
 class WrappingParser = CombinatorialParser (
 | parser wrapperBlock |) (
 public parse: input inContext: context ifError: blk = (
-	^wrapperBlock value: (parser parse: input inContext: context ifError: blk )
+	^wrapperBlock value: (parser parse: input inContext: context ifError: [:msg :pos | ^blk value: msg value: pos])
 )
 public wrapParser: p withWrapper: blk = (
 	parser:: p.
