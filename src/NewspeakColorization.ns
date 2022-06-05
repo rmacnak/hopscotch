@@ -306,7 +306,6 @@ class NS3Colorizer = TypedNS3Grammar (
 	braceDepth <Integer>
 	bracketDepth <Integer>
 	parenDepth <Integer>
-	isFirst ::= true.
 	mixinMirrorForObject <MixinMirror> = (ClassMirror reflecting: Object) mixin.
 |) (
 accessModifier = (
@@ -638,7 +637,6 @@ slotDef = (
 		[:tokens | | sd kind |
 		sd:: (tokens at: 2) first.
 		noteRange: #slotDecl from: sd start to: sd end.
-		(* isFirst ifTrue: [pushScope. isFirst: false]. *)
 		tokens]
 )
 slotName = (
@@ -673,23 +671,9 @@ symbolInScope: aString <String> ^ <Boolean> = (
 		(extendedCanUnderstand: aString) ifTrue: [^true].
 		^false
 )
-tempSlotDef = (
-	^super slotDef wrap: [ :tokens | | sd kind |
-		sd:: (tokens at: 2) first.
-		noteRange: #slotDecl from: sd start to: sd end.
-
-		isFirst ifTrue: [pushScope. isFirst: false].
-
-		kind:: (symbolInScope: sd value) ifTrue: [#shadowingTempVar] ifFalse: [#tempVar].
-		currentScope at: sd value put: #temporary.
-		currentScope at: sd value, ':' put: #temporary.
-		noteRange: kind from: sd start to: sd end.
-
-		tokens]
-)
 temporaries = (
 	|
-	tempSlotDefs = tempSlotDef star.
+	tempSlotDefs = slotDef star.
  	tempSeqSlotDecls = vbar, tempSlotDefs, vbar.
  	tempSimSlotDecls = vbar, vbar, tempSlotDefs, vbar, vbar.
  	tempSlotDecls = tempSimSlotDecls | tempSeqSlotDecls.
@@ -711,9 +695,18 @@ temporaries = (
 			vb3:: parts at: 4.
 			vb4:: parts at: 5].
 
-		isFirst: true.
 		noteRange: #methodTempBar from: vb1 start to: vb2 end.
 		noteRange: #methodTempBar from: vb3 start to: vb4 end.
+
+		pushScope.
+
+		vds do: [:tokens | | sd kind |
+			sd:: (tokens at: 2) first.
+			kind:: (symbolInScope: sd value) ifTrue: [#shadowingTempVar] ifFalse: [#tempVar].
+			currentScope at: sd value put: #temporary.
+			currentScope at: sd value, ':' put: #temporary.
+			noteRange: kind from: sd start to: sd end].
+
 		vds]
 )
 tupleType = (
