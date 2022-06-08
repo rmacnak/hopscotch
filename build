@@ -16,12 +16,14 @@ cp CodeMirror/lib/codemirror.css out/CodeMirror/lib/codemirror_css.css
 cp CodeMirror/addon/display/autorefresh.js out/CodeMirror/addon/display/autorefresh.js
 cp src/* out
 
+ARCH=$(node -p "os.arch().toUpperCase()")
+
 cd out
-../primordialsoup/out/ReleaseARM64/primordialsoup \
+../primordialsoup/out/Release$ARCH/primordialsoup \
     ../primordialsoup/out/snapshots/CompilerApp.vfuel \
     *.ns \
     RuntimeWithMirrors WebCompiler WebCompiler.vfuel
-../primordialsoup/out/ReleaseARM64/primordialsoup \
+../primordialsoup/out/Release$ARCH/primordialsoup \
     WebCompiler.vfuel \
     *.ns \
     *.webp \
