@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-source "$HOME/Applications/emsdk/emsdk_env.sh"
+[ -f "$HOME/Applications/emsdk/emsdk_env.sh" ] && source "$HOME/Applications/emsdk/emsdk_env.sh"
 cd primordialsoup
 ./build os=emscripten arch=wasm
 cd ..
