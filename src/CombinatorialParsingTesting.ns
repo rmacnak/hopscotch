@@ -1,0 +1,16 @@
+class CombinatorialParsingTesting usingCombinatorialParsing: c minitest: m = (|
+private TestContext = m TestContext.
+private ExecutableGrammar = c ExecutableGrammar.
+|) (
+public class WrappingParserTests = TestContext () (
+public testParseString = (
+	| p |
+	p:: ExecutableGrammar new whitespace wrap: [:_ | #wrap].
+	assert: (p parseString: ' ' ifError: [:_ :__ | #fail]) equals: #wrap.
+	assert: (p parseString: 'a' ifError: [:_ :__ | #fail]) equals: #fail.
+)
+) : (
+TEST_CONTEXT = ()
+)
+) : (
+)
