@@ -1,0 +1,35 @@
+# GitHub actions for Continuous Integration
+
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Install Dependencies
+        run: sudo apt-get install g++ scons
+      - name: Install Emscripten
+        uses: mymindstorm/setup-emsdk@v11
+      - name: Build
+        run: ./build arch=x64
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Install Dependencies
+        run: HOMEBREW_NO_AUTO_UPDATE=1 brew install scons
+      - name: Install Emscripten
+        uses: mymindstorm/setup-emsdk@v11
+      - name: Build
+        run: ./build arch=x64

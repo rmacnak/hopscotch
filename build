@@ -1,10 +1,12 @@
 #!/bin/sh -ex
 
-source "$HOME/Applications/emsdk/emsdk_env.sh"
 cd primordialsoup
 ./build os=emscripten arch=wasm
 cd ..
 
+# All this moving sources around is to make build-time relative paths the same
+# as our desired load-time relative paths. Eventually this should be handled by
+# WebCompiler when we have I/O libraries.
 mkdir -p out
 cp primordialsoup/out/ReleaseEmscriptenWASM/primordialsoup.* out
 cp primordialsoup/out/snapshots/*.vfuel out
@@ -17,11 +19,11 @@ cp CodeMirror/addon/display/autorefresh.js out/CodeMirror/addon/display/autorefr
 cp src/* out
 
 cd out
-../primordialsoup/out/ReleaseARM64/primordialsoup \
+../primordialsoup/out/ReleaseHost/primordialsoup \
     ../primordialsoup/out/snapshots/CompilerApp.vfuel \
     *.ns \
     RuntimeWithMirrors WebCompiler WebCompiler.vfuel
-../primordialsoup/out/ReleaseARM64/primordialsoup \
+../primordialsoup/out/ReleaseHost/primordialsoup \
     WebCompiler.vfuel \
     *.ns \
     *.webp \
