@@ -1,0 +1,16 @@
+class NewspeakColorizationTesting usingNewspeakColorization: c minitest: m = (|
+private TestContext = m TestContext.
+private NS3BrowserColorizer = c NS3BrowserColorizer.
+|) (
+public class NS3BrowserColorizerTests = TestContext (|
+private colorizer = NS3BrowserColorizer new.
+|) (
+public testParseDoIt = (
+	assert: (colorizer parseDoIt: '| foo' fromClass: nil) isKindOfTextBlock.
+	assert: (colorizer parseDoIt: '| foo' fromClass: nil) isKindOfTextBlock.
+)
+) : (
+TEST_CONTEXT = ()
+)
+) : (
+)

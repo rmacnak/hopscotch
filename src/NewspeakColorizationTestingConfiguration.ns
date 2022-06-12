@@ -1,0 +1,16 @@
+class NewspeakColorizationTestingConfiguration packageTestsUsing: manifest = (|
+private CombinatorialParsing = manifest CombinatorialParsing.
+private NewspeakGrammar = manifest NewspeakGrammar.
+private NewspeakColorization = manifest NewspeakColorization.
+private NewspeakColorizationTesting = manifest NewspeakColorizationTesting.
+|) (
+public testModulesUsingPlatform: platform minitest: minitest = (
+	|
+	parsing = CombinatorialParsing usingPlatform: platform.
+	grammar = NewspeakGrammar usingPlatform: platform parsers: parsing.
+	colorization = NewspeakColorization usingPlatform: platform grammar: grammar.
+	|
+	^{NewspeakColorizationTesting usingNewspeakColorization: colorization minitest: minitest}
+)
+) : (
+)
