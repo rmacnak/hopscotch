@@ -21,6 +21,8 @@ jobs:
         uses: mymindstorm/setup-emsdk@v11
       - name: Build
         run: ./build arch=x64
+      - name: Test
+        run: ./test
   macos:
     runs-on: macos-latest
     steps:
@@ -33,3 +35,5 @@ jobs:
         uses: mymindstorm/setup-emsdk@v11
       - name: Build
         run: ./build arch=x64
+      - name: Test
+        run: ./test

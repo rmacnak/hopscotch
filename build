@@ -22,7 +22,8 @@ cd out
 ../primordialsoup/out/ReleaseHost/primordialsoup \
     ../primordialsoup/out/snapshots/CompilerApp.vfuel \
     *.ns \
-    RuntimeWithMirrors WebCompiler WebCompiler.vfuel
+    RuntimeWithMirrors WebCompiler WebCompiler.vfuel \
+    RuntimeWithMirrors HopscotchTestRunner HopscotchTestRunner.vfuel
 ../primordialsoup/out/ReleaseHost/primordialsoup \
     WebCompiler.vfuel \
     *.ns \
