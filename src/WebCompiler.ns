@@ -119,14 +119,14 @@ public main: args = (
 		 index:: index + 3].
 )
 readFileAsBytes: filename = (
-	(* :literalmessage: primitive: 130 *)
+	(* :pragma: primitive: 510 *)
 	halt.
 )
 readFileAsString: filename = (
 	^String withAll: (readFileAsBytes: filename)
 )
 writeBytes: bytes toFileNamed: filename = (
-	(* :literalmessage: primitive: 128 *)
+	(* :pragma: primitive: 511 *)
 	halt.
 )
 ) : (

@@ -55,7 +55,7 @@ class NS3Grammar = ExecutableGrammar (
 	(* must distinguish internal use of productions from use as tokens *)
 	number = tokenFor: num.
 	letter = uppercaseLetter | (charBetween: "a" and: "z").
-	specialCharacter = (char: "+") | (char: "/") | (char: "\") | (char: "*")
+	specialCharacter = (char: "+") | (char: "/") | (char: "\\") | (char: "*")
 		| (char: "~") | (char: "<") | (char: ">") | (char: "=")
 		| (char: "@") | (char: "%") | (char: "|") | (char: "&")
 		| (char: "?" ) | (char: "!") | (char: ",").
@@ -71,8 +71,8 @@ class NS3Grammar = ExecutableGrammar (
 
 	public identifier = tokenFor: id.
 
-	charIncludingQuotesAndSpace = character | (char: "'" ) | (char: """ ) | (char: " ").
-	characterConstant = tokenFor: (char: """), charIncludingQuotesAndSpace, (char: """).
+	charIncludingQuotesAndSpace = character | (char: "'" ) | (char: "\"" ) | (char: " ").
+	characterConstant = tokenFor: (char: "\""), charIncludingQuotesAndSpace, (char: "\"").
 
 	str = (char: "'"), stringBody, (char: "'") wrapper:
 		[:oq :es :eq | String withAll: es].
