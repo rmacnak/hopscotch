@@ -1,0 +1,132 @@
+class HopscotchForTerminalTesting usingHopscotch: h minitest: m = (|
+private TestContext = m TestContext.
+private LabelVisual = h LabelVisual.
+private TextVisual = h TextVisual.
+private SequenceVisual = h SequenceVisual.
+private Constraints = h Constraints.
+private Size = h Size.
+|) (
+public class BlankTests = TestContext () (
+) : (
+TEST_CONTEXT = ()
+)
+public class ColumnTests = TestContext () (
+) : (
+TEST_CONTEXT = ()
+)
+public class ConstraintsTests = TestContext () (
+public testConstraintsClamp = (
+	| constraints size |
+	constraints:: Constraints new.
+	constraints minWidth: 0.
+	constraints maxWidth: 100.
+	constraints minHeight: 500.
+	constraints maxHeight: 1000.
+
+	assert: (constraints clampWidth: -1) equals: 0.
+	assert: (constraints clampWidth: 0) equals: 0.
+	assert: (constraints clampWidth: 50) equals: 50.
+	assert: (constraints clampWidth: 100) equals: 100.
+	assert: (constraints clampWidth: 101) equals: 100.
+
+	assert: (constraints clampHeight: 499) equals: 500.
+	assert: (constraints clampHeight: 500) equals: 500.
+	assert: (constraints clampHeight: 575) equals: 575.
+	assert: (constraints clampHeight: 1000) equals: 1000.
+	assert: (constraints clampHeight: 1001) equals: 1000.
+
+	size:: Size width: -1 height: 499.
+	size:: constraints clampSize: size.
+	assert: size width equals: 0.
+	assert: size height equals: 500.
+
+	size:: Size width: 0 height: 500.
+	size:: constraints clampSize: size.
+	assert: size width equals: 0.
+	assert: size height equals: 500.
+
+	size:: Size width: 50 height: 575.
+	size:: constraints clampSize: size.
+	assert: size width equals: 50.
+	assert: size height equals: 575.
+
+	size:: Size width: 100 height: 1000.
+	size:: constraints clampSize: size.
+	assert: size width equals: 100.
+	assert: size height equals: 1000.
+
+	size:: Size width: 101 height: 1001.
+	size:: constraints clampSize: size.
+	assert: size width equals: 100.
+	assert: size height equals: 1000.
+)
+) : (
+TEST_CONTEXT = ()
+)
+public class FlowTests = TestContext () (
+) : (
+TEST_CONTEXT = ()
+)
+public class LabelTests = TestContext () (
+public testLabelLayout = (
+	| l |
+	l:: LabelVisual new.
+	l text: 'Hello, layout!'.
+	l layout: (Constraints minWidth: 0 maxWidth: 100 minHeight: 0 maxHeight: 100).
+	assert: l width equals: 14.
+	assert: l height equals: 1.
+)
+public testLabelLayoutEmpty = (
+	| l |
+	l:: LabelVisual new.
+	l text: ''.
+	l layout: (Constraints minWidth: 0 maxWidth: 100 minHeight: 0 maxHeight: 100).
+	assert: l width equals: 0.
+	assert: l height equals: 1.
+)
+public testLabelLayoutOverflow = (
+	| l |
+	l:: LabelVisual new.
+	l text: 'Hello, layout!'.
+	l layout: (Constraints minWidth: 0 maxWidth: 10 minHeight: 0 maxHeight: 10).
+	assert: l width equals: 10.
+	assert: l height equals: 1.
+)
+public testLabelLayoutUnderflow = (
+	| l |
+	l:: LabelVisual new.
+	l text: 'Hello, layout!'.
+	l layout: (Constraints minWidth: 100 maxWidth: 100 minHeight: 100 maxHeight: 100).
+	assert: l width equals: 100.
+	assert: l height equals: 100.
+)
+) : (
+TEST_CONTEXT = ()
+)
+public class RowTests = TestContext () (
+public testRowCrossAxisAlignToCenter = ()
+public testRowCrossAxisAlignToEnd = ()
+public testRowCrossAxisAlignToStart = ()
+public testRowCrossAxisStretch = ()
+public testRowEmpty = ()
+public testRowFlexFactorRoundingError = ()
+public testRowMainAxisAlignAround = ()
+public testRowMainAxisAlignBetween = ()
+public testRowMainAxisAlignEvenly = ()
+public testRowMainAxisAlignToCenter = ()
+public testRowMainAxisAlignToEnd = ()
+public testRowMainAxisAlignToStart = ()
+public testRowOverflow = ()
+) : (
+TEST_CONTEXT = ()
+)
+public class TextDisplayTests = TestContext () (
+) : (
+TEST_CONTEXT = ()
+)
+public class ViewportTests = TestContext () (
+) : (
+TEST_CONTEXT = ()
+)
+) : (
+)

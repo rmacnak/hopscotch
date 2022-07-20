@@ -1,9 +1,7 @@
-class HopscotchTestRunner packageUsing: manifest = (|
+class HostTestRunner packageUsing: manifest = (|
 Minitest = manifest Minitest.
-hopscotchRuntime = manifest HopscotchForHTML5Runtime packageUsing: manifest.
 testConfigs = {
-	manifest CombinatorialParsingTestingConfiguration packageTestsUsing: manifest.
-	manifest NewspeakColorizationTestingConfiguration packageTestsUsing: manifest.
+	manifest HopscotchForTerminalTestingConfiguration packageTestsUsing: manifest.
 }.
 Promise
 |) (
@@ -12,8 +10,7 @@ private exit: code = (
 	panic.
 )
 public main: platform args: args = (
-	| hopscotchPlatform keepAlive stopwatch minitest testModules tester |
-	hopscotchPlatform:: hopscotchRuntime using: platform.
+	| keepAlive stopwatch minitest testModules tester |
 	keepAlive:: platform actors Port new.
 	Promise:: platform actors Promise.
 	stopwatch:: platform time Stopwatch new start.
@@ -22,7 +19,7 @@ public main: platform args: args = (
 	testConfigs do:
 		[:testConfig |
 		 testModules addAll:
-			(testConfig testModulesUsingPlatform: hopscotchPlatform minitest: minitest)].
+			(testConfig testModulesUsingPlatform: platform minitest: minitest)].
 	tester:: minitest Tester testModules: testModules.
 	tester prepare.
 

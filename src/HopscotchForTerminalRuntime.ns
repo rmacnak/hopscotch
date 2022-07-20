@@ -1,0 +1,28 @@
+class HopscotchForTerminalRuntime packageUsing: manifest = (
+	|
+	private Hopscotch = manifest HopscotchForTerminal.
+	|
+) (
+class PlatformWithHopscotch usingPlatform: platform = (
+	|
+	private platform = platform.
+	public hopscotch = Hopscotch usingPlatform: self.
+	public graphics = hopscotch.
+	public text = hopscotch.
+	|
+) (
+public actors = ( ^platform actors )
+public collections = ( ^platform collections )
+public kernel = ( ^platform kernel )
+public mirrors = ( ^platform mirrors )
+public operatingSystem = ( ^platform operatingSystem )
+public random = ( ^platform random )
+public serialization = ( ^platform serialization )
+public time = ( ^platform time )
+) : (
+)
+public using: platform = (
+	^PlatformWithHopscotch usingPlatform: platform
+)
+) : (
+)

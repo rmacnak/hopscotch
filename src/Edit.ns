@@ -1,0 +1,50 @@
+class Edit packageUsing: manifest = (
+	|
+	private hopscotchRuntime = manifest HopscotchForTerminalRuntime packageUsing: manifest.
+	|
+) (
+class Edit usingPlatform: p = (
+	|
+	public List = p collections List.
+	public Subject = p hopscotch Subject.
+	public Presenter = p hopscotch Presenter.
+	|
+) (
+class HomePresenter onSubject: s = Presenter onSubject: s (
+) (
+definition = (
+	| abstract = 'Hopscotch is the application framework and development environment of Newspeak, a new programming language and platform inspired by Smalltalk, Self and Beta. Hopscotch avoids a number of design limitations and shortcomings of traditional UIs and UI frameworks by favoring an interaction model and implementing a framework architecture that enable composition of interfaces. This paper discusses the deficiencies of the traditional approach, provides an overview of the Hopscotch alternative and analyses how it improves upon the status quo.'. |
+	^(column: {
+		label: '[Above]'.
+		row: {
+			label: '[Left]'.
+			(codeMirror: abstract) width: 0 elasticity: 1.
+			label: '[Right]'.
+		}.
+		label: '[Below]'.
+	}) crossAxisAlignToCenter
+)
+) : (
+)
+public class HomeSubject onModel: m = Subject onModel: m (
+) (
+public createPresenter = (
+	^HomePresenter onSubject: self
+)
+public title = (
+	^'Home'
+)
+) : (
+public new = ( ^onModel: nil )
+)
+) : (
+)
+public main: platform <Platform> args: args <Tuple[String]> = (
+	| hopscotchPlatform gallery shell |
+	hopscotchPlatform:: hopscotchRuntime using: platform.
+	gallery:: Edit usingPlatform: hopscotchPlatform.
+	shell:: hopscotchPlatform hopscotch core HopscotchShell openSubject: gallery HomeSubject new.
+	shell main.
+)
+) : (
+)

@@ -46,7 +46,11 @@ BuildStage1Snapshots([
 BuildStage2Snapshots([
     ['Runtime', 'Particles', 'Particles.vfuel'],
     ['RuntimeWithMirrors', 'HopscotchIDE', 'HopscotchIDE.vfuel.bmp'],
-    ['RuntimeWithMirrors', 'HopscotchTestRunner', 'HopscotchTestRunner.vfuel'],
+    ['RuntimeWithMirrors', 'WebTestRunner', 'WebTestRunner.vfuel'],
+    ['Runtime', 'Edit', 'Edit.vfuel'],
+    ['Runtime', 'HopscotchGallery', 'HopscotchGallery.vfuel'],
+    ['RuntimeWithMirrors', 'HopscotchIDEForTerminal', 'HopscotchIDEForTerminal.vfuel'],
+    ['RuntimeWithMirrors', 'HostTestRunner', 'HostTestRunner.vfuel'],
 ])
 
 # All this moving outputs around is to make load-time relative paths agree with

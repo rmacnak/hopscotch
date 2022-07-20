@@ -38,8 +38,8 @@ assembleRuntime: runtimeName <String> application: appName <String> to: snapshot
 	app:: appConfig packageUsing:
 		(RecordingManifest namespace: namespace accessedResources: accessedResources).
 
-	(accessedResources allSatisfy: [:resource | (resource at: 3) isKindOfBehavior])
-		ifFalse:
+	(accessedResources anySatisfy: [:resource | needsPreloader: resource])
+		ifTrue:
 			[app:: Preloader
 				resources: (Array withAll: accessedResources)
 				applicationConfiguration: appConfig].
@@ -121,6 +121,13 @@ public main: args = (
 	[(index + 2) <= args size] whileTrue:
 		[assembleRuntime: (args at: index) application: (args at: index + 1) to: (args at: index + 2).
 		 index:: index + 3].
+)
+needsPreloader: resource = (
+	| type = resource at: 2. |
+	type = 'js' ifTrue: [^true].
+	type = 'css' ifTrue: [^true].
+	type = 'img' ifTrue: [^true].
+	^false
 )
 readFileAsBytes: filename = (
 	(* :pragma: primitive: 510 *)

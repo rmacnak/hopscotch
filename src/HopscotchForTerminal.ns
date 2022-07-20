@@ -1,0 +1,2474 @@
+(* Hopscotch is Newspeak's UI framework. This version is implemented on top of terminal escape sequences. *)
+class HopscotchForTerminal usingPlatform: p = (
+	|
+	private List = p collections List.
+	private Map = p collections Map.
+	private Set = p collections Set.
+	private ByteList = p kernel StringBuilder.
+	private DateTime = p time DateTime.
+
+	public core = self.
+	public fragments = self.
+
+	focus
+	infinity = 100000.
+	needsLayout ::= true.
+	|
+) (
+class BlankFragment = LeafFragment (
+	|
+	public size ::= 0.
+	|
+) (
+createVisual = (
+	^BlankVisual new
+		flex: expansibility;
+		size: size
+)
+) : (
+)
+class BlankVisual = Visual (
+	|
+	public size
+	|
+) (
+public hitTest: offset = (
+	^self
+)
+public layout: constraints = (
+	width:: constraints clampWidth: size.
+	height:: constraints clampHeight: 1.
+)
+public paint: context offset: offset = ()
+) : (
+)
+class CenterComposer withContent: definition <Fragment> = Composer (|
+	public content = definition.
+|) (
+public childrenDo: aBlock <[:Fragment]> = (
+	aBlock value: content.
+)
+createVisual = (
+	| v |
+	v:: CenterVisual new.
+	v flex: expansibility.
+	v child: content visual.
+	^v
+)
+) : (
+)
+public class CenterVisual = Visual (|
+	public child
+|) (
+public hitTest: offset = (
+	^child hitTest:
+		(Offset x: offset x + child parentData_x y: offset y + child parentData_y)
+)
+public layout: constraints = (
+	| childConstraints |
+	childConstraints:: Constraints new.
+	childConstraints minWidth: 0.
+	childConstraints minHeight: 0.
+	childConstraints maxWidth: constraints maxWidth.
+	childConstraints maxHeight: constraints maxHeight.
+
+	child layout: childConstraints.
+
+	constraints maxWidth = infinity
+		ifTrue:
+			[child parentData_x: 0.
+			 width: child width]
+		ifFalse:
+			[child parentData_x: (constraints maxWidth - child width max: 0) // 2.
+			 width: constraints maxWidth].
+
+	constraints maxHeight = infinity
+		ifTrue:
+			[child parentData_y: 0.
+			 height: child height]
+		ifFalse:
+			[child parentData_y: (constraints maxHeight - child height max: 0) // 2.
+			 height: constraints maxHeight].
+)
+public paint: context offset: offset = (
+	child paint: context offset:
+		(Offset x: offset x + child parentData_x y: offset y + child parentData_y).
+)
+) : (
+)
+public class Color = () (
+) : (
+public h: h s: s v: v = ( ^nil )
+public r: r g: g b: b = (
+	r = 1 ifTrue: [g = 0 ifTrue: [b = 0 ifTrue: [^1]]].
+	r = 0 ifTrue: [g = 1 ifTrue: [b = 0 ifTrue: [^2]]].
+	r = 0 ifTrue: [g = 0 ifTrue: [b = 1 ifTrue: [^4]]].
+	^nil
+)
+public white = ( ^7 )
+)
+class ColumnComposer definitions: fs <List[Fragment]> = SequenceComposer definitions: fs (
+	crossAxisStretch
+) (
+isColumn = (
+	^true
+)
+) : (
+)
+class Composer = Fragment () (
+) : (
+)
+public class Constraints = (
+	|
+	public minWidth <Number>
+	public maxWidth <Number>
+	public minHeight <Number>
+	public maxHeight <Number>
+	|
+) (
+public clampHeight: height <Number> ^<Number> = (
+	height < minHeight ifTrue: [^minHeight].
+	height > maxHeight ifTrue: [^maxHeight].
+	^height
+)
+public clampSize: size <Size> ^<Size> = (
+	^Size
+		width: (clampWidth: size width)
+		height: (clampHeight: size height)
+)
+public clampWidth: width <Number> ^<Number> = (
+	width < minWidth ifTrue: [^minWidth].
+	width > maxWidth ifTrue: [^maxWidth].
+	^width
+)
+public isKindOfConstraints ^<Boolean> = (
+	^true
+)
+) : (
+public minWidth: w1 maxWidth: w2 minHeight: h1 maxHeight: h2 = (
+	^self new minWidth: w1; maxWidth: w2; minHeight: h1; maxHeight: h2
+)
+)
+class FlowComposer definitions: fs = SequenceComposer definitions: fs (|
+	protected runAlignment ::= #start.
+|) (
+createVisual = (
+	| v = FlowVisual new. |
+	v flex: expansibility.
+	v isColumn: isColumn.
+	v mainAxisAlignment: mainAxisAlignment.
+	v crossAxisAlignment: crossAxisAlignment.
+	v runAlignment: runAlignment.
+	definitions do: [:fragment <Fragment> |
+		| cell <Alien[HTMLElement]> |
+		fragment parent: self.
+		cell:: fragment visual.
+		v appendChild: cell.
+	].
+	^v
+)
+isColumn = (
+	^false
+)
+public runsAlignToCenter = (
+	runAlignment: #center.
+)
+public runsAlignToEnd = (
+	runAlignment: #end.
+)
+public runsAlignToStart = (
+	runAlignment: #start.
+)
+public runsSpaceAround = (
+	runAlignment: #spaceAround.
+)
+public runsSpaceBetween = (
+	runAlignment: #spaceBetween.
+)
+public runsSpaceEvenly = (
+	runAlignment: #spaceEvenly.
+)
+) : (
+)
+(* Sometimes called Wrap. *)
+class FlowVisual = Visual (|
+	public isColumn
+	public mainAxisAlignment
+	public crossAxisAlignment
+	public runAlignment
+	children ::= List new.
+|) (
+public appendChild: c = (
+	children add: c.
+)
+public hitTest: offset = (
+	offset y < 0 ifTrue: [^self].
+	offset y >= height ifTrue: [^self].
+
+	children do: [:child |
+		(hitTest: child offset: offset) ifTrue:
+			[^child hitTest:
+				(Offset
+					x: offset x - child parentData_x
+					y: offset y - child parentData_y)]].
+	^self
+)
+hitTest: child offset: offset = (
+	child parentData_x > offset x ifTrue: [^false].
+	child parentData_x + child width <= offset x ifTrue: [^false].
+	child parentData_y > offset y ifTrue: [^false].
+	child parentData_y + child height <= offset y ifTrue: [^false].
+	^true
+)
+public layout: constraints = (
+	|
+	childConstraints
+	mainAxisLimit
+	mainAxisExtent
+	crossAxisExtent
+	runMainAxisExtent
+	runCrossAxisExtent
+	run
+	runs
+	crossAxisFreeSpace
+	runsLeadingSpace
+	runsBetweenSpace
+	crossAxisOffset
+	|
+	childConstraints:: Constraints new.
+	childConstraints minWidth: 0.
+	childConstraints maxWidth: constraints maxWidth.
+	childConstraints minHeight: 0.
+	childConstraints maxHeight: constraints maxHeight.
+	isColumn
+		ifTrue: [childConstraints maxHeight: (mainAxisLimit:: constraints maxHeight)]
+		ifFalse: [childConstraints maxWidth: (mainAxisLimit:: constraints maxWidth)].
+
+	mainAxisExtent:: 0.
+	crossAxisExtent:: 0.
+	runMainAxisExtent:: 0.
+	runCrossAxisExtent:: 0.
+	run:: List new.
+	runs:: List new.
+	children do:
+		[:child | | childMainAxisExtent childCrossAxisExtent |
+		 child layout: childConstraints.
+		 isColumn
+			ifTrue:
+				[childMainAxisExtent:: child height.
+				 childCrossAxisExtent:: child width]
+			ifFalse:
+				[childMainAxisExtent:: child width.
+				 childCrossAxisExtent:: child height].
+
+		run size > 0 ifTrue:
+			[runMainAxisExtent + childMainAxisExtent > mainAxisLimit ifTrue:
+				[mainAxisExtent:: mainAxisExtent max: runMainAxisExtent.
+				 crossAxisExtent:: crossAxisExtent + runCrossAxisExtent.
+				 run add: runMainAxisExtent.
+				 run add: runCrossAxisExtent.
+				 runs add: run.
+				 run:: List new.
+				 runMainAxisExtent:: 0.
+				 runCrossAxisExtent:: 0]].
+
+		runMainAxisExtent:: runMainAxisExtent + childMainAxisExtent.
+		runCrossAxisExtent:: runCrossAxisExtent max: childCrossAxisExtent.
+		run add: child].
+
+	run size > 0 ifTrue:
+		[mainAxisExtent:: mainAxisExtent max: runMainAxisExtent.
+		 crossAxisExtent:: crossAxisExtent + runCrossAxisExtent.
+		 run add: runMainAxisExtent.
+		 run add: runCrossAxisExtent.
+		 runs add: run].
+
+	isColumn
+		ifTrue:
+			[width:: constraints clampWidth: crossAxisExtent.
+			 height:: mainAxisExtent:: constraints clampHeight: mainAxisExtent.
+			 crossAxisFreeSpace:: width - crossAxisExtent max: 0]
+		ifFalse:
+			[width:: mainAxisExtent:: constraints clampWidth: mainAxisExtent.
+			 height:: constraints clampHeight: crossAxisExtent.
+			 crossAxisFreeSpace:: height - crossAxisExtent max: 0].
+
+	runsLeadingSpace:: 0.
+	runsBetweenSpace:: 0.
+	#start = runAlignment ifTrue:
+		[(* as is *)].
+	#end = runAlignment ifTrue:
+		[runsLeadingSpace:: crossAxisFreeSpace].
+	#center = runAlignment ifTrue:
+		[runsLeadingSpace:: crossAxisFreeSpace // 2].
+	#spaceBetween = runAlignment ifTrue: [runs size > 1 ifTrue:
+		[runsBetweenSpace:: crossAxisFreeSpace // (runs size - 1)]].
+	#spaceAround = runAlignment ifTrue:
+		[runsBetweenSpace:: crossAxisFreeSpace // runs size.
+		 runsLeadingSpace:: runsBetweenSpace // 2].
+	#spaceEvenly = runAlignment ifTrue:
+		[runsBetweenSpace:: crossAxisFreeSpace // (runs size + 1).
+		 runsLeadingSpace:: runsBetweenSpace].
+
+	crossAxisOffset:: runsLeadingSpace.
+	runs do: [:run |
+		|
+		runCrossAxisExtent = run removeLast.
+		runMainAxisExtent = run removeLast.
+		mainAxisFreeSpace = mainAxisExtent - runMainAxisExtent max: 0.
+		childLeadingSpace ::= 0.
+		childBetweenSpace ::= 0.
+		childMainPosition
+		|
+
+		#start = mainAxisAlignment ifTrue:
+			[(* as is *)].
+		#end = mainAxisAlignment ifTrue:
+			[childLeadingSpace:: mainAxisFreeSpace].
+		#center = mainAxisAlignment ifTrue:
+			[childLeadingSpace:: mainAxisFreeSpace // 2].
+		#spaceBetween = mainAxisAlignment ifTrue: [run size > 1 ifTrue:
+			[childBetweenSpace:: mainAxisFreeSpace // (run size - 1)]].
+		#spaceAround = mainAxisAlignment ifTrue:
+			[childBetweenSpace:: mainAxisFreeSpace // run size.
+			 childLeadingSpace:: childBetweenSpace // 2].
+		#spaceEvenly = mainAxisAlignment ifTrue:
+			[childBetweenSpace:: mainAxisFreeSpace // (run size + 1).
+			 childLeadingSpace:: childBetweenSpace].
+
+		childMainPosition:: childLeadingSpace.
+		run do: [:child |
+			|
+			childMainAxisExtent
+			childCrossAxisExtent
+			childCrossPosition
+			freeSpace
+			|
+			isColumn
+				ifTrue:
+					[childMainAxisExtent:: child height.
+					 childCrossAxisExtent:: child width]
+				ifFalse:
+					[childMainAxisExtent:: child width.
+					 childCrossAxisExtent:: child height].
+
+			freeSpace:: runCrossAxisExtent - childCrossAxisExtent.
+			#start = crossAxisAlignment ifTrue:
+				[childCrossPosition:: crossAxisOffset].
+			#end = crossAxisAlignment ifTrue:
+				[childCrossPosition:: crossAxisOffset + freeSpace].
+			#center = crossAxisAlignment ifTrue:
+				[childCrossPosition:: crossAxisOffset + (freeSpace // 2)].
+
+			isColumn
+				ifTrue:
+					[child parentData_y: childMainPosition.
+					 child parentData_x: childCrossPosition]
+				ifFalse:
+					[child parentData_x: childMainPosition.
+					 child parentData_y: childCrossPosition].
+
+			childMainPosition:: childMainPosition + childMainAxisExtent + childBetweenSpace].
+
+		crossAxisOffset:: crossAxisOffset + runCrossAxisExtent + runsBetweenSpace].
+)
+public paint: context offset: offset = (
+	children do:
+		[:child | child paint: context offset:
+			(Offset x: offset x + child parentData_x y: offset y + child parentData_y)].
+)
+public setChildren: newChildren = (
+	children: newChildren.
+)
+) : (
+)
+class Fragment = (|
+	visualX
+	public parent
+	public expansibility ::= 0.
+	public compressibility ::= 0.
+	decorators
+|) (
+public addDecorator: newDecorator <Decorator> = (
+	(* The argument is added last to the collection of our decorators, meaning it will be applied after all the other decorators we might have. *)
+	nil = decorators ifTrue: [decorators:: List new].
+	decorators addLast: newDecorator.
+)
+createViewportWithVisual = (
+	| viewport |
+	viewport:: ViewportVisual new.
+	viewport child: (decorate: createVisual).
+	^viewport
+)
+createVisual = (
+	subclassResponsibility
+)
+public decorate: aVisual = (
+	(* The argument is a visual freshly created by the #createVisual or #createViewportWithVisual method. If we have any decorators attached, apply them now to arrive at the final decorated visual. *)
+	| decorated |
+	decorated:: aVisual.
+	nil = decorators ifFalse:
+		[decorators do: [:each | decorated:: each decorate: decorated]].
+	^decorated
+)
+public elasticity: x = (
+	expansibility: x.
+	compressibility: x.
+)
+public hasVisual = (
+	^visualX isNil not
+)
+public noticeAbandonment = (
+	(* Sent to all fragments of a hierarchy just before it is forgotten by a top-level navigation-enabling parent. *)
+
+	childrenDo: [:each | each noticeAbandonment]
+)
+public noticeAdoption = (
+	(* Sent to all fragments of a hierarchy after it has been adopted by a top-level navigation-enabling parent. *)
+
+	childrenDo: [:each | each noticeAdoption]
+)
+public noticeConcealment = (
+	(* Propagated down the fragment hierarchy after the hierarchy has become invisible because the navigator or the the containing composer such as a toggle has hidden the root. At the time the message is received, the fragment's visual is not visible anymore. A fragment may receive this message multiple times over its life. *)
+
+	childrenDo: [:each | each noticeConcealment]
+)
+public noticeExposure = (
+	(* Propagated down the fragment hierarchy just after the hierarchy has been made visible. A fragment may receive this message multiple times over its life. *)
+
+	childrenDo: [:each | each noticeExposure]
+)
+public noticeImminentExposure = (
+	(* Propagated down the fragment hierarchy just before the hierarchy is made visible. A fragment may receive this message multiple times over its life. *)
+
+	childrenDo: [:each | each noticeImminentExposure]
+)
+public noticeInstallation = (
+	(* Sent to the root fragment of a hierarchy after the hierarchy has been attached to a composer in another hierarchy or a browser. *)
+
+	noticeAdoption.
+	scheduleDeferredContentInstallation
+)
+public noticeRemoval = (
+	(* Sent to the root fragment of a hierarchy when the hierarchy is removed from a composer in another hierarchy or from a browser. *)
+
+	noticeAbandonment
+)
+public noticeVisualCreation = (
+	(* Received after the receiver's visual has been created and stored in the corresponding slot. *)
+)
+public refresh = (
+	(* Fragments that dynamically retrieve their information should reimplement this to update their visuals accordingly. *)
+
+	childrenDo: [:each | each refresh]
+)
+public shell = (
+	^parent isNil
+		ifTrue: [Error signal: 'hierarchy not installed in a shell :',  printString]
+		ifFalse: [parent shell]
+)
+public title = (
+	^'anonymous fragment'
+)
+public value = (
+	^self
+)
+(* Normally presenters render themselves in response to the #visual message, producing a block visual. In some situations, for example when the presenter is the top-level presenter in a Hopscotch shell application, the presenter is instead asked to produce a scrollable viewport.
+Subclasses that never want to render as a viewport will want to redefine this method. It is not *required* to answer a viewport -- the message simply indicates that the sender intends to use the result in a context where a viewport is more appropriate. *)
+public viewport = (
+	nil = visualX ifTrue:
+		[visualX:: createViewportWithVisual.
+		 noticeVisualCreation].
+	^visualX
+)
+(* Render the receiver as a hierarchy of Brazil visuals. *)
+public visual = (
+	nil = visualX ifTrue:
+		[visualX:: decorate: createVisual.
+		 noticeVisualCreation].
+	^visualX
+)
+public width: w elasticity: e = (
+	expansibility: e.
+	compressibility: e.
+)
+) : (
+)
+public class Gradient = () (
+) : (
+public from: start to: stop = ( ^start )
+)
+class HistoryPresenter onSubject: s = Presenter onSubject: s (
+) (
+definition = (
+	^column: {
+		majorHeadingBlock:
+			(row: {
+				label: 'Viewed in this Browser' (*asText allBold*).
+				filler.
+				button: 'Forget All' action: [forgetAll].
+				}).
+		blank: 2.
+		zebra: (column: presentersForHistoryEntries).
+		}
+)
+forgetAll = (
+	sendUp navigatorDo: [:shell | shell eraseHistory]
+)
+forgetEntry: aPresenter = (
+	sendUp navigatorDo: [:sh | sh eraseHistoryEntry: aPresenter].
+)
+forgetEntryUIFor: aPresenter = (
+	^(link: '[forget]'
+		action: [forgetEntry: aPresenter. parent refresh])
+			(* tinyFont color: (Color gray: 0.8) *).
+)
+indentedBlock: body = (
+	^column: {
+		mediumBlank.
+		row: {
+			mediumBlank.
+			elastic: body
+			}.
+		mediumBlank
+		}
+)
+public isTransient = (
+	(* Should not be recorded in navigation history. *)
+	^true
+)
+majorHeadingBlock: body = (
+	^body
+)
+presentersForHistoryEntries ^<Collection[Presenter]> = (
+	| presenters |
+	presenters:: List new: 20.
+	subject historyDo:
+		[:each |
+		presenters add:
+			(row: {
+				elastic: (link: each title action: [enterPresenter: each]).
+				blank: 5.
+				forgetEntryUIFor: each.
+				blank: 5.
+				})].
+	^presenters
+)
+) : (
+)
+public class HistorySubject onModel: m = Subject onModel: m (
+) (
+public createPresenter = (
+	^HistoryPresenter onSubject: self
+)
+public historyDo: aBlock = (
+(* Evaluate the argument for all presenters in the history I represent, most recently visited one first. *)
+
+(* ^model reverseDo: aBlock *)
+	model size to: 1 by: -1 do: [:index | aBlock value: (model at: index)]
+)
+public title = (
+	^'History'
+)
+) : (
+)
+class HolderComposer withContent: definition <Fragment | [Fragment]> = Composer (|
+	contentSource <Fragment | [Fragment]> ::= definition.
+	actualContent <Fragment>
+|) (
+public childrenDo: aBlock <[:Fragment]> = (
+	nil = actualContent ifFalse: [aBlock value: actualContent].
+)
+public content ^<Fragment> = (
+	nil = actualContent ifTrue:
+		[actualContent:: contentSource value.
+		actualContent parent: self].
+	^actualContent
+)
+public content: fragment = (
+	fragment parent: self.
+	actualContent:: fragment.
+	hasVisual ifTrue: [visual content: fragment visual].
+)
+createVisual = (
+	| v |
+	v:: HolderVisual new.
+	v flex: expansibility.
+	v content: content visual.
+	^v
+)
+public noticeExposure = (
+  refresh
+)
+public refresh = (
+	(contentSource isKindOfClosure and: [hasVisual])
+		ifTrue:
+			[content: contentSource value]
+		ifFalse:
+			[actualContent refresh].
+)
+) : (
+)
+class HolderVisual = Visual (|
+	public content
+|) (
+public height = ( ^content height )
+public hitTest: offset = ( ^content hitTest: offset )
+public layout: constraints = ( content layout: constraints )
+public paint: context offset: offset = ( content paint: context offset: offset )
+public parentData_x = ( ^content parentData_x )
+public parentData_x:v = ( content parentData_x: v )
+public parentData_y = ( ^content parentData_y )
+public parentData_y:v = ( content parentData_y: v )
+public width = ( ^content width )
+) : (
+)
+public class HopscotchShell = (
+	|
+	navigator = NavigationHistory new
+		transientTestBlock: [:presenter | presenter isTransient].
+	homeSubject
+	currentPresenterX
+	currentVisualX
+	terminal = Terminal new.
+	echo ::= ''.
+
+	echoLabel
+	titleLabel
+	contentHolder
+	rootVisual
+	|
+	createChrome.
+) (
+checkHit = (
+	| v |
+	focus:: rootVisual hitTest: (Offset x: terminal mouseX - 1 y: terminal mouseY - 1).
+	echo:: echo , '  ', focus printString.
+)
+public childrenDo: aBlock = (
+	aBlock value: currentPresenter
+)
+createChrome = (
+	| navBar back forward home history refresh |
+
+	rootVisual:: SequenceVisual new.
+	rootVisual isColumn: true.
+	rootVisual mainAxisAlignment: #start.
+	rootVisual crossAxisAlignment: #start.
+
+	contentHolder:: HolderVisual new.
+	contentHolder flex: 1.
+	rootVisual appendChild: contentHolder.
+
+	navBar:: SequenceVisual new.
+	navBar flex: 0.
+	navBar isColumn: false.
+	navBar mainAxisAlignment: #start.
+	navBar crossAxisAlignment: #start.
+	rootVisual appendChild: navBar.
+
+	titleLabel:: LabelVisual new.
+	titleLabel flex: 1.
+	titleLabel text: 'Initial title'.
+	titleLabel style: 1.
+	navBar appendChild: titleLabel.
+
+	back:: LabelVisual new.
+	back flex: 0.
+	back text: '[Back]'.
+	back style: 1.
+	back action: [goBack].
+	navBar appendChild: back.
+
+	forward:: LabelVisual new.
+	forward flex: 0.
+	forward text: '[Forward]'.
+	forward style: 1.
+	forward action: [goForward].
+	navBar appendChild: forward.
+
+	history:: LabelVisual new.
+	history flex: 0.
+	history text: '[History]'.
+	history style: 1.
+	history action: [showHistory].
+	navBar appendChild: history.
+
+	home:: LabelVisual new.
+	home flex: 0.
+	home text: '[Home]'.
+	home style: 1.
+	home action: [respondToHome].
+	navBar appendChild: home.
+
+	refresh:: LabelVisual new.
+	refresh flex: 0.
+	refresh text: '[Refresh]'.
+	refresh style: 1.
+	refresh action: [self refresh].
+	navBar appendChild: refresh.
+
+	echoLabel:: LabelVisual new.
+	echoLabel flex: 0.
+	echoLabel text: 'Initial echo'.
+	echoLabel style: 2.
+	rootVisual appendChild: echoLabel.
+)
+public currentPresenter = (
+	^currentPresenterX
+)
+public displayPresenter: newPresenter = (
+	(* Make the presenter the currently displayed one. This presenter change does not get recorded as a navigation event in navigation history. Use #enterPresenter: for that. *)
+
+	currentPresenterX:: newPresenter.
+	newPresenter parent: self.
+	newPresenter noticeImminentExposure.
+	currentVisualX:: newPresenter viewport.
+	contentHolder content: currentVisualX.
+	titleLabel text: newPresenter title.
+	terminal title: newPresenter title.
+	needsLayout:: true.
+	newPresenter noticeExposure. (* Should this run after paint? *)
+)
+public enterPresenter: aPresenter = (
+	(* This is the workhorse of navigation, the primary means of requesting a browser to display a particular presenter. If the browser already has a presenter in its visit history equal (=) to the argument, the presenter from the history is displayed instead of the argument. The method returns the actual displayed presenter, so (result = aPresenter) is always true while (result == aPresenter) may be false. *)
+	| presenterToDisplay |
+	presenterToDisplay:: navigator equalVisitOr: aPresenter.
+	navigator visit: presenterToDisplay.
+	displayPresenter: presenterToDisplay.
+	^presenterToDisplay
+)
+public enterSubject: s <Subject> = (
+	nil = homeSubject ifTrue: [homeSubject:: s].
+	self enterPresenter: s presenter
+)
+getInput = (
+	| cmd |
+	echo:: cmd:: terminal read.
+	"C-\\" = cmd ifTrue: (* SIGQUIT *)
+		[^false].
+	'C-c' = cmd ifTrue: (* SIGINT *)
+		[^false].
+	'<mouse-4>' = cmd ifTrue:
+		[currentVisualX event: cmd. ^true].
+	'<mouse-5>' = cmd ifTrue:
+		[currentVisualX event: cmd. ^true].
+	'M-<' = cmd ifTrue:
+		[currentVisualX event: cmd. ^true].
+	'M->' = cmd ifTrue:
+		[currentVisualX event: cmd. ^true].
+	'C-h' = cmd ifTrue:
+		[respondToHome. ^true].
+	'C-x C-b' = cmd ifTrue:
+		[showHistory. ^true].
+	'C-x <left>' = cmd ifTrue:
+		[goBack. ^true].
+	'C-x <right>' = cmd ifTrue:
+		[goForward. ^true].
+	'M-b' = cmd ifTrue:
+		[goBack. ^true].
+	'M-f' = cmd ifTrue:
+		[goForward. ^true].
+
+	focus respondToInput: cmd.
+	^true
+)
+public goBack = (
+	navigator isPastEmpty ifFalse:
+		[navigator goBack.
+		 displayPresenter: navigator current]
+)
+public goForward = (
+	navigator isFutureEmpty ifFalse:
+		[navigator goForward.
+		 displayPresenter: navigator current]
+)
+layout = (
+	| constraints |
+	needsLayout ifFalse: [^self].
+	constraints:: Constraints new.
+	constraints minWidth: terminal width.
+	constraints maxWidth: terminal width.
+	constraints minHeight: terminal height.
+	constraints maxHeight: terminal height.
+	rootVisual layout: constraints.
+	needsLayout:: false.
+)
+public main = (
+	[terminal start.
+	 [layout.
+	  checkHit.
+	  paint.
+	  getInput] whileTrue.
+	 terminal stop]
+		on: Exception
+		do: [:e | terminal stop. e pass].
+)
+paint = (
+	| context |
+	echoLabel text: echo.
+
+	terminal updateBegin.
+	terminal cursorColumn: nil.
+	terminal cursorRow: nil.
+	context:: terminal offsetX: 0 y: 0.
+	rootVisual paint: context offset: (Offset x: 0 y: 0).
+	terminal updateEnd.
+)
+public refresh = (
+	(* Since refreshing forces a new copy of the current presenter into the browser, we need to massage it into the history as well. *)
+
+	| newSubject |
+	newSubject:: currentPresenter subject refreshmentSubject.
+	displayPresenter: newSubject presenter.
+	navigator replaceCurrentWith: newSubject presenter.
+)
+respondToHome = (
+	enterSubject: homeSubject.
+)
+public shell = (
+	^self
+)
+public showHistory = (
+	enterPresenter: (HistoryPresenter onSubject: (HistorySubject onModel: navigator allVisits))
+)
+) : (
+public openSubject: s = (
+	^self new enterSubject: s
+)
+)
+class HyperlinkFragment label: l action: a = LeafFragment (|
+	label = l.
+	action = a.
+	public color ::= 6.
+	public style
+	public enabled ::= true.  (* For ButtonFragment *)
+|) (
+createVisual = (
+	| v |
+	v:: LabelVisual new.
+	v flex: expansibility.
+	v text: label.
+	v color: color.
+	v action: action.
+	^v
+)
+public smallFont = (
+	style: 2.
+)
+) : (
+)
+(* Text without line wrapping. *)
+public class LabelVisual = Visual (|
+	public text
+	public color
+	public style
+	public action
+	_paintText
+|) (
+asPrinting: b = (
+	b = 9 ifTrue: [^'     '].
+	b < 32 ifTrue: [^'?'].
+	^String with: b
+)
+public hitTest: offset = (
+	^self
+)
+public layout: constraints = (
+	| paintText ::= ByteList new. max size pos |
+	max:: constraints maxWidth.
+	size:: 0.
+	pos:: 1.
+	(* Does not account for graphemes with multiple code points. Does not account for graphemes occupying multiple cells in a monospace font. *)
+	[(size < max) & (pos <= text size)] whileTrue:
+		[ | b = text at: pos. |
+		b >= 240 ifTrue:
+			[size:: size + 1.
+			 paintText
+				addByte: b;
+				addByte: (text at: 1 + pos);
+				addByte: (text at: 2 + pos);
+				addByte: (text at: 3 + pos).
+			 pos:: pos + 4]
+		ifFalse: [b >= 224 ifTrue:
+			[size:: size + 1.
+			 paintText
+				addByte: b;
+				addByte: (text at: 1 + pos);
+				addByte: (text at: 2 + pos).
+			 pos:: pos + 3]
+		ifFalse: [b > 127 ifTrue:
+			[size:: size + 1.
+			 paintText
+				addByte: b;
+				addByte: (text at: 1 + pos).
+			 pos:: pos + 2]
+		ifFalse:
+			[ | x = asPrinting: b. |
+			 size:: size + x size.
+			 paintText add: x.
+			 pos:: pos + 1]]]].
+	_paintText:: paintText asString.
+
+	width:: constraints clampWidth: size.
+	height:: constraints clampHeight: 1.
+)
+public paint: context offset: offset = (
+	| s ::= style. |
+	nil = action ifFalse:
+		[focus = self ifTrue:
+			[s:: 7]].
+	context
+		at: offset
+		print: text
+		color: color
+		style: s.
+)
+public printString = (
+	^'LabelVisual(', _paintText, ')'
+)
+public respondToInput: cmd = (
+	'<mouse-1>' = cmd ifTrue:
+		[nil = action ifFalse: [action value]].
+)
+) : (
+)
+class LeafFragment = Fragment () (
+public childrenDo: aBlock = (
+	(* No children. *)
+)
+) : (
+)
+(* NavigationHistory is a richly structured collection that maintains a web browser-like history of ''visits''. Visits are arbitrary objects. NavigationHistory makes no assumptions about visits other than that they can be compared using #=.
+
+The important attributes of a history are: the ''current'' visit, the ''past'', the ''future'' and ''allVisits''. A history starts off empty. To visit an object, send the #visit: message to the history with the object as the argument. This makes the object the ''current'' object of the history.
+
+The ''past'' is a queue of visits that used to be the current (most recently current object last). Sending the #goBack message makes the most recently current object from the past the current again, while the current object becomes the first member of the ''future'' queue. Sending the #goForward message reverses the process. Visiting an object other than the first element of the ''future'' queue erases the future queue.
+
+All visits visited by a history are remembered in the ''allVisits'' set. This set is never emptied, other than on an explicit request.
+
+A history can optionally be configured with a transientTestBlock. The test block is applied to visits to determine whether they are transient or not. Transient visits are not recorded in the ''past'' and ''future'' queues and in the ''allVisits'' set. By default all visits are considered to be non-transient.
+*)
+class NavigationHistory = (
+	|
+	currentVisitX
+	public allVisits
+	public past
+	public future
+	public transientTestBlock ::= [:element | false].
+	|
+	erase
+) (
+public current = (
+	^currentVisitX
+)
+public do: aBlock = (
+	(* Do the current visit separately if transient because it's not among allVisits. *)
+	(isTransient: currentVisitX) ifTrue:
+		[aBlock value: currentVisitX].
+	allVisits do: aBlock
+)
+public equalVisitOr: anObject = (
+	(* Return a visit from the history equal to the argument, or the argument itself if there is no equal visit in the history. *)
+
+	^allVisits detect: [:some | some = anObject] ifNone: [anObject]
+)
+public erase = (
+	currentVisitX:: nil.
+	allVisits:: List new.
+	erasePast.
+	eraseFuture.
+)
+public eraseEntry: anObject = (
+	allVisits remove: anObject.
+	past remove: anObject ifAbsent: [].
+	future remove: anObject ifAbsent: []. (* can it ever be in the future list? *)
+)
+eraseFuture = (
+	future:: List new.
+)
+erasePast = (
+	past:: List new.
+)
+public goBack = (
+	isPastEmpty ifFalse:
+		[(isTransient: currentVisitX) ifFalse:
+			[future addFirst: currentVisitX].
+		currentVisitX:: past removeLast]
+)
+public goForward = (
+	isFutureEmpty ifFalse:
+		[(isTransient: currentVisitX) ifFalse:
+			[past addLast: currentVisitX].
+		currentVisitX:: future removeFirst]
+)
+public goToFutureItem: anObject = (
+	[currentVisitX = anObject or: [isFutureEmpty]]
+		whileFalse: [goForward]
+)
+public goToPastItem: anObject = (
+	[currentVisitX = anObject or: [isPastEmpty]]
+		whileFalse: [goBack]
+)
+includesVisit: anObject = (
+	^allVisits includes: anObject
+)
+isEmpty = (
+	^allVisits isEmpty
+)
+public isFutureEmpty = (
+	^future isEmpty
+)
+public isPastEmpty = (
+	^past isEmpty
+)
+isTransient: anObject = (
+	^transientTestBlock value: anObject
+)
+next = (
+	(* Answer the closest visit from the future. Fail if the future is empty. *)
+
+	^future first
+)
+previous = (
+	(* Answer the most recent visit from the past. Fail if the past is empty. *)
+
+	^past last
+)
+replace: anObject with: replacement = (
+	(* Replace all references to anObject that we have with references to 'replacement'. *)
+
+	allVisits remove: anObject ifAbsent: [].
+	(isTransient: replacement) ifFalse: [allVisits add: replacement].
+	currentVisitX = anObject ifTrue: [currentVisitX:: replacement].
+	past keysAndValuesDo:
+		[:index :each | each = anObject ifTrue: [past at: index put: replacement]].
+	future keysAndValuesDo:
+		[:index :each | each = anObject ifTrue: [future at: index put: replacement]]
+)
+public replaceCurrentWith: anObject = (
+	self replace: currentVisitX with: anObject
+)
+public visit: anObject = (
+	(* Make the argument the current object of the history. The prior current object becomes the last object of the 'past' queue. The 'future' queue is erased, unless the visit is equal to the first element of the future. *)
+
+	currentVisitX = anObject ifTrue: [^self].
+	(currentVisitX isNil not and: [(isTransient: currentVisitX) not]) ifTrue:
+		[past addLast: currentVisitX].
+	currentVisitX:: anObject.
+	(isTransient: anObject) ifFalse:
+		[allVisits
+			remove: anObject ifAbsent: [];
+			add: anObject].
+	future isEmpty not ifTrue:
+		[future first = currentVisitX
+			ifTrue: [future removeFirst]
+			ifFalse: [eraseFuture]].
+)
+) : (
+)
+public class Offset x: x <Number> y: y <Number> = (
+	|
+	public x <Number> = x.
+	public y <Number> = y.
+	|
+) (
+public + other = (
+	^Offset x: x + other x y: y + other y
+)
+public - other = (
+	^Offset x: x - other x y: y - other y
+)
+public isKindOfOffset ^<Boolean> = (
+	^true
+)
+) : (
+)
+class PaintContext terminal: t x: x y: y w: w h: h  = (
+	|
+	terminal = t.
+	offsetX = x.
+	offsetY = y.
+	width = w.
+	height = h.
+	|
+) (
+public at: position print: string color: c style: s = (
+	| x y |
+	x:: position x + offsetX.
+	y:: position y + offsetY.
+	x < 0 ifTrue: [^self].
+	x >= width ifTrue: [^self].
+	y < 0 ifTrue: [^self].
+	y >= height ifTrue: [^self].
+	terminal
+		at: (Offset x: x y: y)
+		print: (string copyFrom: 1 to: (string size min: width - x))
+		color: c
+		style: s.
+)
+public setCursor: position = (
+	| x y |
+	terminal cursorRow: nil.
+	terminal cursorColumn: nil.
+	x:: position x + offsetX.
+	y:: position y + offsetY.
+	x < 0 ifTrue: [^self].
+	x >= width ifTrue: [^self].
+	y < 0 ifTrue: [^self].
+	y >= height ifTrue: [^self].
+	terminal cursorRow: y + 1.
+	terminal cursorColumn: x + 1.
+)
+) : (
+)
+(*
+break into lines for painting
+
+insert character at point
+  - find point's byte position
+delete character before/after point
+  - find point's start / end position and length
+next/previous/up/down
+set point from click
+*)
+class ParagraphScanner over: s = (
+	|
+	string = s.
+	public byteStart ::= 0.
+	public byteEnd ::= 0.
+	characterPosition ::= 0.
+
+	visualCharacter
+	visualWidth
+	|
+) (
+public advance = (
+	| b |
+	byteStart:: byteEnd + 1.
+	visualWidth:: 1.
+
+	b:: string at: byteStart.
+	b >= 240 ifTrue:
+		[byteEnd:: byteStart + 3.
+		 visualCharacter:: string copyFrom: byteStart to: byteEnd.
+		 ^self].
+	b >= 224 ifTrue:
+		[byteEnd:: byteStart + 2.
+		 visualCharacter:: string copyFrom: byteStart to: byteEnd.
+		 ^self].
+	b > 127 ifTrue:
+		[byteEnd:: byteStart + 1.
+		 visualCharacter:: string copyFrom: byteStart to: byteEnd.
+		 ^self].
+	byteEnd:: byteStart + 0.
+	visualCharacter:: string copyFrom: byteStart to: byteEnd.
+	b < 32 ifTrue: [visualCharacter:: '?'].
+	b = 9 ifTrue: [visualCharacter:: '     '. visualWidth:: 5].
+)
+) : (
+)
+public class Presenter onSubject: aSubject <Subject> = Fragment (|
+public subject <Subject> ::= aSubject.
+substanceSlot <Fragment>
+|) (
+blank: size = (
+	^BlankFragment new size: size
+)
+button: label <String> action: block <[]> = (
+	^HyperlinkFragment label: '[',label,']' action: block
+)
+center: def <Fragment> = (
+	^CenterComposer withContent: def
+)
+public childrenDo: aBlock = (
+	nil = substanceSlot ifFalse: [aBlock value: substanceSlot]
+)
+codeMirror: t <Text | String> = (
+	^TextEditorFragment text: t
+)
+collapsed: collapsed <[Fragment]> expanded: expanded <[Fragment]> ^<Fragment> = (
+	^collapsed: collapsed expanded: expanded initiallyExpanded: false
+)
+collapsed: collapsed <[Fragment]> expanded: expanded <[Fragment]> initiallyExpanded: flag <Boolean>
+^<Fragment> = (
+	^ToggleComposer
+		collapsedDefinition: collapsed
+		expandedDefinition: expanded
+		initiallyExpanded: flag
+)
+column: definitions <List[Fragment]> ^<ColumnComposer> = (
+	^ColumnComposer definitions: definitions
+)
+createVisual ^ <Alien[HTMLElement]> = (
+(*	| substance = definition. |
+	substance parent: self.
+	^substance visual *)
+	ensureSubstance.
+	^substanceSlot visual
+)
+public definition ^<Fragment> = (
+	subclassResponsibility
+)
+dropDownMenu: menu <[Menu]> ^ <DropDownMenuFragment> = (
+	^label: '[menu]'.
+)
+dropDownMenu: menu <[Menu]> alignment: side <Symbol> ^ <DropDownMenuFragment> = (
+	^label: '[menu]'.
+)
+dropDownMenu: menu <[Menu]> images: ims <Array[Image]>  ^ <DropDownMenuFragment> = (
+	^label: '[menu]'.
+)
+dropDownMenu: menu <[Menu]> images: ims <Array[Image]> alignment: side <Symbol> ^ <DropDownMenuFragment> = (
+	^label: '[menu]'.
+)
+elastic: aFragment = (
+	aFragment elasticity: 1.
+	^aFragment
+)
+ensureSubstance = (
+	nil = substanceSlot ifTrue:
+		[substanceSlot:: self definition.
+		substanceSlot parent: self.
+		noticeSubstanceCreation]
+)
+enterPresenter: aPresenter = (
+	(* Look into getting rid of this. *)
+	^shell enterPresenter: aPresenter
+)
+enterSubject: aSubject = (
+	^shell enterSubject: aSubject
+)
+expanded: expanded <[Fragment]> collapsed: collapsed <[Fragment]> ^<Fragment> = (
+	^collapsed: collapsed expanded: expanded initiallyExpanded: true
+)
+filler = (
+	^BlankFragment new expansibility: 1; compressibility: 1
+)
+flow: definitions <List[Fragment]> ^<FlowComposer> = (
+	^FlowComposer definitions: definitions
+)
+holder: def <Fragment | [Fragment]> = (
+	^HolderComposer withContent: def
+)
+image: image = (
+	^label: image
+)
+imageButton: images <Array[Image]> action: block <[]> = (
+	^link: (images at: 1) action: block
+)
+public isTransient = (
+	(* Should visits of this presenter be omitted from the navigation history? *)
+	^false
+)
+label: label <String> = (
+	^StaticLabelFragment text: label
+)
+largeBlank = (
+	^blank: 4
+)
+link: label <String> action: block <[]> = (
+	^HyperlinkFragment label: label action: block
+)
+list ^<PresenterList> = (
+	^PresenterList new
+)
+list: presenterSource <Sequence[Presenter] | [Sequence[Presenter]]> ^ <PresenterList> = (
+	^PresenterList new presenterSource: presenterSource
+)
+mediumBlank = (
+	^blank: 2
+)
+nothing = (
+	^blank: 0
+)
+noticeSubstanceCreation = (
+	(* Received after the #definition method of the receiver has been invoked and the result remembered as its substance. The substance hasn't been asked to create a visual yet. *)
+)
+padded: def <Fragment> with: offsets = (
+	^def
+)
+row: definitions <List[Fragment]> ^<RowComposer> = (
+	^RowComposer definitions: definitions
+)
+sized: def width: w height: h = (
+	^SizedBoxComposer child: def width: w height: h
+)
+smallBlank = (
+	^blank: 1
+)
+substance ^<Fragment> = (
+	ensureSubstance.
+	^substanceSlot
+)
+textDisplay: string = (
+	^TextDisplayFragment text: string
+)
+public title ^<String> = (
+	^subject title
+)
+zebra: sequence <Sequence[Fragment]> ^<Sequence[Fragment]> = (
+	^sequence
+)
+) : (
+)
+(* PresenterList is a fragment that manages a sequence of Presenters, displaying them as a column. The interesting functionality it provides beyond that is updating itself intelligently when receiving a new sequence of presenters to display. New presenters equal (as determined by #=) to those currently displayed remain displayed as before, with any state they had unaffected even if their order in the list has changed.
+
+The presenters can be given to the list either as a collection or as a niladic block that evaluates to a collection. In the latter case, a PresenterList will re-evaluate the block and update itself from the result each time it receives the #refresh message.
+
+Slots:
+
+presenterSourceX. The presenters to display or the block providing them, as given to this instance when it was created.
+
+presentersX. If presenterSourceX is a collection, this slot holds the same object as presenterSourceX. It it is the block, it holds the last result produced by the block.
+*)
+class PresenterList = Fragment (
+|
+	presenterSourceX <Sequence[Presenter] | [Sequence[Presenter]]> ::= List new.
+	presentersX <Sequence[Presenter]>
+|) (
+public add: aPresenter <Presenter> = (
+	(* Append the argument to the end of the list of displayed presenters. If there is an equal presenter already displayed, remove it. *)
+	| newPresenters |
+	newPresenters:: List withAll: presenters.
+	(newPresenters includes: aPresenter) ifTrue:
+		[newPresenters remove: aPresenter].
+	newPresenters add: aPresenter.
+	setPresenters: newPresenters.
+)
+public add: aPresenter <Presenter> afterIndex: index <Integer> = (
+	| newList |
+	newList:: presenters copy.
+	newList add: aPresenter afterIndex: index.
+	presenters: newList.
+)
+public addAll: additionalPresenters <{Presenter}> = (
+	| newPresenters |
+	newPresenters:: List withAll: presenters.
+	newPresenters addAll: additionalPresenters.
+	setPresenters: newPresenters.
+)
+public addFirst: aPresenter <Presenter> = (
+	(* Add the argument at the beginning of the end of the list of displayed presenters. If there is an equal presenter already displayed, remove it. *)
+	| newPresenters |
+	newPresenters:: List withAll: presenters.
+	(newPresenters includes: aPresenter) ifTrue:
+		[newPresenters remove: aPresenter].
+	newPresenters addFirst: aPresenter.
+	setPresenters: newPresenters.
+)
+public childrenDo: aBlock = (
+	nil = presentersX ifFalse: [presentersX do: aBlock].
+)
+public color: aColor = (
+	addDecorator::
+		ColorDecorator new color: aColor
+)
+createVisual = (
+	| column = ColumnComposer definitions: presenters. |
+	column parent: self.
+	^column visual
+)
+public detectPresenter: aBlock = (
+	^presentersX detect: aBlock
+)
+public detectPresenter: aBlock ifNone: noneBlock = (
+	^presentersX detect: aBlock ifNone: noneBlock
+)
+findFirst: aBlock = (
+	(* Answer the index of my first element for which aBlock evaluates as true. *)
+	^presentersX findFirst: aBlock
+)
+findLast: aBlock = (
+	(* Answer the index of my last element for which aBlock evaluates as true. *)
+	^presentersX findLast: aBlock
+)
+public presenterSource: niladicValuable <Sequence[Presenter] | [Sequence[Presenter]]> = (
+	presenterSourceX:: niladicValuable.
+	nil = presentersX ifFalse: [refreshPresenterList].
+)
+public presenters ^ <Sequence[Presenter]> = (
+	(* Return the presenters we are currently showing, pulling them from the source if needed. *)
+
+	nil = presentersX ifTrue:
+		[setPresenters: (presenterSourceX isKindOfClosure
+			ifTrue: [presenterSourceX value]
+			ifFalse: [presenterSourceX])].
+	^presentersX
+)
+public presenters: newPresenterList <Sequence[Presenter]> = (
+	self presenterSource: newPresenterList
+)
+public refresh = (
+	| newPresenters |
+	newPresenters:: Set withAll: refreshPresenterList.
+	presenters do:
+		[:each | (newPresenters includes: each) ifFalse: [each refresh]]
+)
+refreshPresenterList = (
+	(* Make it so that the displayed presenters match those provided by the source. For a list initialized with a presenter collection, this only does anything non-trivial when the instance is brand new. For a list initialized with a block, this re-evaluates the block and updates the list. *)
+	| newPresenters |
+	newPresenters:: presenterSourceX isKindOfClosure
+		ifTrue: [presenterSourceX value]
+		ifFalse: [presenterSourceX].
+	^setPresenters: newPresenters
+)
+refreshPresenters = (
+	presenters do: [:each | each refresh]
+)
+public remove: aPresenter = (
+	| newPresenters |
+	newPresenters:: List withAll: presenters.
+	newPresenters remove: aPresenter.
+	setPresenters:: newPresenters.
+)
+public removeAt: index <Integer> = (
+	| copy |
+	copy:: presenters copy.
+	copy removeAt: index.
+	presenters:: copy.
+)
+replaceChild: aFragment with: anotherFragment = (
+	| index newPresenters |
+	(presentersX includes: aFragment) ifTrue:
+		[index:: presenters indexOf: aFragment.
+		newPresenters:: presenters copy.
+		newPresenters at: index put: anotherFragment.
+		^presenters: newPresenters].
+	error: 'the fragment is not a child'
+)
+public setPresenters: newPresenterList <Sequence[Presenter]> = (
+	(* This is the workhorse of intelligent updates: massage the argument presenters into the currently displayed list, making sure that if there is an element of newPresenterList equal to a currently displayed presenter, we continue using the current presenter. *)
+
+
+	(*
+	| currentPresenters oldPresentersAndIndices removedPresenters removedIndices addedPresenters newFinalList |
+	currentPresenters:: nil = presentersX ifTrue: [List new] ifFalse: [presentersX].
+	oldPresentersAndIndices:: Map new: currentPresenters size.
+	currentPresenters keysAndValuesDo:
+		[:index :each | oldPresentersAndIndices at: each put: index].
+	addedPresenters:: List new: newPresenterList size.
+	newFinalList:: List new: newPresenterList size.
+
+	newPresenterList do:
+		[:each | | oldIndex |
+		oldIndex:: oldPresentersAndIndices at: each ifAbsent: [nil].
+		nil = oldIndex
+			ifFalse: (* reusing a presenter we already have for this subject *)
+				[newFinalList add: (presenters at: oldIndex).
+				oldPresentersAndIndices removeKey: each]
+			ifTrue:
+				[newFinalList add: each.
+				addedPresenters add: each]].
+
+	removedPresenters:: oldPresentersAndIndices keys.
+	(* removedIndices:: (1 to: currentPresenters size) select:
+		[:index | removedPresenters includes: (currentPresenters at: index)]. *)
+
+	presentersX:: newFinalList.
+	presenterSourceX:: newFinalList.
+	addedPresenters do: [:each <Presenter> | each parent: self].
+	hasVisual ifTrue: [visual setChildren: (newFinalList collect: [:ea | ea visual])].
+	*)
+
+	presentersX:: newPresenterList.
+	presenterSourceX:: newPresenterList.
+	newPresenterList do: [:each | each parent: self].
+	hasVisual ifTrue:
+		[visual setChildren: (newPresenterList collect: [:each | each visual]).
+		 needsLayout:: true].
+
+	^newPresenterList
+)
+) : (
+)
+class RowComposer definitions: fs <List[Fragment]> = SequenceComposer definitions: fs (
+) (
+isColumn = (
+	^false
+)
+) : (
+)
+class SequenceComposer definitions: fs <List[Fragment]> = Composer (|
+	definitions <List[Fragment]> = fs.
+	public color <Color>
+	protected mainAxisAlignment ::= #start.
+	protected crossAxisAlignment ::= #center.
+|) (
+public childrenDo: aBlock = (
+	definitions do: aBlock
+)
+createVisual = (
+	| v = SequenceVisual new. |
+	v flex: expansibility.
+	v isColumn: isColumn.
+	v mainAxisAlignment: mainAxisAlignment.
+	v crossAxisAlignment: crossAxisAlignment.
+	definitions do: [:fragment <Fragment> |
+		| cell <Alien[HTMLElement]> |
+		fragment parent: self.
+		cell:: fragment visual.
+		v appendChild: cell.
+	].
+	^v
+)
+public crossAxisAlignToCenter = (
+	crossAxisAlignment: #center.
+)
+public crossAxisAlignToEnd = (
+	crossAxisAlignment: #end.
+)
+public crossAxisAlignToStart = (
+	crossAxisAlignment: #start.
+)
+public crossAxisStretch = (
+	crossAxisAlignment: #stretch.
+)
+public mainAxisAlignToCenter = (
+	mainAxisAlignment: #center.
+)
+public mainAxisAlignToEnd = (
+	mainAxisAlignment: #end.
+)
+public mainAxisAlignToStart = (
+	mainAxisAlignment: #start.
+)
+public mainAxisSpaceAround = (
+	mainAxisAlignment: #spaceAround.
+)
+public mainAxisSpaceBetween = (
+	mainAxisAlignment: #spaceBetween.
+)
+public mainAxisSpaceEvenly = (
+	mainAxisAlignment: #spaceEvenly.
+)
+) : (
+)
+(* A horizontal or vertical array. Inflexible childen (flex=0) are sized first, and remaining space is divided among flexible child (flex!=0) in proportion to their flex factor. *)
+public class SequenceVisual = Visual (|
+	public isColumn
+	public mainAxisAlignment
+	public crossAxisAlignment
+	children ::= List new.
+|) (
+public appendChild: c = (
+	children add: c.
+)
+public childAt: index put: c = (
+	children at: index put: c.
+)
+public hitTest: offset = (
+	offset y < 0 ifTrue: [^self].
+	offset y >= height ifTrue: [^self].
+
+	children do: [:child |
+		(hitTest: child offset: offset) ifTrue:
+			[^child hitTest:
+				(Offset
+					x: offset x - child parentData_x
+					y: offset y - child parentData_y)]].
+	^self
+)
+hitTest: child offset: offset = (
+	child parentData_x > offset x ifTrue: [^false].
+	child parentData_x + child width <= offset x ifTrue: [^false].
+	child parentData_y > offset y ifTrue: [^false].
+	child parentData_y + child height <= offset y ifTrue: [^false].
+	^true
+)
+public layout: constraints = (
+	| totalFlex noFlexConstraints mainAxisUsed parentCrossSize maxMainSize freeSpace spacePerFlex remainingSpace leadingSpace betweenSpace mainAxisOffset |
+
+	totalFlex:: 0.
+	noFlexConstraints:: Constraints new.
+	mainAxisUsed:: 0.
+	parentCrossSize:: 0.
+	isColumn
+		ifTrue:
+			[noFlexConstraints
+				minWidth: 0;   (* if stretch, also maxWidth *)
+				maxWidth: constraints maxWidth;
+				minHeight: 0;
+				maxHeight: constraints maxHeight (* inf? *)]
+		ifFalse:
+			[noFlexConstraints
+				minHeight: 0;   (* if stretch, also maxHeight *)
+				maxHeight: constraints maxHeight;
+				minWidth: 0;
+				maxWidth: constraints maxWidth (* inf? *)].
+
+	children do:
+		[:child | child flex = 0
+			ifFalse:
+				[totalFlex:: totalFlex + child flex]
+			ifTrue:
+				[child layout: noFlexConstraints.
+				 mainAxisUsed:: mainAxisUsed + (isColumn ifTrue: [child height] ifFalse: [child width]).
+				 parentCrossSize:: parentCrossSize max: (isColumn ifTrue: [child width] ifFalse: [child height])]].
+
+	maxMainSize:: isColumn ifTrue: [constraints maxHeight] ifFalse: [constraints maxWidth].
+	freeSpace:: (maxMainSize - mainAxisUsed) max: 0.
+	totalFlex > 0 ifTrue: [
+		spacePerFlex:: freeSpace / totalFlex.
+		children do: [:child |
+			| flex = child flex. |
+			flex = 0 ifFalse: [
+				| childConstraints = Constraints new. |
+				isColumn
+					ifTrue:
+						[childConstraints
+							minWidth: constraints minWidth;   (* if cross stretch, same as max *)
+							maxWidth: constraints maxWidth;
+							minHeight: spacePerFlex * flex;
+							maxHeight: spacePerFlex * flex] (* if last flexible child, all remaining *)
+					ifFalse:
+						[childConstraints
+							minHeight: constraints minHeight;  (* if cross stretch, same as max *)
+							maxHeight: constraints maxHeight;
+							minWidth: (spacePerFlex * flex) asInteger;
+							maxWidth: (spacePerFlex * flex) asInteger].
+				child layout: childConstraints.
+				mainAxisUsed:: mainAxisUsed + (isColumn ifTrue: [child height] ifFalse: [child width]).
+				parentCrossSize:: parentCrossSize max: (isColumn ifTrue: [child width] ifFalse: [child height]).
+			]
+		]
+	].
+	remainingSpace:: (maxMainSize - mainAxisUsed) max: 0.
+
+	#start = mainAxisAlignment ifTrue:
+		[leadingSpace:: 0.
+		 betweenSpace:: 0].
+	#end = mainAxisAlignment ifTrue:
+		[leadingSpace:: remainingSpace.
+		 betweenSpace:: 0].
+	#center = mainAxisAlignment ifTrue:
+		[leadingSpace:: remainingSpace // 2.
+		 betweenSpace:: 0].
+	#spaceBetween = mainAxisAlignment ifTrue:
+		[leadingSpace:: 0.
+		 betweenSpace:: children size > 1 ifTrue: [remainingSpace // (children size - 1)] ifFalse: [0]].
+	#spaceAround = mainAxisAlignment ifTrue:
+		[betweenSpace:: children size > 0 ifTrue: [remainingSpace // children size] ifFalse: [0].
+		 leadingSpace:: betweenSpace // 2].
+	#spaceEvenly = mainAxisAlignment ifTrue:
+		[betweenSpace:: children size > 0 ifTrue: [remainingSpace // (children size + 1)] ifFalse: [0].
+		 leadingSpace:: betweenSpace].
+
+	mainAxisOffset:: leadingSpace.
+	children do: [:child |
+		(*
+			mainAxisOffset:: positionChild: child mainAxisOffset: mainAxisOffset crossAxisSize: crossAxisSize.
+			mainAxisOffset:: mainAxisOffset + betweenSpace.
+		*)
+
+		| crossSize crossPosition mainSize |
+		mainSize:: isColumn ifTrue: [child height] ifFalse: [child width].
+		crossSize:: isColumn ifTrue: [child width] ifFalse: [child height].
+
+		crossPosition:: 0.
+		#start = crossAxisAlignment ifTrue: [crossPosition:: 0].
+		#stretch = crossAxisAlignment ifTrue: [crossPosition:: 0].
+		#end = crossAxisAlignment ifTrue: [crossPosition:: parentCrossSize - crossSize].
+		#center = crossAxisAlignment ifTrue: [crossPosition:: ((parentCrossSize / 2) - (crossSize / 2)) asInteger].
+
+		isColumn ifTrue: [child parentData_y: mainAxisOffset] ifFalse: [child parentData_x: mainAxisOffset].
+		isColumn ifTrue: [child parentData_x: crossPosition] ifFalse: [child parentData_y: crossPosition].
+
+		mainAxisOffset:: mainAxisOffset + mainSize + betweenSpace.
+		].
+
+	isColumn
+		ifTrue:
+			[height: (mainAxisOffset max: constraints minHeight).
+			 width: (parentCrossSize max: constraints minWidth)]
+		ifFalse:
+			[width: (mainAxisOffset max: constraints minWidth).
+			 height: (parentCrossSize max: constraints minHeight)].
+)
+public paint: context offset: offset = (
+	(* :todo: skip without visiting children if totally outside of viewport *)
+
+
+	children do:
+		[:child | child paint: context offset:
+			(Offset x: offset x + child parentData_x y: offset y + child parentData_y)].
+)
+public setChildren: newChildren = (
+	children: newChildren.
+)
+) : (
+)
+public class Size width: w <Number> height: h <Number> = (
+	|
+	public width <Number> ::= w.
+	public height <Number> ::= h.
+	|
+) (
+public isKindOfSize ^<Boolean> = (
+	^true
+)
+) : (
+)
+class SizedBoxComposer child: c width: w height: h = Composer (
+	|
+	child = c.
+	width = w.
+	height = h.
+	|
+) (
+public childrenDo: aBlock = (
+	aBlock value: child.
+)
+createVisual = (
+	| v = SizedBoxVisual new. |
+	v flex: expansibility.
+	v boxWidth: width.
+	v boxHeight: height.
+	child parent: self.
+	v child: child visual.
+	^v
+)
+) : (
+)
+public class SizedBoxVisual = Visual (|
+	public child
+	public boxWidth
+	public boxHeight
+|) (
+public hitTest: offset = (
+	^child hitTest: offset
+)
+public layout: constraints = (
+	| childConstraints = Constraints new. |
+	childConstraints minWidth: (constraints clampWidth: boxWidth).
+	childConstraints maxWidth: (constraints maxWidth min: boxWidth).
+	childConstraints minHeight: (constraints clampHeight: boxHeight).
+	childConstraints maxHeight: (constraints maxHeight min: boxHeight).
+	child layout: childConstraints.
+	width:: child width.
+	height:: child height.
+)
+public paint: context offset: offset = (
+	child paint: context offset: offset.
+)
+) : (
+)
+class StackVisual = Visual (|
+	children ::= List new.
+|) (
+) : (
+public layout: constraints = (
+	| w ::= 0. h ::= 0. |
+	children do:
+		[:each |
+		each layout: constraints.
+		w:: w max: each width.
+		height:: h max: each height].
+	width:: w.
+	height:: h.
+)
+public paint: context offset: offset = (
+	children do:
+		[:each |
+		 each paint: context offset: offset].
+)
+)
+class StaticLabelFragment text: t = LeafFragment (|
+	textX ::= t.
+	public color
+	public style
+|) (
+createVisual = (
+	| v |
+	v:: LabelVisual new.
+	v flex: expansibility.
+	v text: text.
+	v color: color.
+	v style: style.
+	^v
+)
+public smallFont = (
+	style: 2.
+)
+public text = (
+	^textX
+)
+public text: newText = (
+	textX: newText.
+	hasVisual ifTrue: [visual text: textX]
+)
+) : (
+)
+public class Subject onModel: aModel = (|
+	protected model ::= aModel.
+	protected presenterX <Presenter>
+|) (
+public createPresenter ^<Presenter> = (
+	subclassResponsibility
+)
+public presenter ^<Presenter> = (
+	presenterX isNil ifTrue: [presenterX:: createPresenter].
+	^presenterX
+)
+public refreshmentSubject ^<Subject> = (
+	(* Answer a new subject representing the same thing as the receiver. *)
+	^self class onModel: model
+)
+public title ^<String> = (
+	^self printString
+)
+) : (
+)
+class Terminal = (
+	|
+	public width ::= 80.
+	public height ::= 24.
+
+	public cursorRow ::= nil.
+	public cursorColumn ::= nil.
+
+	public mouseX ::= 1.
+	public mouseY ::= 1.
+
+	pending ::= ByteList new.
+	inputMap = createInputMap.
+	|
+) (
+public at: position print: t color: color style: style = (
+	pending
+		add: "\x1B[";
+		add: (position y + 1) asString;
+		add: ';';
+		add: (position x + 1) asString;
+		add: 'H'. (* move cursor *)
+
+	pending add: "\x1B[0".
+	nil = color ifFalse: [pending add: ';38;5;'; add: color asString].
+	nil = style ifFalse: [pending add: ';'; add: style asString].
+	pending add: "m".
+
+	pending add: t.
+)
+private createInputMap = (
+	| map esc |
+	map:: Map new.
+	esc:: String with: 27.
+
+	map at: (String with: 0) put: 'C-@'.
+	1 to: 26 do:
+		[:code |
+		 map at: (String with: code) put: 'C-',(String with: code+96).
+		 map at: esc,(String with: code) put: 'C-M-',(String with: code+96)].
+	27 to: 31 do:
+		[:code |
+		 map at: (String with: code) put: 'C-',(String with: code+64).
+		 map at: esc,(String with: code) put: 'C-M-',(String with: code+64)].
+	32 to: 126 do:
+		[:code |
+		 map at: (String with: code) put: (String with: code).
+		 map at: esc,(String with: code) put: 'M-',(String with: code)].
+
+	map at: (String with: 0) put: 'C-SPC'.
+	map at: (String with: 9) put: 'TAB'.
+	map at: (String with: 13) put: 'RET'.
+	map at: esc put: 'ESC'.
+	map at: ' ' put: 'SPC'.
+	map at: esc,' ' put: 'M-SPC'.
+	map at: (String with: 127) put: 'DEL'.
+	map at: esc,(String with: 127) put: 'M-DEL'.
+
+	map removeKey: esc.
+	map removeKey: esc,'['.
+	map at: esc,esc put: 'ESC-ESC'.
+	map at: esc,'[A' put: '<up>'.
+	map at: esc,'[B' put: '<down>'.
+	map at: esc,'[C' put: '<right>'.
+	map at: esc,'[D' put: '<left>'.
+	map at: esc,'[H' put: '<home>'.
+	map at: esc,'[F' put: '<end>'.
+	map at: esc,'[2~' put: '<insert>'.
+	map at: esc,'[3~' put: '<delete>'.
+	map at: esc,'[5~' put: '<page-up>'.
+	map at: esc,'[6~' put: '<page-down>'.
+	map at: esc,'[1;2A' put: 'S-<up>'.
+	map at: esc,'[1;2B' put: 'S-<down>'.
+	map at: esc,'[1;2C' put: 'S-<right>'.
+	map at: esc,'[1;2D' put: 'S-<left>'.
+	map at: esc,'[1;3A' put: 'M-<up>'.
+	map at: esc,'[1;3B' put: 'M-<down>'.
+	map at: esc,'[1;3C' put: 'M-<right>'.
+	map at: esc,'[1;3D' put: 'M-<left>'.
+	map at: esc,'[M' put: [readXMouse].
+	map at: esc,'[<' put: [readSGRMouse].
+	^map
+)
+digitValue: code = (
+	^code - 48
+)
+esc: x = (
+	pending addByte: 16r1B; add: x.
+)
+flush = (
+	primWrite: pending asByteArray.
+	pending:: ByteList new.
+)
+hasCursor = (
+	nil = cursorRow ifTrue: [^false].
+	nil = cursorColumn ifTrue: [^false].
+	cursorRow <= 0 ifTrue: [^false].
+	cursorColumn <= 0 ifTrue: [^false].
+	cursorRow > height ifTrue: [^false].
+	cursorColumn > width ifTrue: [^false].
+	^true
+)
+isDigit: code = (
+	code < 48 ifTrue: [^false].
+	^code <= 57
+)
+public offsetX: x y: y = (
+	^PaintContext terminal: self x: x y: y w: width h: height
+)
+private primRead = (
+	(* :pragma: primitive: 502 *)
+	panic.
+)
+private primSize = (
+	(* :pragma: primitive: 504 *)
+	panic.
+)
+private primStart = (
+	(* :pragma: primitive: 500 *)
+	panic.
+)
+private primStop = (
+	(* :pragma: primitive: 501 *)
+	panic.
+)
+private primWrite: buffer = (
+	(* :pragma: primitive: 503 *)
+	panic.
+)
+public read = (
+	| b pending |
+	b:: primRead.
+	b > 127 ifTrue: [^readUtf8: b].
+	pending:: String with: b.
+	[ | result |
+	 result:: inputMap at: pending ifAbsent: [nil].
+	 result isKindOfClosure ifTrue: [^result value].
+	 result = nil ifFalse: [^result].
+	 pending size <= 6] whileTrue:
+		[pending:: pending, (String with: primRead)].
+	^(Array withAll: pending)
+		inject: ''
+		into: [:a :b | a, '16r', (b asStringRadix: 16), ' ']
+)
+public readSGRMouse = (
+	(* \e [ < b ; x ; y M *)
+	(* \e [ < b ; x ; y m *)
+	| c cb b cx cy |
+	cb:: 0. cx:: 0. cy:: 0.
+	[isDigit: (c:: primRead)] whileTrue: [cb:: 10 * cb + (digitValue: c)].
+	[isDigit: (c:: primRead)] whileTrue: [cx:: 10 * cx + (digitValue: c)].
+	[isDigit: (c:: primRead)] whileTrue: [cy:: 10 * cy + (digitValue: c)].
+
+	b:: '<mouse-?'.
+	cb & 3 = 0 ifTrue: [b:: '<mouse-1'].
+	cb & 3 = 1 ifTrue: [b:: '<mouse-2'].
+	cb & 3 = 2 ifTrue: [b:: '<mouse-3'].
+	c = 77 ifTrue: [b:: b, '-down>'].
+	c = 109 ifTrue: [b:: b, '>'].  (* release *)
+	cb & 3 = 3 ifTrue: [b:: '<mouse-move>'].
+	cb & (3|64) = (0|64) ifTrue: [b:: '<mouse-4>'].
+	cb & (3|64) = (1|64) ifTrue: [b:: '<mouse-5>'].
+	cb & 4 = 4 ifTrue: [b:: 'S-', b]. (* shift *)
+	cb & 8 = 8 ifTrue: [b:: 'M-', b]. (* meta *)
+	cb & 16 = 16 ifTrue: [b:: 'C-', b]. (* control *)
+	mouseX:: cx.
+	mouseY:: cy.
+	^b
+
+	(* event = code + hasShift + hasControl + hasMeta + button + x + y *)
+)
+readUtf8: b1 = (
+	b1 >= 240 ifTrue: [^String withAll: {b1. primRead. primRead. primRead}].
+	b1 >= 224 ifTrue: [^String withAll: {b1. primRead. primRead}].
+	^String withAll: {b1. primRead}
+)
+public readXMouse = (
+	(* \e [ M Cb Cx Cy *)
+	| cb cx cy b |
+	cb:: primRead.
+	cx:: primRead.
+	cy:: primRead.
+	cb & 3 = 0 ifTrue: [b:: '<mouse-1>'].
+	cb & 3 = 1 ifTrue: [b:: '<mouse-2>'].
+	cb & 3 = 2 ifTrue: [b:: '<mouse-3>'].
+	cb & 3 = 3 ifTrue: [b:: '<mouse-release>'].
+	cb & (3|64) = (0|64) ifTrue: [b:: '<mouse-4>'].
+	cb & (3|64) = (1|64) ifTrue: [b:: '<mouse-5>'].
+	cb & 4 = 4 ifTrue: [b:: 'S-', b]. (* shift *)
+	cb & 8 = 8 ifTrue: [b:: 'M-', b]. (* meta *)
+	cb & 16 = 16 ifTrue: [b:: 'C-', b]. (* control *)
+	(* cb & 32 = 32 ifTrue: [b:: b, ' motion '].
+	cb & 64 = 64 ifTrue: [b:: b, ' wheel ']. *)
+	mouseX:: cx - 32.
+	mouseY:: cy - 32.
+	^b
+)
+public start = (
+	| dim |
+	primStart.
+	dim:: primSize.
+	height:: dim at: 1.
+	width:: dim at: 2.
+	cursorRow:: 1.
+	cursorColumn:: 1.
+
+	esc: '[?1049h'. (* switch to alternate screen *)
+	esc: '[?1000h'. (* basic mouse clicks *)
+	esc: '[?1003h'. (* mouse motion *)
+	esc: '[?1006h'. (* SGR mouse mode *)
+	flush.
+)
+public stop = (
+	esc: '[?1006l'. (* SGR mouse mode *)
+	esc: '[?1003l'. (* mouse motion *)
+	esc: '[?1000l'. (* basic mouse click *)
+	esc: '[?1049l'. (* switch to normal screen *)
+	esc: '[?25h'. (* show cursor *)
+	flush.
+	primStop.
+)
+public title: newTitle = (
+	esc: ']0;'.
+	pending add: newTitle.
+	pending addByte: 7.
+)
+public updateBegin = (
+	| dim = primSize. |
+	height:: dim at: 1.
+	width:: dim at: 2.
+
+	esc: '[?25l'. (* hide cursor *)
+	esc: '[2J'. (* clear screen *)
+)
+public updateEnd = (
+	hasCursor ifTrue:
+		[esc: '[', cursorRow asString, ';', cursorColumn asString, 'H'. (* move cursor *)
+		 esc: '[?25h'. (* show cursor *)].
+	flush.
+)
+) : (
+)
+class TextDisplayFragment text: t = LeafFragment (|
+	textX ::= t.
+	public color
+	style
+|) (
+createVisual = (
+	| v |
+	v:: TextVisual new.
+	v flex: expansibility.
+	v text: text.
+	v color: color.
+	v style: style.
+	^v
+)
+public text = (
+	^textX
+)
+public text: newText = (
+	textX: newText.
+	hasVisual ifTrue: [visual text: textX]
+)
+) : (
+)
+public class TextEditorFragment text: t = LeafFragment (|
+	textX <TextFragment | String> ::= t.
+	counterfactualBarX
+	editorX <Div>
+	public textBeingAccepted <String> ::= t.
+	isInEditState ::= false.
+	public changeResponse <[TextEditorFragment]>
+	public acceptResponse <[TextEditorFragment]>
+	public cancelResponse <[TextEditorFragment]>
+	public enterResponse <[TextEditorFragment]>
+	public oldText <TextFragment | String>
+	point ::= t size + 1.
+|) (
+backwardChar = (
+	point:: point - 1 max: 1.
+	visual point: point.
+)
+beginningOfLine = (
+	point:: 1.
+	visual point: point.
+)
+createVisual = (
+	| v |
+	v:: TextEditorVisual new.
+	v flex: expansibility.
+	v text: textX.
+	v point: point.
+	v onInput: [:input| respondToInput: input].
+	^v
+)
+public defaultAcceptResponse = (
+	textSlot:: editor getValue.
+	leaveEditState
+)
+defaultCancelResponse = (
+	editor setValue: textSlot.
+	leaveEditState
+)
+defaultChangeResponse = (
+	enterEditState
+)
+deleteAfterPoint = (
+	point > textBeingAccepted size ifTrue: [^self].
+	textBeingAccepted::
+		(textBeingAccepted copyFrom: 1 to: point - 1),
+		(textBeingAccepted copyFrom: point + 1 to: textBeingAccepted size).
+	visual text: textBeingAccepted.
+)
+deleteAtPoint = (
+	point <= 1 ifTrue: [^self].
+	textBeingAccepted::
+		(textBeingAccepted copyFrom: 1 to: point - 2),
+		(textBeingAccepted copyFrom: point to: textBeingAccepted size).
+	point:: point - 1 max: 1.
+	visual text: textBeingAccepted.
+	visual point: point.
+)
+endOfLine = (
+	point:: textBeingAccepted size + 1.
+	visual point: point.
+)
+public enterEditState = (
+	(* isInEditState ifFalse:
+		[visual appendChild: counterfactualBar.
+		isInEditState:: true].
+	visual scrollIntoView: true (* alignWithTop *). *)
+)
+forwardChar = (
+	point:: point + 1 min: textBeingAccepted size + 1.
+	visual point: point.
+)
+insertAtPoint: char = (
+	textBeingAccepted::
+		(textBeingAccepted copyFrom: 1 to: point - 1),
+		char,
+		(textBeingAccepted copyFrom: point to: textBeingAccepted size).
+	point:: point + char size.
+	visual text: textBeingAccepted.
+	visual point: point.
+)
+public leaveEditState = (
+	(* isInEditState ifTrue:
+		[visualX removeChild: counterfactualBar.
+		isInEditState:: false.
+		(*removeMessages*)] *)
+)
+mouseSetPoint = (
+	setPointX: mouseX - visual x Y: mouseY - visual y.
+)
+nextLine = (
+	setPointX: visual pointX Y: visual pointY + 1.
+)
+previousLine = (
+	setPointX: visual pointX Y: visual pointY - 1.
+)
+public respondToInput: input = (
+	needsLayout:: true.
+	'C-b' = input ifTrue: [^backwardChar].
+	'<left>' = input ifTrue: [^backwardChar].
+	'C-f' = input ifTrue: [^forwardChar].
+	'<right>' = input ifTrue: [^forwardChar].
+	'C-a' = input ifTrue: [^beginningOfLine].
+	'<home>' = input ifTrue: [^beginningOfLine].
+	'C-e' = input ifTrue: [^endOfLine].
+	'<end>' = input ifTrue: [^endOfLine].
+	'C-p' = input ifTrue: [^previousLine].
+	'<up>' = input ifTrue: [^previousLine].
+	'C-n' = input ifTrue: [^nextLine].
+	'<down>' = input ifTrue: [^nextLine].
+	'C-SPC' = input ifTrue: [^setMark].
+	'C-@' = input ifTrue: [^setMark].
+	'C-s' = input ifTrue: [^acceptChanges].
+	's-s' = input ifTrue: [^acceptChanges].
+
+	(* '<mouse-1>' = input ifTrue: [^mouseSetPoint]. *)
+
+	'SPC' = input ifTrue: [^insertAtPoint: ' '].
+	'TAB' = input ifTrue: [^insertAtPoint: "\t"].
+	'RET' = input ifTrue:
+		[nil = enterResponse ifTrue: [^insertAtPoint: "\n"].
+		 enterResponse cull: self].
+	'DEL' = input ifTrue: [^deleteAtPoint].
+	'<delete>' = input ifTrue: [^deleteAfterPoint].
+
+	input size = 1 ifTrue: [^insertAtPoint: input].
+	(input at: 1) > 127 ifTrue: [^insertAtPoint: input].
+)
+setPointX: pointX Y: pointY = (
+	unimplemented.
+)
+public text = (
+	^textX
+)
+public text: newText = (
+	textX: newText.
+	hasVisual ifTrue: [visual text: textX]
+)
+) : (
+public new = (
+	^self text: ''
+)
+)
+class TextEditorVisual = TextVisual (|
+	public onInput
+|) (
+public paint: context offset: offset = (
+	super paint: context offset: offset.
+
+	focus = self ifTrue:
+		[context setCursor:
+			(Offset x: offset x + pointX y: offset y + pointY)].
+)
+public printString = (
+	^'TextEditorVisual point=', point printString,
+	' width=', width printString,
+	' height=', height printString,
+	' mark=', mark printString
+)
+public respondToInput: input = (
+	onInput value: input.
+)
+) : (
+)
+(* Text with line wrapping. *)
+public class TextVisual = Visual (|
+	public text
+	public color
+	public style
+	public action
+	public point ::= 0.
+	public mark
+	pointX
+	pointY
+|) (
+findBreakStartingAt: start width: width = (
+	| lastWhitespace ::= 0. |
+	start to: text size do: [:pos |
+		| c = text at: pos. |
+		(isNewline: c) ifTrue: [^pos + 1].
+		(isWhitespace: c) ifTrue: [lastWhitespace:: pos].
+		(pos - start >= width) ifTrue:
+			[lastWhitespace = 0
+				ifTrue: [^pos + 1]
+				ifFalse: [^lastWhitespace + 1]].
+	].
+	^text size + 1
+)
+public hitTest: offset = (
+	^self
+)
+isNewline: codeUnit = (
+	10 = codeUnit ifTrue: [^true].
+	13 = codeUnit ifTrue: [^true].
+	^false
+)
+isWhitespace: codeUnit = (
+	32 = codeUnit ifTrue: [^true].
+	9 = codeUnit ifTrue: [^true].
+	^false
+)
+public layout: constraints = (
+	|
+	maxWidth = constraints maxWidth.
+	lines ::= 0.
+	pos ::= 1.
+	|
+	pointY:: 0.
+	pointX:: 0.
+	[pos <= text size] whileTrue:
+		[| start = pos. |
+		 pos:: findBreakStartingAt: pos width: maxWidth.
+		 (point between: start and: pos) ifTrue:
+			[pointY: lines. pointX: point - start].
+		 lines:: 1 + lines].
+
+	width:: constraints clampWidth: text size.
+	height:: constraints clampHeight: (lines max: 1).
+)
+public paint: context offset: offset = (
+	|
+	lines ::= 0.
+	pos ::= 1.
+	|
+	[pos <= text size] whileTrue:
+		[| start = pos. |
+		 pos:: findBreakStartingAt: pos width: width.
+		 context
+			at: (Offset x: offset x y: offset y + lines)
+			print: (text copyFrom: start to: pos - 1)
+			color: color
+			style: style.
+		 lines:: 1 + lines].
+)
+public respondToInput: cmd = (
+	'<mouse-1>' = cmd ifTrue:
+		[nil = action ifFalse: [action value]].
+)
+) : (
+)
+class ToggleComposer collapsedDefinition: collapsed <[Fragment]>
+ expandedDefinition: expanded <[Fragment]>
+ initiallyExpanded: flag <Boolean> = Composer (|
+expandedDefinition <[Fragment]> = expanded.
+collapsedDefinition <[Fragment]> = collapsed.
+isExpanded <Boolean> ::= flag.
+expandedPresenter <Fragment>
+collapsedPresenter <Fragment>
+row
+button
+|) (
+public childrenDo: aBlock = (
+	nil = collapsedPresenter ifFalse:
+		[aBlock value: collapsedPresenter].
+	nil = expandedPresenter ifFalse:
+		[aBlock value: expandedPresenter].
+)
+public collapse = (
+	isExpanded:: false.
+	installCollapsedPresenter
+)
+createVisual = (
+	row:: SequenceVisual new.
+	row isColumn: false.
+	row mainAxisAlignment: #start.
+	row crossAxisAlignment: #start.
+
+	button:: LabelVisual new.
+	button text: '?'.
+	button action: [toggle].
+	button color: 6.
+
+	button flex: 0.
+	row appendChild: button.
+	row appendChild: nil.
+
+	isExpanded
+		ifTrue: [installExpandedPresenter]
+		ifFalse: [installCollapsedPresenter].
+
+	^row
+)
+public expand = (
+	isExpanded:: true.
+	installExpandedPresenter
+)
+installCollapsedPresenter = (
+	nil = collapsedPresenter ifTrue:
+		[collapsedPresenter:: collapsedDefinition value.
+		collapsedPresenter parent: self].
+	installContentVisual: collapsedPresenter visual.
+	button text: '▶'.
+)
+installContentVisual: newVisual = (
+	row childAt: 2 put: newVisual.
+	newVisual flex: 1.
+	needsLayout:: true.
+)
+installExpandedPresenter = (
+	expandedPresenter isNil ifTrue:
+		[expandedPresenter:: expandedDefinition value.
+		expandedPresenter parent: self].
+	installContentVisual: expandedPresenter visual.
+	expandedPresenter noticeExposure.
+	button text: '▼'.
+)
+public toggle = (
+	isExpanded:: isExpanded not.
+	isExpanded
+		ifTrue: [installExpandedPresenter]
+		ifFalse: [installCollapsedPresenter].
+)
+) : (
+)
+(* It's bigger on the inside. *)
+class ViewportVisual = Visual (|
+	public scrollX ::= 0.
+	public scrollY ::= 0.
+	public child
+|) (
+constrainScroll = (
+	(* + 1 to allow a bit of overscrolling *)
+	scrollX:: (scrollX min: (child width - width + 1)) max: 0.
+	scrollY:: (scrollY min: (child height - height + 1)) max: 0.
+)
+public event: cmd = (
+	'<mouse-4>' = cmd ifTrue:
+		[scrollY:: scrollY - 1].
+	'<mouse-5>' = cmd ifTrue:
+		[scrollY:: scrollY + 1].
+	'M-<' = cmd ifTrue:
+		[scrollY:: 0].
+	'M->' = cmd ifTrue:
+		[scrollY:: infinity].
+	constrainScroll.
+)
+public hitTest: offset = (
+	^child hitTest: (Offset x: offset x + scrollX y: offset y + scrollY)
+)
+public layout: constraints = (
+	| insideConstraints |
+	width:: constraints maxWidth.
+	height:: constraints maxHeight.
+
+	insideConstraints:: Constraints new.
+	insideConstraints minWidth: 0.
+	insideConstraints maxWidth: constraints maxWidth.
+	insideConstraints minHeight: 0.
+	insideConstraints maxHeight: infinity.
+	child layout: insideConstraints.
+
+	constrainScroll.
+)
+public paint: context offset: offset = (
+	child
+		paint: context
+		offset:
+			(Offset x: offset x - scrollX y: offset y - scrollY).
+)
+) : (
+)
+class Visual = (|
+	public flex ::= 0.
+	public width
+	public height
+
+	public parentData_x
+	public parentData_y
+|) (
+public layout: constraints = (
+	subclassResponsibility.
+)
+public paint: context offset: offset = (
+	subclassResponsibility.
+)
+public respondToInput: input = (
+)
+) : (
+)
+r: r g: g b: b = (
+	(* \e[35;5;{index}m *)
+	r = g ifTrue: [g = b ifTrue: [^(r + 5 // 10 - 2 min: 0) + 233]].
+	^16
+		+ ((b + 20 // 40 - 1 max: 0) * 0)
+	 	+ ((g + 20 // 40 - 1 max: 0) * 6)
+		+ ((r + 20 // 40 - 1 max: 0) * 12)
+)
+) : (
+)

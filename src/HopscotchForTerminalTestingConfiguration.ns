@@ -1,0 +1,9 @@
+class HopscotchForTerminalTestingConfiguration packageTestsUsing: manifest = (|
+private HopscotchForTerminal = manifest HopscotchForTerminal.
+private HopscotchForTerminalTesting = manifest HopscotchForTerminalTesting.
+|) (
+public testModulesUsingPlatform: platform minitest: minitest = (
+	^{HopscotchForTerminalTesting usingHopscotch: (HopscotchForTerminal usingPlatform: platform) minitest: minitest}
+)
+) : (
+)
