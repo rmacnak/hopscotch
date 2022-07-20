@@ -1,0 +1,98 @@
+class HopscotchIDEForTerminal packageUsing: manifest = (
+	|
+	private hopscotchRuntime = manifest HopscotchForTerminalRuntime packageUsing: manifest.
+	private Browsing = manifest Browsing.
+	private CombinatorialParsing = manifest CombinatorialParsing.
+	private Debugging = manifest Debugging.
+	private Minitest = manifest Minitest.
+	private MinitestUI = manifest MinitestUI.
+	private Namespacing = manifest Namespacing.
+	private NewspeakGrammar = manifest NewspeakGrammar.
+	private WorkspaceManager = manifest WorkspaceManager.
+
+	private allModules = manifest allModules.
+
+	private hopscotchCommit = manifest hopscotchCommit.
+	private primordialsoupCommit = manifest primordialsoupCommit.
+	|
+) (
+class HopscotchImages = (
+) (
+public accept16px = (^'?')
+public addImage = (^'[Add]')
+public addOutImage = (^'[Add]')
+public addOverImage = (^'[Add]')
+public cancel16px = (^'?')
+public classIcon = (^'③')
+public classPresenterIcon = (^'?')
+public classUnknownIcon = (^'?')
+public collapseDownImage = (^'[Collapse]')
+public collapseImage = (^'[Collapse]')
+public collapseOverImage = (^'[Collapse]')
+public disclosureClosedImage = (^'▶')
+public disclosureOpenImage = (^'▼')
+public disclosureTransitionImage = (^'?')
+public dropDownImage = (^'?')
+public dropDownOutImage = (^'?')
+public dropDownOverImage = (^'?')
+public expandDownImage = (^'[Expand]')
+public expandImage = (^'[Expand]')
+public expandOverImage = (^'[Expand]')
+public homeDownImage = (^'[Home]')
+public homeImage = (^'[Home]')
+public homeOutImage = (^'[Home]')
+public homeOverImage = (^'[Home]')
+public itemReferencesImage = (^'?')
+public privateAccessImage = (^'')
+public protectedAccessImage = (^'')
+public publicAccessImage = (^'')
+public refreshDownImage = (^'[Refresh]')
+public refreshImage = (^'[Refresh]')
+public refreshOutImage = (^'[Refresh]')
+public refreshOverImage = (^'[Refresh]')
+) : (
+)
+(* :exemplar: ide *)
+class IDE usingPlatform: p = (
+	|
+	public images = HopscotchImages new.
+	public hopscotchCommit = outer HopscotchIDEForTerminal hopscotchCommit.
+	public primordialsoupCommit = outer HopscotchIDEForTerminal primordialsoupCommit.
+	public browsing = Browsing usingPlatform: p ide: self.
+	public debugging = Debugging usingPlatform: p ide: self.
+	public namespacing = Namespacing usingPlatform: p ide: self.
+	public theWorkspaceManager = WorkspaceManager usingPlatform: p ide: self.
+	public minitest = Minitest usingPlatform: p.
+	public minitestUI = MinitestUI usingPlatform: p minitest: minitest ide: self.
+	public parserLib = CombinatorialParsing usingPlatform: p.
+	public grammar = NewspeakGrammar usingPlatform: p parsers: parserLib.
+	public colorizer = NopColorizer new.
+	|
+	populateNamespace.
+) (
+populateNamespace = (
+	|
+	Root <Namespace> = namespacing Root.
+	|
+	allModules do: [:module | Root at: module name put: module].
+)
+) : (
+)
+class NopColorizer = (
+) (
+public colorizeClassDeclaration: s fromMixin: m in: cm = ()
+public colorizeDoIt: s fromMixin: m in: cm = ()
+public colorizeHeader: s fromMixin: m in: cm = ()
+public colorizeMethod: s fromMixin: m in: cm = ()
+public colorizeTransientSlot: s fromMixin: m in: cm = ()
+) : (
+)
+public main: platform <Platform> args: args <Tuple[String]> = (
+	| hopscotchPlatform ide shell |
+	hopscotchPlatform:: hopscotchRuntime using: platform.
+	ide:: IDE usingPlatform: hopscotchPlatform.
+	shell:: hopscotchPlatform hopscotch core HopscotchShell openSubject: ide browsing HomeSubject new.
+	shell main.
+)
+) : (
+)

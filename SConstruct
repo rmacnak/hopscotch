@@ -62,4 +62,8 @@ BuildStage2Snapshots(host_vm, [
     ['Runtime', 'Particles', 'Particles.vfuel'],
     ['RuntimeWithMirrors', 'HopscotchIDE', 'HopscotchIDE.vfuel'],
     ['RuntimeWithMirrors', 'HopscotchTestRunner', 'HopscotchTestRunner.vfuel'],
+
+    ['Runtime', 'HopscotchGallery', 'HopscotchGallery.vfuel'],
+    ['RuntimeWithMirrors', 'HopscotchIDEForTerminal', 'HopscotchIDEForTerminal.vfuel'],
+    ['RuntimeWithMirrors', 'HopscotchHostTestRunner', 'HopscotchHostTestRunner.vfuel'],
 ])

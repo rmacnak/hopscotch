@@ -1,0 +1,389 @@
+class HopscotchGallery packageUsing: manifest = (
+	|
+	private hopscotchRuntime = manifest HopscotchForTerminalRuntime packageUsing: manifest.
+	|
+) (
+class Gallery usingPlatform: p = (
+	|
+	public List = p collections List.
+	public Subject = p hopscotch Subject.
+	public Presenter = p hopscotch Presenter.
+	|
+) (
+class ColorsPresenter onSubject: s = Presenter onSubject: s (
+) (
+definition = (
+	|
+	normal = List new.
+	faint = List new.
+	bold = List new.
+	italic = List new.
+	underline = List new.
+	inverse = List new.
+	strikethrough = List new.
+	|
+
+	normal add: (label: 'Normal').
+	bold add: ((label: 'Bold') style: 1).
+	faint add: ((label: 'Faint') style: 2).
+	italic add: ((label: 'Italic') style: 3).
+	underline add: ((label: 'Underline') style: 4).
+	inverse add: ((label: 'Inverse') style: 7).
+	strikethrough add: ((label: 'Strikethrough') style: 9).
+
+	0 to: 256 do:
+		[:code |
+		 normal add: ((label: 'Normal ', code asString) color: code).
+		 bold add: ((label: 'Bold ', code asString) color: code; style: 1).
+		 faint add: ((label: 'Faint ', code asString) color: code; style: 2).
+		 italic add: ((label: 'Italic ', code asString) color: code; style: 3).
+		 underline add: ((label: 'Underline ', code asString) color: code; style: 4).
+		 inverse add: ((label: 'Inverse ', code asString) color: code; style: 7).
+		 strikethrough add: ((label: 'Strikethrough ', code asString) color: code; style: 9)].
+
+	^(row: {
+		column: normal.
+		column: bold.
+		column: faint.
+		column: italic.
+		column: underline.
+		column: inverse.
+		column: strikethrough.
+	}) mainAxisSpaceEvenly crossAxisAlignToStart
+)
+) : (
+)
+class ColorsSubject onModel: m = Subject onModel: m (
+) (
+public = other = ( ^other isKindOfColorsSubject )
+public createPresenter = (
+	^ColorsPresenter onSubject: self
+)
+public hash = ( ^class hash )
+public isKindOfColorsSubject = ( ^true )
+public title = (
+	^'Colors'
+)
+) : (
+public new = ( ^onModel: nil )
+)
+class FlowsPresenter onSubject: s = Presenter onSubject: s (
+) (
+definition = (
+	^column: {
+		label: 'Main-axis alignment'.
+		blank: 1.
+		flowMainAxisAlignments.
+		blank: 1.
+		label: 'Cross-axis alignment'.
+		blank: 1.
+		flowCrossAxisAlignments.
+		blank: 1.
+		label: 'Run alignment'.
+		blank: 1.
+		flowRunAlignments.
+	}
+)
+flowCrossAxisAlignments = (
+	|
+	generator = [:l |
+		| list = List new. |
+		10 timesRepeat:
+			[list add: (column: {label: l}).
+			 list add: (column: {label: l. label: l}).
+			 list add: (column: {label: l. label: l. label: l}).
+			 list add: (column: {label: l. label: l. label: l. label: l}).
+			 list add: (column: {label: l. label: l. label: l. label: l. label: l})].
+		list].
+	|
+	^column: {
+		(flow: (generator value: 'start')) crossAxisAlignToStart.
+		(flow: (generator value: 'center')) crossAxisAlignToCenter.
+		(flow: (generator value: 'end')) crossAxisAlignToEnd.
+	}
+)
+flowMainAxisAlignments = (
+	|
+	start = List new.
+	end = List new.
+	center = List new.
+	between = List new.
+	around = List new.
+	evenly = List new.
+	|
+	30 timesRepeat:
+		[start add: (label: '[startstart]').
+		 end add: (label: '[endendend]').
+		 center add: (label: '[centercenter]').
+		 between add: (label: '[betweenbetween]').
+		 around add: (label: '[aroundaround]').
+		 evenly add: (label: '[evenlyevenly]')].
+	^column: {
+		(flow: start) mainAxisAlignToStart.
+		(flow: end) mainAxisAlignToEnd.
+		(flow: center) mainAxisAlignToCenter.
+		(flow: between) mainAxisSpaceBetween.
+		(flow: around) mainAxisSpaceAround.
+		(flow: evenly) mainAxisSpaceEvenly.
+	}
+)
+flowRunAlignments = (
+	|
+	generator = [:l |
+		| list = List new. |
+		50 timesRepeat: [list add: (label: l)].
+		list].
+	|
+	^column: {
+		label: '---'.
+		sized: (flow: (generator value: '[start]')) runsAlignToStart width: 100 height: 15.
+		label: '---'.
+		sized: (flow: (generator value: '[center]')) runsAlignToCenter width: 100 height: 15.
+		label: '---'.
+		sized: (flow: (generator value: '[endend]')) runsAlignToEnd width: 100 height: 15.
+		label: '---'.
+		sized: (flow: (generator value: '[around]')) runsSpaceAround width: 100 height: 15.
+		label: '---'.
+		sized: (flow: (generator value: '[between]')) runsSpaceBetween width: 100 height: 15.
+		label: '---'.
+		sized: (flow: (generator value: '[evenly]')) runsSpaceEvenly width: 100 height: 15.
+		label: '---'.
+	}
+)
+) : (
+)
+class FlowsSubject onModel: m = Subject onModel: m (
+) (
+public = other = ( ^other isKindOfFlowsSubject )
+public createPresenter = (
+	^FlowsPresenter onSubject: self
+)
+public hash = ( ^class hash )
+public isKindOfFlowsSubject = ( ^true )
+public title = (
+	^'Flows'
+)
+) : (
+public new = ( ^onModel: nil )
+)
+class HomePresenter onSubject: s = Presenter onSubject: s (
+) (
+definition = (
+	^column: {
+		center: (label: 'Center').
+		collapsed: [label: 'Unicode'] expanded: [unicode].
+		link: 'Colors' action: [enterSubject:: ColorsSubject new].
+		link: 'Rows' action: [enterSubject:: RowsSubject new].
+		link: 'Flows' action: [enterSubject:: FlowsSubject new].
+		collapsed: [label: 'Overflow, one fragment'] expanded: [overflowOne].
+		collapsed: [label: 'Overflow, many fragments'] expanded: [overflowMany].
+		collapsed: [label: 'Wrapping text'] expanded: [wrappingText].
+	}
+)
+overflowMany = (
+	^row: {
+		label: 'START'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'overflow'.
+		label: 'END'.
+	}
+)
+overflowOne = (
+	^label: 'START overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow END'
+)
+unicode = (
+	^column: {
+		row: {(codeMirror: 'Welcome') elasticity: 1}.
+		label: 'Bienvenue'.
+		label: 'Bienvenidas'.
+		label: 'Benarrivata'.
+		label: 'Herzlich willkommen'.
+		label: 'Witamy'.
+		label: 'Добро пожаловать'.
+		label: 'Καλως ΗΡΘΑΤΕ'.
+		label: 'ברוך הבא'.
+		label: 'أهلا وسهلا'.
+		label: 'स्वागत'.
+		label: 'いらっしゃいませ'.
+		label: '欢迎'.
+		label: '❤️'.
+	}
+)
+wrappingText = (
+	| abstract = 'Hopscotch is the application framework and development environment of Newspeak, a new programming language and platform inspired by Smalltalk, Self and Beta. Hopscotch avoids a number of design limitations and shortcomings of traditional UIs and UI frameworks by favoring an interaction model and implementing a framework architecture that enable composition of interfaces. This paper discusses the deficiencies of the traditional approach, provides an overview of the Hopscotch alternative and analyses how it improves upon the status quo.'. |
+	^row: {
+		(textDisplay: abstract) elasticity: 1.
+		blank: 1.
+		(textDisplay: abstract) elasticity: 1.
+	}
+)
+) : (
+)
+public class HomeSubject onModel: m = Subject onModel: m (
+) (
+public createPresenter = (
+	^HomePresenter onSubject: self
+)
+public title = (
+	^'Home'
+)
+) : (
+public new = ( ^onModel: nil )
+)
+class RowsPresenter onSubject: s = Presenter onSubject: s (
+) (
+definition = (
+	^column: {
+		label: 'Main-axis alignment'.
+		blank: 1.
+		rowMainAxisAlignments.
+		blank: 1.
+		label: 'Cross-axis alignment'.
+		blank: 1.
+		rowCrossAxisAlignments.
+		blank: 1.
+		label: 'Flex factor'.
+		blank: 1.
+		rowFlexFactors.
+	}
+)
+rowCrossAxisAlignments = (
+	|
+	generator = [:l |
+		{
+			column: {
+				label: l.
+			}.
+			column: {
+				label: l.
+				label: l.
+			}.
+			column: {
+				label: l.
+				label: l.
+				label: l.
+			}.
+			column: {
+				label: l.
+				label: l.
+				label: l.
+				label: l.
+			}.
+			column: {
+				label: l.
+				label: l.
+				label: l.
+				label: l.
+				label: l.
+			}.
+		}].
+	|
+	^column: {
+		(row: (generator value: '[start]')) crossAxisAlignToStart.
+		(row: (generator value: '[center]')) crossAxisAlignToCenter.
+		(row: (generator value: '[end]')) crossAxisAlignToEnd.
+	}
+)
+rowFlexFactors = (
+	^column: {
+		row: {
+			(label: 'flex1----------------------------------------------------------') elasticity: 1.
+			(label: 'flex1----------------------------------------------------------') elasticity: 1.
+		}.
+		row: {
+			(label: 'flex1----------------------------------------------------------') elasticity: 1.
+			(label: 'flex2----------------------------------------------------------') elasticity: 2.
+		}.
+		row: {
+			(label: 'flex1----------------------------------------------------------') elasticity: 1.
+			(label: 'flex3----------------------------------------------------------') elasticity: 3.
+		}.
+		row: {
+			(label: 'flex1----------------------------------------------------------') elasticity: 1.
+			(label: 'flex1----------------------------------------------------------') elasticity: 1.
+			(label: 'flex1----------------------------------------------------------') elasticity: 1.
+		}.
+		row: {
+			(label: 'flex1----------------------------------------------------------') elasticity: 1.
+			(label: 'flex2----------------------------------------------------------') elasticity: 2.
+			(label: 'flex1----------------------------------------------------------') elasticity: 1.
+		}.
+		row: {
+			label: 'NOFLEX'.
+			(label: 'flex1----------------------------------------------------------') elasticity: 1.
+			label: 'NOFLEX'.
+			(label: 'flex2----------------------------------------------------------') elasticity: 2.
+			label: 'NOFLEX'.
+			(label: 'flex1----------------------------------------------------------') elasticity: 1.
+			label: 'NOFLEX'.
+		}.
+		row: {
+			(row: {label: 'HALF-----------------------------------------------------------------'}) elasticity: 1.
+			(row: {label: ''}) elasticity: 1.
+		}.
+	}
+)
+rowMainAxisAlignments = (
+	|
+	generator = [:l | { label: l. label: l. label: l. label: l. label: l. } ].
+	|
+	^column: {
+		(row: (generator value: '[start]')) mainAxisAlignToStart.
+		(row: (generator value: '[end]')) mainAxisAlignToEnd.
+		(row: (generator value: '[center]')) mainAxisAlignToCenter.
+		(row: (generator value: '[between]')) mainAxisSpaceBetween.
+		(row: (generator value: '[around]')) mainAxisSpaceAround.
+		(row: (generator value: '[evenly]')) mainAxisSpaceEvenly.
+	}
+)
+) : (
+)
+class RowsSubject onModel: m = Subject onModel: m (
+) (
+public = other = ( ^other isKindOfRowsSubject )
+public createPresenter = (
+	^RowsPresenter onSubject: self
+)
+public hash = ( ^class hash )
+public isKindOfRowsSubject = ( ^true )
+public title = (
+	^'Rows'
+)
+) : (
+public new = ( ^onModel: nil )
+)
+) : (
+)
+public main: platform <Platform> args: args <Tuple[String]> = (
+	| hopscotchPlatform gallery shell |
+	hopscotchPlatform:: hopscotchRuntime using: platform.
+	gallery:: Gallery usingPlatform: hopscotchPlatform.
+	shell:: hopscotchPlatform hopscotch core HopscotchShell openSubject: gallery HomeSubject new.
+	shell main.
+)
+) : (
+)
