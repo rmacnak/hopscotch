@@ -32,6 +32,7 @@ cd out
     CodeMirror/lib/codemirror_css.css \
     CodeMirror/addon/display/autorefresh.js \
     RuntimeWithMirrors HopscotchIDE HopscotchIDE.vfuel \
+    RuntimeWithMirrors HopscotchIDEForTerminal HopscotchIDEForTerminal.vfuel \
     Runtime Particles Particles.vfuel \
     RuntimeWithMirrors TestRunner TestRunner.vfuel \
     Runtime BenchmarkRunner BenchmarkRunner.vfuel

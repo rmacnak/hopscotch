@@ -2,6 +2,7 @@ class HopscotchTestRunner packageUsing: manifest = (|
 Minitest = manifest Minitest.
 testConfigs = {
 	manifest CombinatorialParsingTestingConfiguration packageTestsUsing: manifest.
+	manifest HopscotchForTerminalTestingConfiguration packageTestsUsing: manifest.
 }.
 Promise
 |) (
