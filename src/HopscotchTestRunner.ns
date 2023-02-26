@@ -13,7 +13,7 @@ public main: platform args: args = (
 	| keepAlive stopwatch minitest testModules tester |
 	keepAlive:: platform actors Port new.
 	Promise:: platform actors Promise.
-	stopwatch:: platform kernel Stopwatch new start.
+	stopwatch:: platform time Stopwatch new start.
 	minitest:: Minitest usingPlatform: platform.
 	testModules:: platform collections List new.
 	testConfigs do:

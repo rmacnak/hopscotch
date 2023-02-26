@@ -3,7 +3,7 @@ class Debugging usingPlatform: platform ide: ide = (
 	|
 	private List = platform collections List.
 
-	private JSObject = platform js global at: 'Object'.
+	private JSObject = [platform js global at: 'Object'] on: Error do: [:e | nil].
 
 	private Color = platform graphics Color.
 
@@ -122,9 +122,10 @@ highlightSourceRange = (
 	| source range style |
 	source:: subject source.
 	nil = source ifTrue: [editor text: '<no source>'. ^self].
-	editor text: source.	
+	editor text: source.
 	range:: subject sourceRange.
 	nil = range ifTrue: [^self].
+	nil = JSObject ifTrue: [^self].
 	style:: JSObject new.
 	style at: 'css' put: 'color:blue; font-weight:bold; text-decoration: underline'.
 	editor style: style from: range start to: range stop.

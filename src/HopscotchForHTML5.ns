@@ -901,6 +901,9 @@ public isTransient = (
 label: label <String> = (
 	^StaticLabelFragment text: label
 )
+largeBlank = (
+	^blank: 20
+)
 link: label <String> action: block <[]> = (
 	^HyperlinkFragment label: label action: block
 )
@@ -958,6 +961,9 @@ row: definitions = (
 )
 schedule: action <[]> = (
 	window setTimeout: [action value. nil] with: 0.
+)
+smallBlank = (
+	^blank: 5
 )
 substance ^ <Fragment> = (
 	ensureSubstance.

@@ -17,10 +17,10 @@ class Browsing usingPlatform: p ide: webIde = (
 	private ClassMirror = p mirrors ClassMirror.
 	private ObjectMirror = p mirrors ObjectMirror.
 	private ClassDeclarationBuilder = p mirrors ClassDeclarationBuilder.
-	private JSObject = p js global at: 'Object'.
-	private JSMath = p js global at: 'Math'.
-	private JSDate = p js global at: 'Date'.
+	private JSObject = [p js global at: 'Object'] on: Error do: [:e | nil].
+	private DateTime = p time DateTime.
 
+	private random = p random Random new.
 	private cachedPlatform = p.
 	private ide = webIde.
 	private detailAreaRatio = 3 asFloat.
@@ -128,10 +128,10 @@ collapsedDefinition = (
 		link: subject name action: [enterSubject:: ClassSubject onModel: subject classMirror].
 	} row2: {
 		(label: subject commentSummary)
-			smallFont;
 			expansibility: 1;
 			compressibility: 1;
-			color: secondaryTextColor.
+			color: secondaryTextColor;
+			smallFont.
 		ClassActionsPresenter onSubject: subject.
 		mediumBlank.
 		entryActionsMenu.
@@ -744,18 +744,18 @@ public isKindOfHomeSubject ^ <Boolean> = (
 )
 lateNightWisdom = (
 	|
-	now = JSDate new.
-	hour = now getHours - 1 \\ 12 + 1.
-	minute = now getMinutes.
+	now = DateTime nowLocal.
+	hour = now hour - 1 \\ 12 + 1. (* 0 -> 12 *)
+	minute = now minutes.
 	time = hour asString, (minute < 10 ifTrue: [':0'] ifFalse: [':']), minute asString.
 	|
 	^BitOfWisdom text: 'It''s ', time, '. Go get some rest!'
 )
 public randomBitOfWisdom = (
 	| bits |
-	JSDate new getHours < 5 ifTrue: [^lateNightWisdom].
+	DateTime nowLocal hour < 5 ifTrue: [^lateNightWisdom].
 	bits:: bitsOfWisdom.
-	^(bits at: (JSMath random * bits size) floor asInteger + 1) value
+	^(bits at: (random nextInteger: bits size) + 1) value
 )
 public title = (
 	^'Home'
@@ -875,10 +875,10 @@ heading: action ^<Fragment> = (
 		(link: subject name action: action) color: actionLinkColor.
 	} row2: {
 		(label: subject commentSummary)
-			smallFont;
 			expansibility: 1;
 			compressibility: 1;
-			color: secondaryTextColor.
+			color: secondaryTextColor;
+			smallFont.
 		mediumBlank.
 		referencesMenu.
 		smallBlank.
@@ -1128,10 +1128,10 @@ collapsedDefinition = (
 			enterSubject:: subject refreshmentSubject]}.
 	} row2: {
 		(label: subject summaryText)
-			smallFont;
 			expansibility: 1;
 			compressibility: 1;
-			color: secondaryTextColor.
+			color: secondaryTextColor;
+			smallFont.
 		mediumBlank.
 		dropDownMenu: [entryActionsMenuFor: subject key]
 	}.
@@ -1151,10 +1151,10 @@ collapsedDefinition = (
 		link: key action: [enterSubject:: subject].
 	} row2: {
 		(label: subject title)
-			smallFont;
 			expansibility: 1;
 			compressibility: 1;
-			color: secondaryTextColor.
+			color: secondaryTextColor;
+			smallFont.
 		mediumBlank.
 		dropDownMenu: [entryActionsMenuFor: key]
 	}
@@ -1751,9 +1751,6 @@ inspectObject: object <Object> = (
 inspectObjectMirror: object <ObjectMirror> = (
 	enterSubject:: ObjectSubject onModel: object.
 )
-largeBlank = (
-	^blank: 20
-)
 majorHeadingBlock: body = (
 	^(padded: body with: {10. 10. 10. 10.})
 		color: majorHeadingColor
@@ -1800,9 +1797,6 @@ respondToInspectPresenter = (
 )
 secondaryTextColor ^ <Color> = (
 	^Color h: 31 s: 0.85 v: 0.60
-)
-smallBlank = (
-	^blank: 5
 )
 tertiaryTextColor = (
 	^Color h: 31 s: 0.85 v: 0.80

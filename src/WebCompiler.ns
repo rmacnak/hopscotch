@@ -32,12 +32,14 @@ assembleRuntime: runtimeName <String> application: appName <String> to: snapshot
 		(RecordingManifest namespace: namespace accessedResources: List new).
 
 	accessedResources:: List new.
-	appConfig packageUsing:
+	app:: appConfig packageUsing:
 		(RecordingManifest namespace: namespace accessedResources: accessedResources).
 
-	app:: Preloader
-		resources: (Array withAll: accessedResources)
-		applicationConfiguration: appConfig.
+	(accessedResources allSatisfy: [:resource | (resource at: 3) isKindOfBehavior])
+		ifFalse:
+			[app:: Preloader
+				resources: (Array withAll: accessedResources)
+				applicationConfiguration: appConfig].
 
 	bytes:: Snapshotter new snapshotApp: app withRuntime: runtime keepSource: true.
 	writeBytes: bytes toFileNamed: snapshotPath.
@@ -45,7 +47,6 @@ assembleRuntime: runtimeName <String> application: appName <String> to: snapshot
 compileFile: filename = (
 	| source builder |
 	source:: readFileAsString: filename.
-	builder:: ClassDeclarationBuilder fromSource: source.
 	^[builder:: ClassDeclarationBuilder fromSource: source.
 	  builder install applyToObject reflectee]
 		on: Exception
