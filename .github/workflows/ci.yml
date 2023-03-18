@@ -1,6 +1,4 @@
-# GitHub actions for Continuous Integration
-
-name: CI
+name: Continuous Integration
 
 on:
   push:
@@ -12,7 +10,7 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: Install Dependencies
@@ -26,7 +24,7 @@ jobs:
   macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: Install Dependencies
