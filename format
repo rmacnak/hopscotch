@@ -1,0 +1,2 @@
+#!/bin/sh -ex
+./primordialsoup/out/ReleaseHost/primordialsoup primordialsoup/out/snapshots/Formatter.vfuel src/*.ns

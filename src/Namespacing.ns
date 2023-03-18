@@ -174,6 +174,18 @@ public = other ^<Boolean> = (
 	other isKindOfSelectorSubject ifFalse: [^false].
 	^other model = model
 )
+asSortedSubjects: mirrors = (
+	| result = List new. |
+	(mirrors asArray sort: [:a :b | mirrorLessOrEqual: a than: b]) do:
+		[:ea |
+		 ea isKindOfMethodMirror ifTrue:
+			[result add: (MethodSubject onModel: ea)].
+		 ea isKindOfTransientSlotDeclarationMirror ifTrue:
+			[result add: (TransientSlotSubject onModel: ea)].
+		 ea isKindOfClassHeaderMirror ifTrue:
+			[result add: (ClassHeaderSubject onModel: ea)]].
+	^result
+)
 public createPresenter = (
 	^SelectorPresenter onSubject: self
 )
@@ -187,16 +199,7 @@ public hash ^<Integer> = (
 	^model hash
 )
 public implementors ^<List[Subject]> = (
-	| result = List new. |
-	(selectors at: model ifAbsent: [^result]) implementors do:
-		[:ea |
-		 ea isKindOfMethodMirror ifTrue:
-			[result add: (MethodSubject onModel: ea)].
-		 ea isKindOfTransientSlotDeclarationMirror ifTrue:
-			[result add: (TransientSlotSubject onModel: ea)].
-		 ea isKindOfClassHeaderMirror ifTrue:
-			[result add: (ClassHeaderSubject onModel: ea)]].
-	^result
+	^asSortedSubjects: (selectors at: model ifAbsent: [^{}]) implementors
 )
 public isKindOfSelectorSubject ^<Boolean> = (
 	^true
@@ -205,28 +208,10 @@ public selector ^<String> = (
 	^model
 )
 public senders ^<List[Subject]> = (
-	| result = List new. |
-	(selectors at: model ifAbsent: [^result]) senders do:
-		[:ea |
-		 ea isKindOfMethodMirror ifTrue:
-			[result add: (MethodSubject onModel: ea)].
-		 ea isKindOfTransientSlotDeclarationMirror ifTrue:
-			[result add: (TransientSlotSubject onModel: ea)].
-		 ea isKindOfClassHeaderMirror ifTrue:
-			[result add: (ClassHeaderSubject onModel: ea)]].
-	^result
+	^asSortedSubjects: (selectors at: model ifAbsent: [^{}]) senders
 )
 public taggers ^<List[Subject]> = (
-	| result = List new. |
-	(selectors at: model ifAbsent: [^result]) taggers do:
-		[:ea |
-		 ea isKindOfMethodMirror ifTrue:
-			[result add: (MethodSubject onModel: ea)].
-		 ea isKindOfTransientSlotDeclarationMirror ifTrue:
-			[result add: (TransientSlotSubject onModel: ea)].
-		 ea isKindOfClassHeaderMirror ifTrue:
-			[result add: (ClassHeaderSubject onModel: ea)]].
-	^result
+	^asSortedSubjects: (selectors at: model ifAbsent: [^{}]) taggers
 )
 public title ^<String> = (
 	^'#', model
@@ -277,6 +262,16 @@ lexicallyLessOrEqual: a <String> than: b <String> ^ <Boolean> = (
 		 (a at: index) > (b at: index) ifTrue: [^false]].
 	^a size <= b size
 )
+mirrorLessOrEqual: a than: b = (
+	| namesA namesB |
+	namesA:: qualifyNameOf: a into: List new.
+	namesB:: qualifyNameOf: b into: List new.
+	1 to: (namesA size min: namesB size) do:
+		[:index | | nameA nameB |
+		 (nameA:: namesA at: index) = (nameB:: namesB at: index) ifFalse:
+			[^lexicallyLessOrEqual: nameA than: nameB]].
+	^namesA size <= namesB size
+)
 note: methodOrHeader <ClassHeaderMirror | MethodMirror> hasMetadata: metadata <String> = (
 	metadata do:
 		[:each | each tag = nil ifFalse:
@@ -290,6 +285,26 @@ note: methodOrHeader <ClassHeaderMirror | MethodMirror> implements: selector <St
 note: methodOrHeader <ClassHeaderMirror | MethodMirror> sends: selector <String> = (
 	(selectors at: selector ifAbsentPut: [Selector name: selector])
 		senders add: methodOrHeader.
+)
+qualifyNameOf: mirror into: names = (
+	nil = mirror ifTrue: [^names].
+	mirror isKindOfMixinMirror ifTrue:
+		[qualifyNameOf: mirror enclosingMixin into: names.
+		 names add: mirror name.
+		 ^names].
+	mirror isKindOfClassHeaderMirror ifTrue:
+		[qualifyNameOf: mirror declaration instanceSide into: names.
+		 names add: mirror primaryFactorySelector.
+		 ^names].
+	mirror isKindOfMethodMirror ifTrue:
+		[qualifyNameOf: mirror definingMixin into: names.
+		 names add: mirror name.
+		 ^names].
+	mirror isKindOfTransientSlotMirror ifTrue:
+		[qualifyNameOf: mirror definingMixin into: names.
+		 names add: mirror name.
+		 ^names].
+	unknownKind.
 )
 public reindex = (
 	selectors:: Map new.
