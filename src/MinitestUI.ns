@@ -386,9 +386,9 @@ section: label <String> withHidden: testCases <Collection[TestCase]> status: aSy
 	contentHolder:: holder:
 		(row: {
 			blank: 10.
-			testCases isEmpty ifFalse:
-				[(link: 'Show details...'
-				action: [contentHolder content: testedMethodsPresenter]) (*tinyFont*)]
+			testCases isEmpty
+				ifTrue: [nothing]
+				ifFalse: [(link: 'Show details...' action: [contentHolder content: testedMethodsPresenter]) (*tinyFont*)]
 		}).
 	^column: {
 		headingBlock: (row: {

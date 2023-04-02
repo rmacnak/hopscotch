@@ -1,0 +1,6 @@
+class EmptyTestingConfiguration packageTestsUsing: manifest = () (
+public testModulesUsingPlatform: platform minitest: minitest = (
+	^{}
+)
+) : (
+)

@@ -18,7 +18,7 @@ class Packager usingPlatform: platform = (
 	private List = platform collections List.
 	private Map = platform collections Map.
 	private ClassDeclarationBuilder = platform mirrors ClassDeclarationBuilder.
-	private Snapshotter = platform victoryFuel Snapshotter.
+	private Snapshotter = platform serialization Snapshotter.
 
 	protected namespace = Map new.
 	|

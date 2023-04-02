@@ -593,13 +593,8 @@ linkForCompileError: error <Exception> = (
 respondToEvaluate: suspended <Boolean> = (
 	| src = editor textBeingAccepted. |
 	addDiscardIfNeeded.
-	results addFirst: (evaluate: (withoutNbsp: src) suspended: suspended).
+	results addFirst: (evaluate: src suspended: suspended).
 	ide colorizer colorizeDoIt: src fromClass: nil via: (colorizingBlockFor: editor)
-)
-withoutNbsp: string = (
-	| bytes = ByteArray withAll: string. |
-	1 to: bytes size do: [:index | (bytes at: index) = 160 ifTrue: [bytes at: index put: 32]].
-	^bytes asString
 )
 ) : (
 )
