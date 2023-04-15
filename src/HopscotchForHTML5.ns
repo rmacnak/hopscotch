@@ -839,7 +839,7 @@ createVisual ^ <Alien[HTMLElement]> = (
 deferred: contentSource <[Fragment]> ^<Fragment> = (
 	^DeferredContentComposer initialContent: nothing contentSource: contentSource
 )
-public definition ^<Fragment> = (
+definition ^<Fragment> = (
 	subclassResponsibility
 )
 dropDownMenu: menu <[Menu]> ^ <DropDownMenuFragment> = (

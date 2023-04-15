@@ -35,8 +35,8 @@ public kernel = ( ^platform kernel )
 public mirrors = ( ^platform mirrors )
 public operatingSystem = ( ^platform operatingSystem )
 public random = ( ^platform random )
+public serialization = ( ^platform serialization )
 public time = ( ^platform time )
-public victoryFuel = ( ^platform victoryFuel )
 ) : (
 )
 public using: platform = (

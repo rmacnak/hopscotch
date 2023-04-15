@@ -41,7 +41,7 @@ computeSlotPresenters = (
 		[:slot <LocalSubject> | presenters add: slot presenter].
 	^presenters
 )
-public definition ^ <Fragment> = (
+definition ^<Fragment> = (
 	^collapsed: [definitionForHeader] expanded: [column: {
 		definitionForHeader.
 		definitionForControls.

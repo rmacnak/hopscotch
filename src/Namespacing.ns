@@ -298,7 +298,7 @@ qualifyNameOf: mirror into: names = (
 		[qualifyNameOf: mirror definingMixin into: names.
 		 names add: mirror name.
 		 ^names].
-	mirror isKindOfTransientSlotMirror ifTrue:
+	mirror isKindOfTransientSlotDeclarationMirror ifTrue:
 		[qualifyNameOf: mirror definingMixin into: names.
 		 names add: mirror name.
 		 ^names].
