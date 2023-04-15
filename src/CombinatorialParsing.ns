@@ -540,8 +540,6 @@ public parse: input inContext: context ifError: blk = (
 )
 public wrapper: block = (
 	(* Untypesafe, but convenient. We can dynamically ensure that the arity of the incoming block matches that of this parser. Given that this routine is only called during parser construction, dynamic failure of the asserts is sufficient. We cannot ensure type correctness of the arguments to the block using this interface. One can use the more verbose followedBy: combinators if that is deemed essential. *)
-	assert: [block numArgs = subparsers size]
-		message: 'Block arity does not match production arity'.
 	^self wrap: [:results | block valueWithArguments: results asArray]
 )
 ) : (

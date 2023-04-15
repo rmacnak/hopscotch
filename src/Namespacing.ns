@@ -105,11 +105,9 @@ public at: symbol <Symbol> ifAbsent: onAbsent <[Value]> ^<Value> = (
 	^_dictionary at: symbol ifAbsent: onAbsent
 )
 public at: symbol <Symbol> ifAbsentPut: onAbsent <Value> ^<Value> = (
-	(*assert: [symbol isSymbol and: [symbol isUnary]] message: 'Invalid key', symbol printString.*)
 	^_dictionary at: symbol ifAbsentPut: onAbsent
 )
 public at: symbol <Symbol> put: value <Value> ^<Value> = (
-	(*assert: [symbol isSymbol and: [symbol isUnary]] message: 'Invalid key'.*)
 	^_dictionary at: symbol put: value
 )
 public includesKey: symbol <Symbol> ^<Boolean> = (

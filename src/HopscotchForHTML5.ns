@@ -1708,7 +1708,6 @@ public decorate: aVisual = (
 	0 to: (children at: 'length') - 1 do:
 		[:index | | each = children item: index. c <Color> |
 		c:: odd ifTrue: [firstColor] ifFalse: [secondColor].
-		assert: [c isNil not] message: ['nil color!'].
 		c applyToStyle: (each at: 'style').
 		odd:: odd not.
 		].

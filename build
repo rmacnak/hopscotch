@@ -1,38 +1,17 @@
 #!/bin/sh -ex
 
-cd primordialsoup
-./build os=emscripten arch=wasm
-cd ..
+case $(uname -s) in
+  Darwin) scons -Q --jobs $(sysctl -n hw.ncpu) os=emscripten arch=wasm ;;
+  Linux) scons -Q --jobs $(nproc) os=emscripten arch=wasm ;;
+  *) echo Unknown OS $(uname -s)
+esac
 
-# All this moving sources around is to make build-time relative paths the same
-# as our desired load-time relative paths. Eventually this should be handled by
-# WebCompiler when we have I/O libraries.
-mkdir -p out
-cp primordialsoup/out/ReleaseEmscriptenWASM/primordialsoup.* out
-cp primordialsoup/out/snapshots/*.vfuel out
-cp primordialsoup/newspeak/*.ns out
-mkdir -p out/CodeMirror/lib
-mkdir -p out/CodeMirror/addon/display
-cp CodeMirror/lib/codemirror.js out/CodeMirror/lib/codemirror.js
-cp CodeMirror/lib/codemirror.css out/CodeMirror/lib/codemirror_css.css
-cp CodeMirror/addon/display/autorefresh.js out/CodeMirror/addon/display/autorefresh.js
-cp src/* out
-
-cd out
-../primordialsoup/out/ReleaseHost/primordialsoup \
-    ../primordialsoup/out/snapshots/CompilerApp.vfuel \
-    *.ns \
-    RuntimeWithMirrors WebCompiler WebCompiler.vfuel \
-    RuntimeWithMirrors HopscotchTestRunner HopscotchTestRunner.vfuel
-../primordialsoup/out/ReleaseHost/primordialsoup \
-    WebCompiler.vfuel \
-    *.ns \
-    *.webp \
-    CodeMirror/lib/codemirror.js \
-    CodeMirror/lib/codemirror_css.css \
-    CodeMirror/addon/display/autorefresh.js \
-    RuntimeWithMirrors HopscotchIDE HopscotchIDE.vfuel \
-    Runtime Particles Particles.vfuel \
-    RuntimeWithMirrors TestRunner TestRunner.vfuel \
-    Runtime BenchmarkRunner BenchmarkRunner.vfuel
-cd ..
+# All this moving outputs around is to make load-time relative paths agree with
+# build-time relative paths. Eventually this should be handled by WebCompiler
+# when we have I/O libraries.
+cp out/ReleaseEmscriptenWASM/primordialsoup.* out
+cp out/snapshots/*.vfuel out
+mkdir -p out/src
+cp src/*.webp out/src
+cp src/index.html out
+cp -r CodeMirror out/CodeMirror

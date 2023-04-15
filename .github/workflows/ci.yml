@@ -18,7 +18,7 @@ jobs:
       - name: Install Emscripten
         uses: mymindstorm/setup-emsdk@v11
       - name: Build
-        run: ./build arch=x64
+        run: ./build
       - name: Test
         run: ./test
   macos:
@@ -32,6 +32,6 @@ jobs:
       - name: Install Emscripten
         uses: mymindstorm/setup-emsdk@v11
       - name: Build
-        run: ./build arch=x64
+        run: ./build
       - name: Test
         run: ./test

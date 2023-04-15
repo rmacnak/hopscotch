@@ -437,7 +437,6 @@ comment = (
 		[:token | self noteRange: #comment from: token start to: token end].
 )
 currentScope = (
-	self assert: [self scopeStack isEmpty not] message: 'Scope underflow'.
 	^self scopeStack last
 )
 decreaseBraceLevel = (
