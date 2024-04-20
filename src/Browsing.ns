@@ -478,6 +478,18 @@ public text = (
 )
 ) : (
 )
+class DoView title: t onSubject: s = ProgrammingPresenter onSubject: s (
+	|
+	public title <String> = t.
+	|
+) (
+definition = (
+	^column:
+		(subject do collect:
+			[:slot <SlotSubject> | slot presenter])
+)
+) : (
+)
 class EntryPresenter onSubject: s = ProgrammingPresenter onSubject: s () (
 public collapse = (
 	substance collapse
@@ -1505,6 +1517,8 @@ availableObjectViews = (
 		[^{KeysAndValuesView title: 'List' onSubject: subject. BasicView onSubject: subject}].
 	subject isModelKindOfMap ifTrue:
 		[^{KeysAndValuesView title: 'Map' onSubject: subject. BasicView onSubject: subject}].
+	subject isModelKindOfSet ifTrue:
+		[^{DoView title: 'Set' onSubject: subject. BasicView onSubject: subject}].
 
 	^{BasicView onSubject: subject}
 )
@@ -1586,6 +1600,20 @@ public classSubject = (
 public createPresenter = (
 	^ObjectPresenter onSubject: self
 )
+public do ^<Collection[SlotSubject]> = (
+	| result |
+	result:: List new: objectMirror reflectee size.
+	objectMirror reflectee do:
+		[:element | result add:
+			(SlotSubject
+				name: ''
+				value: (ObjectMirror reflecting: element))].
+	result addFirst:
+		(SlotSubject
+			name: 'size'
+			value: (ObjectMirror reflecting: result size)).
+	^result
+)
 public evaluate: expression <String> suspended: suspended <Boolean> ^<ThreadMirror> = (
 	| thread |
 	thread:: objectMirror evaluateSuspended: expression with: ide theWorkspaceManager evaluationScope.
@@ -1609,8 +1637,10 @@ public isModelKindOfList ^<Boolean> = (
 	^classMirror = (ClassMirror reflecting: List)
 )
 public isModelKindOfMap ^<Boolean> = (
-	classMirror = (ClassMirror reflecting: Map) ifTrue: [^true].
-	^false
+	^classMirror = (ClassMirror reflecting: Map)
+)
+public isModelKindOfSet ^<Boolean> = (
+	^classMirror = (ClassMirror reflecting: Set)
 )
 public isModelKindOfString ^<Boolean> = (
 	^classMirror = (ClassMirror reflecting: String)
