@@ -21,6 +21,7 @@ class HopscotchIDE packageUsing: manifest = (
 	manifest codemirror_css.
 	manifest autorefresh.
 ) (
+(* :exemplar: ide images *)
 class HopscotchImages packageUsing: manifest = (
 	|
 	public publicAccessImage = manifest publicImage.
@@ -92,6 +93,7 @@ public addToNamespace: ns = (
 )
 ) : (
 )
+(* :exemplar: ide *)
 class IDE usingPlatform: p = (
 	|
 	public images = imagesOuter.

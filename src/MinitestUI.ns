@@ -1,4 +1,5 @@
 (* Hopscotch UI for unit testing using Minitest. *)
+(* :exemplar: ide minitestUI *)
 class MinitestUI usingPlatform: platform minitest: minitest ide: ide = (
 	|
 	private List = platform collections List.

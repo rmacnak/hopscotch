@@ -1,4 +1,5 @@
 (* UI for the Web debugger. *)
+(* :exemplar: ide debugging *)
 class Debugging usingPlatform: platform ide: ide = (
 	|
 	private List = platform collections List.

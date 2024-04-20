@@ -1,6 +1,7 @@
 (* An IDE for Newspeak on the web.
     Copyright 2016-2017 Google Inc.
 *)
+(* :exemplar: ide browsing *)
 class Browsing usingPlatform: p ide: webIde = (
 |
 	private StringBuilder = p kernel StringBuilder.
