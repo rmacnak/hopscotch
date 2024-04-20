@@ -10,6 +10,7 @@ esac
 # build-time relative paths. Eventually this should be handled by WebCompiler
 # when we have I/O libraries.
 cp out/ReleaseEmscriptenWASM/primordialsoup.* out
+cp out/ReleaseEmscriptenWASM/primordialsoup-emrun.* out
 cp out/snapshots/*.vfuel out
 mkdir -p out/src
 cp src/*.webp out/src

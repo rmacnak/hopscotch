@@ -1,4 +1,4 @@
-name: Continuous Integration
+name: CI
 
 on:
   push:
@@ -10,27 +10,27 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Install Dependencies
         run: sudo apt-get install g++ scons
       - name: Install Emscripten
-        uses: mymindstorm/setup-emsdk@v11
+        uses: mymindstorm/setup-emsdk@v14
       - name: Build
         run: ./build
       - name: Test
-        run: ./test
+        run: xvfb-run ./test
   macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Install Dependencies
         run: HOMEBREW_NO_AUTO_UPDATE=1 brew install scons
       - name: Install Emscripten
-        uses: mymindstorm/setup-emsdk@v11
+        uses: mymindstorm/setup-emsdk@v14
       - name: Build
         run: ./build
       - name: Test

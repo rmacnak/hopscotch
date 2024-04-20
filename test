@@ -1,3 +1,2 @@
 #!/bin/sh -ex
-out/DebugHost/primordialsoup out/snapshots/HopscotchTestRunner.vfuel
-out/ReleaseHost/primordialsoup out/snapshots/HopscotchTestRunner.vfuel
+emrun --browser=firefox --serve_root=out "out/primordialsoup-emrun.html?snapshot=snapshots/HopscotchTestRunner.vfuel"
