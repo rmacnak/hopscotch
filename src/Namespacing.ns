@@ -26,62 +26,20 @@ class Namespacing usingPlatform: p ide: ide = (
 
 	selectors ::= Map new.
 |) (
-class AllSelectorsPresenter onSubject: s = ProgrammingPresenter onSubject: s (
+public class AllMetadataSubject = SelectorSetSubject (
 ) (
-definition ^<Fragment> = (
-	(* No Senders.
-	   No Implementors.
-	   All. *)
-	|
-	selectors = subject selectorSubjects sort: [:a :b | lexicallyLessOrEqual: a selector than: b selector].
-	noSenders = selectors select: [:s | s hasNoSenders].
-	noImplementors = selectors select: [:s | s hasNoImplementors].
-	|
-	^column: {
-		majorHeadingBlock: (label: 'Selectors (', selectors size asString, ')').
-		mediumBlank.
-
-		minorHeadingBlock: (label: 'No Senders (', noSenders size asString, ')').
-		smallBlank.
-		column:
-			(noSenders collect:
-				[:ea | link: ea selector action: [enterSubject: ea]]).
-		smallBlank.
-
-		minorHeadingBlock: (label: 'No Implementors (', noImplementors size asString, ')').
-		smallBlank.
-		column:
-			(noImplementors collect:
-				[:ea | link: ea selector action: [enterSubject: ea]]).
-		smallBlank.
-
-		minorHeadingBlock: (label: 'All (', selectors size asString, ')').
-		smallBlank.
-		column:
-			(selectors collect:
-				[:ea | link: ea selector action: [enterSubject: ea]]).
-		smallBlank.
-	}
+filter: selector <Selector> = (
+	^selector taggers isEmpty not
 )
+public title = ( ^'Metadata' )
 ) : (
 )
-public class AllSelectorsSubject new = Subject onModel: nil (
+public class AllSelectorsSubject = SelectorSetSubject (
 ) (
-public = other ^<Boolean> = (
-	^other isKindOfAllSelectorsSubject
+filter: selector <Selector> = (
+	^selector implementors isEmpty not | selector senders isEmpty not
 )
-public createPresenter = (
-	^AllSelectorsPresenter onSubject: self
-)
-public hash ^<Boolean> = (
-	^class hash
-)
-public isKindOfAllSelectorsSubject ^<Boolean> = (
-	^true
-)
-public selectorSubjects = (
-	^selectors values collect: [:ea | SelectorSubject onModel: ea name].
-)
+public title = ( ^'Selectors' )
 ) : (
 )
 class Manifest forNamespace: ns = (
@@ -134,6 +92,22 @@ public removeKey: name <Symbol> ifAbsent: onAbsent ^<Value> = (
 )
 ) : (
 )
+public class NoImplementorsSubject = SelectorSetSubject (
+) (
+filter: selector <Selector> = (
+	^selector implementors isEmpty & selector senders isEmpty not
+)
+public title = ( ^'No Implementors' )
+) : (
+)
+public class NoSendersSubject = SelectorSetSubject (
+) (
+filter: selector <Selector> = (
+	^selector senders isEmpty & selector implementors isEmpty not
+)
+public title = ( ^'No Senders' )
+) : (
+)
 class Selector name: n = (|
 	public name = n.
 	public senders = Set new.
@@ -164,6 +138,44 @@ definition ^<Fragment> = (
 		list: (taggers collect: [:ea | ea presenter showClassName: true]).
 		mediumBlank.
 	}
+)
+) : (
+)
+class SelectorSetPresenter onSubject: s = ProgrammingPresenter onSubject: s (
+) (
+definition ^<Fragment> = (
+	|
+	selectors = subject selectorSubjects sort:
+		[:a :b | lexicallyLessOrEqual: a selector than: b selector].
+	|
+	^column: {
+		majorHeadingBlock: (label: subject title, ' (', selectors size asString, ')').
+		mediumBlank.
+		list:
+			(selectors collect:
+				[:ea | link: ea selector action: [enterSubject: ea]]).
+	}
+)
+) : (
+)
+public class SelectorSetSubject = Subject onModel: nil (
+) (
+public = other ^<Boolean> = (
+	other isKindOfSelectorSetSubject ifFalse: [^false].
+	^title = other title
+)
+public createPresenter = (
+	^SelectorSetPresenter onSubject: self
+)
+public hash ^<Boolean> = (
+	^class hash
+)
+public isKindOfSelectorSetSubject ^<Boolean> = (
+	^true
+)
+public selectorSubjects = (
+	^(selectors values select: [:ea | filter: ea])
+		collect: [:ea | SelectorSubject onModel: ea name].
 )
 ) : (
 )

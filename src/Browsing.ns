@@ -614,6 +614,9 @@ definition = (
 			}
 			column3: {
 				link: 'Selectors' action: [navigateToSelectors].
+				link: 'Metadata' action: [navigateToMetadata].
+				link: 'No Senders' action: [navigateToNoSenders].
+				link: 'No Implementors' action: [navigateToNoImplementors].
 			}).
 		mediumBlank.
 
@@ -639,8 +642,20 @@ didYouKnow = (
 		[^textAndImageWisdom: wisdom].
 	^textDisplay: wisdom text
 )
+navigateToMetadata = (
+	ide namespacing reindex.
+	enterSubject:: ide namespacing AllMetadataSubject new.
+)
 navigateToNamespace = (
 	enterSubject:: NamespaceSubject new.
+)
+navigateToNoImplementors = (
+	ide namespacing reindex.
+	enterSubject:: ide namespacing NoImplementorsSubject new.
+)
+navigateToNoSenders = (
+	ide namespacing reindex.
+	enterSubject:: ide namespacing NoSendersSubject new.
 )
 navigateToSelectors = (
 	ide namespacing reindex.
