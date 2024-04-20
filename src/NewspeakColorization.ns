@@ -48,20 +48,20 @@ class Range kind: k start: s end: e = (
 coloredText ^ <Text> = (
   ^TextBlock units: textSegments
 )
-public colorizeClassDeclaration: s <String> fromClass: c <Class> via: cf <[:Range]> = (
-      setString: s class: c.
+public colorizeClassDeclaration: s <String> fromMixin: m <MixinMirror> via: cf <[:Range]> = (
+      setString: s mixin: m.
       colorizeString: s withProduction: classDeclaration via: cf
 )
-public colorizeDoIt: s <String> fromClass: c <Class> via: cf <[:Range]> = (
-      setString: s class: c.
+public colorizeDoIt: s <String> fromMixin: m <MixinMirror> via: cf <[:Range]> = (
+      setString: s mixin: m.
       colorizeString: s withProduction: doItExpression via: cf
 )
-public colorizeHeader: s <String> fromClass: c <Class> via: cf <[:Range]> = (
-      setString: s class: c.
+public colorizeHeader: s <String> fromMixin: m <MixinMirror> via: cf <[:Range]> = (
+      setString: s mixin: m.
       colorizeString: s withProduction: classHeader via: cf
 )
-public colorizeMethod: s <String> fromClass: c <Class> via: cf <[:Range]> = (
-      setString: s class: c.
+public colorizeMethod: s <String> fromMixin: m <MixinMirror> via: cf <[:Range]> = (
+      setString: s mixin: m.
       colorizeString: s withProduction: methodDecl via: cf
 )
 colorizeString: s <String> withProduction: parser <CombinatorialParser> via: cf <[:Range]> = (
@@ -71,8 +71,8 @@ colorizeString: s <String> withProduction: parser <CombinatorialParser> via: cf 
 	consolidateRanges.
 	rangeArray do: [:r | nil = r ifFalse: [cf value: r]].
 )
-public colorizeTransientSlot: s <String> fromClass: c <Class> via: cf <[:Range]> = (
-      setString: s class: c.
+public colorizeTransientSlot: s <String> fromMixin: m <MixinMirror> via: cf <[:Range]> = (
+      setString: s mixin: m.
       colorizeString: s withProduction: transientSlotDecl via: cf
 )
 computePropertiesMap ^ <Map[Symbol, TextProperties]> = (
@@ -225,47 +225,32 @@ consolidateRangesAt: index <Integer> = (
 noteRange: kind <Symbol> from: start <Integer> to: end <Integer> = (
    rangeMap add: (Range kind: kind start: (start max: 1) end: end).
 )
-public parseClassDecl: s <String> fromClass: c <Class> ^<Text> = (
-(* Questionable*)
-	| parser |
-
-      setString: s class: c.
+public parseClassDecl: s <String> fromMixin: m <MixinMirror> ^<Text> = (
+	setString: s mixin: m.
 	^parseString: s withProduction: classDecl
 )
-public parseClassDeclaration: s <String> fromClass: c <Class> ^<Text> = (
-	| parser |
-
-      setString: s class: c.
+public parseClassDeclaration: s <String> fromMixin: m <MixinMirror> ^<Text> = (
+	setString: s mixin: m.
 	^parseString: s withProduction: classDeclaration
 )
-public parseClassHeader: s <String> fromClass: c <Class> ^<Text> = (
-	| parser |
-
-      setString: s class: c.
+public parseClassHeader: s <String> fromMixin: m <MixinMirror> ^<Text> = (
+	setString: s mixin: m.
 	^parseString: s withProduction: classHeader
 )
-public parseCodeBody: s <String> fromClass: c <Class> ^<Text> = (
-	| parser |
-
-      setString: s class: c.
+public parseCodeBody: s <String> fromMixin: m <MixinMirror> ^<Text> = (
+	setString: s mixin: m.
 	^parseString: s withProduction: codeBody
 )
-public parseDoIt: s <String> fromClass: c <Class> ^<Text> = (
-	| parser |
-
-      setString: s class: c.
+public parseDoIt: s <String> fromMixin: m <MixinMirror> ^<Text> = (
+	setString: s mixin: m.
 	^parseString: s withProduction: doItExpression
 )
-public parseMethod: s <String> fromClass: c <Class> ^ <Text> = (
-	| parser |
-
-      setString: s class: c.
+public parseMethod: s <String> fromMixin: m <MixinMirror> ^<Text> = (
+	setString: s mixin: m.
 	^parseString: s withProduction: methodDecl
 )
-public parseSlotDeclaration: s <String> fromClass: c <Class> ^<Text> = (
-	| parser |
-
-      setString: s class: c.
+public parseSlotDeclaration: s <String> fromMixin: m <MixinMirror> ^<Text> = (
+	setString: s mixin: m.
 	^parseString: s withProduction: slotDef, eoi
 )
 parseString: s <String> withProduction: parser <CombinatorialParser> ^ <Text> = (
@@ -276,17 +261,18 @@ parseString: s <String> withProduction: parser <CombinatorialParser> ^ <Text> = 
 	computeTextSegments.
 	^coloredText
 )
-setString: s <String> class: c <ClassDeclarationMirror | Mixin> = (	
-	inputSize:: s size.	
-	inputString:: s.	
-	klass:: c.	
-	bracketDepth:: 0.	
-	braceDepth:: 0.	
-	parenDepth:: 0.	
+setString: s <String> mixin: m <MixinMirror> = (
+	inputSize:: s size.
+	inputString:: s.
+	mixin:: m.
+	bracketDepth:: 0.
+	braceDepth:: 0.
+	parenDepth:: 0.
 	rangeMap:: List new.
-	textSegments:: List new.	
-	priorSegmentEnd:: 1.	
-	cachedScopeStack: nil.)
+	textSegments:: List new.
+	priorSegmentEnd:: 1.
+	cachedScopeStack: nil.
+)
 ) : (
 )
 (*
@@ -299,7 +285,7 @@ It might be better to produce an actual AST (or a subset thereof) and visit it i
 class NS3Colorizer = TypedNS3Grammar (
 |
 	cachedScopeStack
-	klass
+	mixin <MixinMirror>
 	rangeMap <List[Range]>
 	inputSize <Integer>
 	startComment
@@ -392,15 +378,6 @@ checkKeyword: kwd <Token> = (
 	(inputString at: kwd end + 1) <= 32 ifTrue: [^self].
 	self noteRange: #whitespaceWarning from: kwd start to: kwd end
 )
-classDeclaration: classDecl canUnderstand: selector = (
-	(classDecl instanceSide methods includesMirrorNamed: selector)
-		ifTrue: [^true].
-	(classDecl instanceSide nestedClasses includesMirrorNamed: selector)
-		ifTrue: [^true].
-	(classDecl instanceSide slots includesMirrorNamed: selector)
-		ifTrue: [^true].
-	^false	
-)
 public classHeader = (
 	^super classHeader
 		wrap:
@@ -452,15 +429,14 @@ endComment = (
 	^(TokenizingParser withSubparser: super endComment) wrap:
 		[:t |  rangeMap removeLast. t].
 )
-extendedCanUnderstand: sel <Symbol> = (
-	| k <ClassDeclarationMirror> |
-	k: klass.
-	[nil = k] whileFalse:
-		[(classDeclaration: k canUnderstand: sel) ifTrue: [^true].	
-		 k: k enclosingClass].
+extendedCanUnderstand: selector <String> ^<Boolean> = (
+	| m <MixinMirror> ::= mixin. |
+	[nil = m] whileFalse:
+		[(mixin: m canUnderstand: selector) ifTrue: [^true].
+		 m:: m enclosingMixin].
 
 	(* klass mixin applications do: [:any | ^any canUnderstand: sel].*)
-	^classDeclaration: mixinMirrorForObject declaration canUnderstand: sel
+	^mixin: mixinMirrorForObject canUnderstand: selector
 )
 increaseBraceLevel = (
 	self braceDepth: (self braceDepth + 1) \\ 7.
@@ -543,6 +519,25 @@ method = (
 	res:: super method.
 	self popScope.
 	^res
+)
+mixin: mixin <MixinMirror> canUnderstand: selector <String> ^<Boolean> = (
+	(mixin methods includesMirrorNamed: selector)
+		ifTrue: [^true].
+
+	(mixin nestedClasses includesMirrorNamed: selector)
+		ifTrue: [^true].
+
+	mixin slots do:
+		[:slot |
+		 slot name = selector ifTrue: [^true].
+		 slot isMutable ifTrue: [slot name, ':' = selector ifTrue: [^true]]].
+
+	mixin transientSlots do:
+		[:slot |
+		 slot name = selector ifTrue: [^true].
+		 slot isMutable ifTrue: [slot name, ':' = selector ifTrue: [^true]]].
+
+	^false
 )
 nestedClassDecl = (
 	^super nestedClassDecl wrap:
@@ -656,7 +651,8 @@ string = (
 )
 symbol: aString <String> ifInScope: inScopeAction ifNotInScope: notInScopeAction ifObsolete: obsoleteAction = (
 	scopeStack do: [:s | (s includesKey: aString) ifTrue: [^inScopeAction value]].
-	^inScopeAction value (* BOGUS *)
+	(extendedCanUnderstand: aString) ifTrue: [^inScopeAction value].
+	^notInScopeAction value
 )
 symbolConstant = (
 	^super symbolConstant wrapper:

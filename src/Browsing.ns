@@ -126,7 +126,7 @@ acceptResponse ^<[:CodeMirrorFragment :Event]> = (
 		]
 )
 colorizeSource: s <String> withEditor: cm <CodeMirrorFragment> = (
-	ide colorizer colorizeHeader: s fromClass: subject classDeclaration via: (colorizingBlockFor: cm)
+	ide colorizer colorizeHeader: s fromMixin: subject classDeclaration instanceSide via: (colorizingBlockFor: cm)
 )
 ) : (
 )
@@ -534,11 +534,11 @@ editorDefinition ^ <CodeMirrorFragment> = (
 	cm changeResponse:
 		[:editor <CodeMirrorFragment>  |
 		| src <String> =  editor textBeingAccepted. |
-		ide colorizer colorizeDoIt: src fromClass: nil via: (colorizingBlockFor: editor)].
+		ide colorizer colorizeDoIt: src fromMixin: nil via: (colorizingBlockFor: editor)].
 	cm enterResponse:
 		[:editor <CodeMirrorFragment> |
 		 respondToEvaluate: false].
-	ide colorizer colorizeDoIt: initialSource fromClass: nil via: (colorizingBlockFor: cm).
+	ide colorizer colorizeDoIt: initialSource fromMixin: nil via: (colorizingBlockFor: cm).
 	^cm
 )
 evaluate: expression <String> suspended: suspended <Boolean> ^<Fragment> = (
@@ -562,7 +562,7 @@ respondToEvaluate: suspended <Boolean> = (
 	| src = editor textBeingAccepted. |
 	addDiscardIfNeeded.
 	results addFirst: (evaluate: src suspended: suspended).
-	ide colorizer colorizeDoIt: src fromClass: nil via: (colorizingBlockFor: editor)
+	ide colorizer colorizeDoIt: src fromMixin: nil via: (colorizingBlockFor: editor)
 )
 ) : (
 )
@@ -928,7 +928,7 @@ public class MethodGroupSubject onModel: m <MirrorGroup[MethodMirror]> within: d
 public colorizeSource: source <String> editor: cm <CodeMirrorFragment> ^ <TextFragment> = (
 	^ide colorizer
 		colorizeMethod: source
-		fromClass: definingMixin declaration
+		fromMixin: definingMixin
 		via: (colorizingBlockFor: cm)
 )
 public compileSource: source <String> ifSuccess: successBlock <[:MethodMirror]> ifFailure: failureBlock <[:String]> = (
@@ -970,7 +970,7 @@ acceptResponse ^ <[:CodeMirrorFragment :Event]> = (
 		]
 )
 colorizeSource: s <String> withEditor: cm <CodeMirrorFragment> = (
-	ide colorizer colorizeMethod: s fromClass: subject classDeclaration via: (colorizingBlockFor: cm)
+	ide colorizer colorizeMethod: s fromMixin: subject methodMirror definingMixin via: (colorizingBlockFor: cm)
 )
 ) : (
 )
@@ -1327,7 +1327,7 @@ public classTemplateText ^ <String> = (
 public colorizeClassSource: source <String> editor: cm <CodeMirrorFragment>  = (
 	^ide colorizer
 		colorizeClassDeclaration: source
-		fromClass: nil
+		fromMixin: nil
 		via: (colorizingBlockFor: cm)
 )
 public createPresenter ^ <NamespacePresenter> = (
@@ -1424,7 +1424,7 @@ public classTemplateText ^ <String> = (
 public colorizeClassSource: source <String> editor: cm <CodeMirrorFragment> = (
 	^ide colorizer
 		colorizeClassDeclaration: source
-		fromClass: definingMixin declaration
+		fromMixin: definingMixin
 		via: (colorizingBlockFor: cm)
 )
 public createPresenter = (
@@ -1932,7 +1932,7 @@ public class TransientSlotGroupSubject onModel: m <MirrorGroup[TransientSlotMirr
 public colorizeSource: source <String> editor: cm <CodeMirrorFragment> ^ <TextFragment> = (
 	^ide colorizer
 		colorizeTransientSlot: source
-		fromClass: definingMixin declaration
+		fromMixin: definingMixin
 		via: (colorizingBlockFor: cm)
 )
 public compileSource: source <String> ifSuccess: successBlock <[:MethodMirror]> ifFailure: failureBlock <[:String]> = (
@@ -1972,7 +1972,7 @@ acceptResponse ^ <[:CodeMirrorFragment :Event]> = (
 		]
 )
 colorizeSource: s <String> withEditor: cm <CodeMirrorFragment> = (
-	ide colorizer colorizeTransientSlot: s fromClass: subject classDeclaration via: (colorizingBlockFor: cm)
+	ide colorizer colorizeTransientSlot: s fromMixin: subject transientSlotMirror definingMixin via: (colorizingBlockFor: cm)
 )
 ) : (
 )
