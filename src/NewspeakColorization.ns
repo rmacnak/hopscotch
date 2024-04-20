@@ -142,6 +142,7 @@ computePropertiesMap ^ <Map[Symbol, TextProperties]> = (
              at: #rightBrace6 put: blackBold;
              at: #messagePatternDecl put: bold;
              at: #class put: gray;
+             at: #transient put: gray;
              at: #className put: bold;
              at: #comment put: blue;
              at: #type put: blueBold;
@@ -392,13 +393,13 @@ public classHeader = (
 			tokens ]
 )
 classId = (
-  ^super classId wrap: [:cn | 	
+  ^super classId wrap: [:cn |
 	  noteRange: #className from: cn start to: cn end.
 	  cn
 	]
 )
 classReservedWord = (
-  ^super classReservedWord wrap: [:c | 
+  ^super classReservedWord wrap: [:c |
 	  noteRange: #class from: c start to: c end.
 	  c
 	]
@@ -703,6 +704,18 @@ temporaries = (
 			noteRange: kind from: sd start to: sd end].
 
 		vds]
+)
+transientModifier = (
+  ^super transientModifier wrap: [:t |
+	  noteRange: #transient from: t start to: t end.
+	  t
+	]
+)
+transientSlotDecl = (
+	^super transientSlotDecl wrap:
+		[:tokens | (* accessModifier opt, #transient, slotDecl *)
+		noteRange: #messagePatternDecl from: ((tokens at: 3) at: 1) start to: ((tokens at: 3) at: 1) end.
+		tokens]
 )
 tupleType = (
 (* The braces around the tuple type will colorize themselves, but their

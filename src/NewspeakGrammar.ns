@@ -208,7 +208,7 @@ class NS3Grammar = ExecutableGrammar (
 	messagePattern = unaryMsgPattern | binaryMsgPattern | keywordMsgPattern.
 
 	(* Top level productions for classes *)
-	transientModifier = (tokenFromSymbol: #transient), whitespace.
+	transientModifier = tokenFromSymbol: #transient.
 
 	public transientSlotDecl = accessModifier opt, transientModifier, slotDecl,
 	          ((tokenFromSymbol: #=) |

@@ -2097,6 +2097,7 @@ cssConversionTable ^ <Map[Symbol, String]> = (
 		at: #rightBrace6 put: blackBold;
 		at: #messagePatternDecl put: bold;
 		at: #class put: gray;
+		at: #transient put: gray;
 		at: #className put: bold;
 		at: #comment put: blue;
 		at: #type put: blueBold;
