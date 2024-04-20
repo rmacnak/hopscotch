@@ -472,7 +472,7 @@ recordFailure: f = (
 )
 ) : (
 )
-public class ParserError message: m position: p = Error (|
+public class ParserError message: m position: p = Exception (|
 	public message <String> = m.
 	public position <Integer> = p.
 |) (

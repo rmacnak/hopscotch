@@ -428,7 +428,7 @@ public refresh = (
 )
 public shell = (
 	^parent isNil
-		ifTrue: [Error signal: 'hierarchy not installed in a shell :',  printString]
+		ifTrue: [Exception signal: 'hierarchy not installed in a shell :',  printString]
 		ifFalse: [parent shell]
 )
 public value = (

@@ -3,7 +3,7 @@ class Debugging usingPlatform: platform ide: ide = (
 	|
 	private List = platform collections List.
 
-	private JSObject = [platform js global at: 'Object'] on: Error do: [:e | nil].
+	private JSObject = [platform js global at: 'Object'] on: Exception do: [:e | nil].
 
 	private Color = platform graphics Color.
 

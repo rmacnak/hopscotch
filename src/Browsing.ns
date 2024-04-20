@@ -13,11 +13,10 @@ class Browsing usingPlatform: p ide: webIde = (
 	private List = p collections List.
 	private Map = p collections Map.
 	private Set = p collections Set.
-	private OrderedMap = p collections OrderedMap.
 	private ClassMirror = p mirrors ClassMirror.
 	private ObjectMirror = p mirrors ObjectMirror.
 	private ClassDeclarationBuilder = p mirrors ClassDeclarationBuilder.
-	private JSObject = [p js global at: 'Object'] on: Error do: [:e | nil].
+	private JSObject = [p js global at: 'Object'] on: Exception do: [:e | nil].
 	private DateTime = p time DateTime.
 
 	private random = p random Random new.
@@ -546,7 +545,7 @@ evaluate: expression <String> suspended: suspended <Boolean> ^<Fragment> = (
 	| thread <ThreadMirror> |
 
 	[thread:: subject evaluate: expression suspended: suspended]
-		on: Error do: [:e | ^linkForCompileError: e].
+		on: Exception do: [:e | ^linkForCompileError: e].
 
 	^EvaluationResultPresenter onSubject:
 		(ide debugging ThreadSubject onModel: thread)
@@ -939,7 +938,7 @@ public compileSource: source <String> ifSuccess: successBlock <[:MethodMirror]> 
 	builder declaration install.
 	newMirror:: definingMixin methods findMirrorNamed: newBuilder name.
 	successBlock value: newMirror]
-		on: Error
+		on: Exception
 		do: [:ex <Exception> | failureBlock value: ex printString].
 )
 public createPresenter = (
@@ -1173,7 +1172,7 @@ addCategoryMenu = (
 		{ 'Add Namespace'. [addNamespaceTemplate]}.
 		(*{'Add Image From File'. [respondToAddImage].}.
 		{'Add Text From File'. [respondToAddText]}.
-		 'Add Value' -> [Error signal: 'Unimplemented']. *)
+		 'Add Value' -> [Exeption signal: 'Unimplemented']. *)
 	}
 )
 addClassTemplate = (
@@ -1300,7 +1299,7 @@ public = other ^<Boolean> = (
 public addClassFromDefinition: definition <String> ifSuccess: successBlock <[]> ifFailure: failureBlock <[:String]> = (
 	| builder <ClassDeclarationBuilder> klass |
 	[builder:: ClassDeclarationBuilder fromSource: definition]
-		on: Error
+		on: Exception
 		do: [:ex | ^failureBlock value: ex printString].
 	(namespace includesKey: builder name) ifTrue:
 		[^failureBlock value: 'A class named ', builder name, ' already exists in this namespace'].
@@ -1410,7 +1409,7 @@ public addClassFromDefinition: source <String> ifSuccess: successBlock <[:ClassD
 	builder declaration install.
 	newMirror:: definingMixin nestedClasses findMirrorNamed: newBuilder name.
 	successBlock value: newMirror]
-		on: Error
+		on: Exception
 		do: [:ex <Exception> | failureBlock value: ex printString].
 )
 public classTemplateText ^ <String> = (
@@ -1595,7 +1594,6 @@ public isModelKindOfList ^<Boolean> = (
 )
 public isModelKindOfMap ^<Boolean> = (
 	classMirror = (ClassMirror reflecting: Map) ifTrue: [^true].
-	classMirror = (ClassMirror reflecting: OrderedMap) ifTrue: [^true].
 	^false
 )
 public isModelKindOfString ^<Boolean> = (
@@ -1944,7 +1942,7 @@ public compileSource: source <String> ifSuccess: successBlock <[:MethodMirror]> 
 	builder declaration install.
 	newMirror:: definingMixin transientSlots findMirrorNamed: newBuilder name.
 	successBlock value: newMirror]
-		on: Error
+		on: Exception
 		do: [:ex <Exception> | failureBlock value: ex printString].
 )
 public createPresenter = (

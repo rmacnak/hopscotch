@@ -81,7 +81,7 @@ public h: hue s: saturation v: brightness = (
 	4 = i ifTrue: [ ^self r: t g: p b: v ].
 	5 = i ifTrue: [ ^self r: v g: p b: q ].
 
-	Error signal: 'implementation error'.
+	Exception signal: 'implementation error'.
 )
 public magenta = (
 	^self r: 139 g: 0 b: 139 a: 255
@@ -166,7 +166,7 @@ public r ^<Number> = (
 	^((x*x) + (y*y)) sqrt
 )
 public theta ^<Number> = (
-	Error signal: 'Unimplemented'
+	Exception signal: 'Unimplemented'
 )
 ) : (
 public r: r <Number> theta: theta <Number> ^<Point> = (

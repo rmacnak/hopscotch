@@ -104,7 +104,7 @@ loadResource: path <String> ^<Array> = (
 		[ | name = path copyFrom: from to: path size - 4. |
 		 ^{name. 'css'. path}].
 
-	Error signal: 'Unknown resource type: ', path
+	Exception signal: 'Unknown resource type: ', path
 )
 public main: args = (
 	| index ::= 1. |
@@ -183,7 +183,7 @@ unpackResourceType: type payload: payload platform: platform = (
 		(document at: 'head') appendChild: script.
 		^script].
 
-	^Error signal: 'Unknown resource type: ', type
+	^Exception signal: 'Unknown resource type: ', type
 )
 ) : (
 )
