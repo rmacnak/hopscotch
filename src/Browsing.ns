@@ -169,6 +169,7 @@ public messages = (
 	sent sort: [:a :b | lexicallyLessOrEqual: a than: b].
 	result addAll: sent.
 	result addAll: ((model metadata collect: [:ea | ea tag]) reject: [:ea | nil = ea]).
+	result addAll: (model literals select: [:ea | ea isKindOfString]).
 	^result
 )
 public name = (
@@ -354,6 +355,7 @@ public messages = (
 	sent sort: [:a :b | lexicallyLessOrEqual: a than: b].
 	result addAll: sent.
 	result addAll: ((header metadata collect: [:ea | ea tag]) reject: [:ea | nil = ea]).
+	result addAll: (header literals select: [:ea | ea isKindOfString]).
 	^result
 )
 public methodsSubject ^ <MethodGroupSubject> = (
@@ -627,6 +629,7 @@ definition = (
 			column3: {
 				link: 'Selectors' action: [navigateToSelectors].
 				link: 'Metadata' action: [navigateToMetadata].
+				link: 'Literals' action: [navigateToLiterals].
 				link: 'No Senders' action: [navigateToNoSenders].
 				link: 'No Implementors' action: [navigateToNoImplementors].
 			}).
@@ -653,6 +656,10 @@ didYouKnow = (
 	nil = wisdom image ifFalse:
 		[^textAndImageWisdom: wisdom].
 	^textDisplay: wisdom text
+)
+navigateToLiterals = (
+	ide namespacing reindex.
+	enterSubject:: ide namespacing AllLiteralsSubject new.
 )
 navigateToMetadata = (
 	ide namespacing reindex.
@@ -1035,6 +1042,7 @@ public enclosingClasses ^<List[MixinMirror]> = (
 )
 public messages = (
 	^List new
+		addAll: (methodMirror literals select: [:ea | ea isKindOfString]);
 		addAll: ((methodMirror metadata collect: [:ea | ea tag]) reject: [:ea | nil = ea]);
 		addAll: methodMirror selectors;
 		sort: [:a :b | lexicallyLessOrEqual: a than: b];
@@ -2059,6 +2067,7 @@ public messages = (
 	model isMutable ifTrue: [result addFirst: model name, ':'].
 	result addFirst: model name.
 	result addAll: ((transientSlotMirror metadata collect: [:ea | ea tag]) reject: [:ea | nil = ea]).
+	result addAll: (transientSlotMirror literals select: [:ea | ea isKindOfString]).
 	^result
 )
 public name ^<Symbol> = (
