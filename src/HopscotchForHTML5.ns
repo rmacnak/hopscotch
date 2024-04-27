@@ -123,6 +123,12 @@ applyStyles = (
      editor refresh.
    ]
 )
+public clearStyles = (
+	| marks <JSArray[TextMarker]> |
+	nil = editor ifTrue: [^self].
+	marks:: editor getAllMarks.
+	1 to: (marks at: 'length') do: [:i | (marks at: i - 1) clear].
+)
 controlBarColor = (
 	^Color r: 0.95 g: 0.792 b: 0.475
 )
@@ -183,6 +189,11 @@ defaultCancelResponse = (
 )
 defaultChangeResponse = (
 	enterEditState
+)
+defaultStyle ^<Alien[Object]> = (
+	| style = JSObject new. |
+	style at: 'css' put: 'color:black;text-decoration:none;font-weight:normal'.
+	^style
 )
 public enterEditState = (
 	isInEditState ifFalse:

@@ -25,7 +25,6 @@ class Browsing usingPlatform: p ide: webIde = (
 	private ide = webIde.
 	private detailAreaRatio = 3 asFloat.
 	private captionColor = Color h: 41 s: 0.20 v: 0.80.
-	private cssConverter = cssConversionTable.
 |
 ) (
 (* The subject is a collection of MethodSubjects that can come from diverse sources (in the sense that they do not have to belong to the same class). The presenter displays them as a column of expandable method presenters and takes care of reasonably handling the various creation and deletion requests coming from them.  I group my methods by their containing package.
@@ -127,7 +126,7 @@ acceptResponse ^<[:CodeMirrorFragment :Event]> = (
 		]
 )
 colorizeSource: s <String> withEditor: cm <CodeMirrorFragment> = (
-	ide colorizer colorizeHeader: s fromMixin: subject classDeclaration instanceSide via: (colorizingBlockFor: cm)
+	ide colorizer colorizeHeader: s fromMixin: subject classDeclaration instanceSide in: cm.
 )
 ) : (
 )
@@ -549,11 +548,11 @@ editorDefinition ^ <CodeMirrorFragment> = (
 	cm changeResponse:
 		[:editor <CodeMirrorFragment>  |
 		| src <String> =  editor textBeingAccepted. |
-		ide colorizer colorizeDoIt: src fromMixin: nil via: (colorizingBlockFor: editor)].
+		ide colorizer colorizeDoIt: src fromMixin: nil in: editor].
 	cm enterResponse:
 		[:editor <CodeMirrorFragment> |
 		 respondToEvaluate: false].
-	ide colorizer colorizeDoIt: initialSource fromMixin: nil via: (colorizingBlockFor: cm).
+	ide colorizer colorizeDoIt: initialSource fromMixin: nil in: cm.
 	^cm
 )
 evaluate: expression <String> suspended: suspended <Boolean> ^<Fragment> = (
@@ -577,7 +576,7 @@ respondToEvaluate: suspended <Boolean> = (
 	| src = editor textBeingAccepted. |
 	addDiscardIfNeeded.
 	results addFirst: (evaluate: src suspended: suspended).
-	ide colorizer colorizeDoIt: src fromMixin: nil via: (colorizingBlockFor: editor)
+	ide colorizer colorizeDoIt: src fromMixin: nil in: editor.
 )
 ) : (
 )
@@ -960,11 +959,8 @@ elementPresenterClass ^ <ProgrammingPresenter class> = (
 (* Represents the collection of methods of a Newspeak class. Holds onto the mirror group for the methods. *)
 public class MethodGroupSubject onModel: m <MirrorGroup[MethodMirror]> within: dm <MixinMirror> = MirrorGroupSubject onModel: m within: dm  (
 ) (
-public colorizeSource: source <String> editor: cm <CodeMirrorFragment> ^ <TextFragment> = (
-	^ide colorizer
-		colorizeMethod: source
-		fromMixin: definingMixin
-		via: (colorizingBlockFor: cm)
+public colorizeSource: source <String> editor: cm <CodeMirrorFragment> = (
+	ide colorizer colorizeMethod: source fromMixin: definingMixin in: cm.
 )
 public compileSource: source <String> ifSuccess: successBlock <[:MethodMirror]> ifFailure: failureBlock <[:String]> = (
 	[ | builder <MixinBuilder> newBuilder <MethodBuilder> newMirror <MethodMirror> |
@@ -1005,7 +1001,7 @@ acceptResponse ^ <[:CodeMirrorFragment :Event]> = (
 		]
 )
 colorizeSource: s <String> withEditor: cm <CodeMirrorFragment> = (
-	ide colorizer colorizeMethod: s fromMixin: subject methodMirror definingMixin via: (colorizingBlockFor: cm)
+	ide colorizer colorizeMethod: s fromMixin: subject methodMirror definingMixin in: cm.
 )
 ) : (
 )
@@ -1360,11 +1356,8 @@ public classTemplateText ^ <String> = (
 	|
 ) ()'
 )
-public colorizeClassSource: source <String> editor: cm <CodeMirrorFragment>  = (
-	^ide colorizer
-		colorizeClassDeclaration: source
-		fromMixin: nil
-		via: (colorizingBlockFor: cm)
+public colorizeClassSource: source <String> editor: cm <CodeMirrorFragment> = (
+	ide colorizer colorizeClassDeclaration: source fromMixin: nil in: cm.
 )
 public createPresenter ^ <NamespacePresenter> = (
 	^NamespacePresenter onSubject: self
@@ -1458,10 +1451,7 @@ public classTemplateText ^ <String> = (
 ) ()'
 )
 public colorizeClassSource: source <String> editor: cm <CodeMirrorFragment> = (
-	^ide colorizer
-		colorizeClassDeclaration: source
-		fromMixin: definingMixin
-		via: (colorizingBlockFor: cm)
+	ide colorizer colorizeClassDeclaration: source fromMixin: definingMixin in: cm.
 )
 public createPresenter = (
 	^NestedClassGroupPresenter onSubject: self
@@ -1983,11 +1973,8 @@ elementPresenterClass ^ <ProgrammingPresenter class> = (
 (* Represents the collection of transient slots of a Newspeak class. Holds onto the mirror group for the transient slots. *)
 public class TransientSlotGroupSubject onModel: m <MirrorGroup[TransientSlotMirror]> within: dm <MixinMirror> = MirrorGroupSubject onModel: m within: dm  (
 ) (
-public colorizeSource: source <String> editor: cm <CodeMirrorFragment> ^ <TextFragment> = (
-	^ide colorizer
-		colorizeTransientSlot: source
-		fromMixin: definingMixin
-		via: (colorizingBlockFor: cm)
+public colorizeSource: source <String> editor: cm <CodeMirrorFragment> = (
+	ide colorizer colorizeTransientSlot: source fromMixin: definingMixin in: cm.
 )
 public compileSource: source <String> ifSuccess: successBlock <[:MethodMirror]> ifFailure: failureBlock <[:String]> = (
 	[ | builder <MixinBuilder> newBuilder <MethodBuilder> newMirror <MethodMirror> |
@@ -2026,7 +2013,7 @@ acceptResponse ^ <[:CodeMirrorFragment :Event]> = (
 		]
 )
 colorizeSource: s <String> withEditor: cm <CodeMirrorFragment> = (
-	ide colorizer colorizeTransientSlot: s fromMixin: subject transientSlotMirror definingMixin via: (colorizingBlockFor: cm)
+	ide colorizer colorizeTransientSlot: s fromMixin: subject transientSlotMirror definingMixin in: cm.
 )
 ) : (
 )
@@ -2080,117 +2067,6 @@ public transientSlotMirror ^<TransientSlotMirror> = (
 	^model
 )
 ) : (
-)
-colorizingBlockFor: cm <CodeMirrorFragment> = (
-	^[:r | | style <Alien[JSObject]> = JSObject new. |
-	style at: 'css' put: (cssFor: r kind).
-	cm style: style from: r start to: r end]
-)
-cssConversionTable ^ <Map[Symbol, String]> = (
-(* compute a mapping from 'kinds', which are symbols denoting logical categories of code, to CSS properties used to colorize them*)
-	|
-	redBoldUnderlined <String> = 'color:Red; font-weight:bold; text-decoration: underline'.
-	redUnderlined <String> = 'color:Red; text-decoration: underline'.
-	orangeBoldUnderlined <String> = 'color:Orange; font-weight:bold; text-decoration: underline'.
-	underlined <String> = 'text-decoration: underline'.
-	gray <String> = 'color:Gray'.
-	blue <String> = 'color:Blue'.
-	grayBold <String> = 'color:Gray; font-weight:bold'.
-	blackBold <String> = 'color:Black; font-weight:bold'.
-	blueBold <String> = 'color:Blue; font-weight:bold'.
-	magentaBold <String> = 'color:Magenta; font-weight:bold'.
-	bold <String> = 'font-weight:bold'.
-	|
-      ^Map new
-		at: #error put: redBoldUnderlined;
-		at: #undefinedUnary put: redUnderlined;
-		at: #undefinedBinary put: redUnderlined;
-		at: #undefinedKeyword put: redUnderlined;
-		at: #shadowingTempVar put: orangeBoldUnderlined;
-		at: #obsoleteMessage put: orangeBoldUnderlined;
-		at: #whitespaceWarning put: orangeBoldUnderlined;
-		at: #incompleteUnary put: underlined;
-		at: #incompleteBinary put: underlined;
-		at: #incompleteKeyword put: underlined;
-		at: #self put: gray;
-		at: #super put: gray;
-		at: #outer put: gray;
-		at: #true put: gray;
-		at: #false put: gray;
-		at: #nil put: gray;
-		at: #string put: gray;
-		at: #symbol put: gray;
-		at: #number put: gray;
-		at: #character put: gray;
-		at: #public put: gray;
-		at: #protected put: gray;
-		at: #private put: gray;
-		at: #tempVar put: grayBold;
-		at: #blockTempVar put: grayBold;
-		at: #blockPatternArg put: grayBold;
-		at: #patternArg put: grayBold;
-		at: #slotDecl put: grayBold;
-		at: #patternTempVar put: grayBold;
-		at: #methodTempBar put: blackBold;
-		at: #leftParenthesis put: blackBold;
-		at: #rightParenthesis put: blackBold;
-		at: #leftParenthesis3 put: blackBold;
-		at: #rightParenthesis3 put: blackBold;
-		at: #leftParenthesis6 put: blackBold;
-		at: #rightParenthesis6 put: blackBold;
-		at: #blockStart put: blackBold;
-		at: #blockEnd put: blackBold;
-		at: #blockStart3 put: blackBold;
-		at: #blockEnd3 put: blackBold;
-		at: #blockStart6 put: blackBold;
-		at: #blockEnd6 put: blackBold;
-		at: #leftBrace put: blackBold;
-		at: #rightBrace put: blackBold;
-		at: #leftBrace3 put: blackBold;
-		at: #rightBrace3 put: blackBold;
-		at: #leftBrace6 put: blackBold;
-		at: #rightBrace6 put: blackBold;
-		at: #messagePatternDecl put: bold;
-		at: #class put: gray;
-		at: #transient put: gray;
-		at: #className put: bold;
-		at: #comment put: blue;
-		at: #type put: blueBold;
-		at: #return put: blueBold;
-		at: #leftParenthesis1 put: blueBold;
-		at: #rightParenthesis1 put: blueBold;
-		at: #leftParenthesis4 put: blueBold;
-		at: #rightParenthesis4 put: blueBold;
-		at: #leftParenthesis7 put: blueBold;
-		at: #rightParenthesis7 put: blueBold;
-		at: #blockStart1 put: blueBold;
-		at: #blockEnd1 put: blueBold;
-		at: #blockStart4 put: blueBold;
-		at: #blockEnd4 put: blueBold;
-		at: #blockStart7 put: blueBold;
-		at: #blockEnd7 put: blueBold;
-		at: #leftBrace1 put: blueBold;
-		at: #rightBrace1 put: blueBold;
-		at: #leftBrace4 put: blueBold;
-		at: #rightBrace4 put: blueBold;
-		at: #leftBrace7 put: blueBold;
-		at: #rightBrace7 put: blueBold;
-		at: #leftParenthesis2 put: magentaBold;
-		at: #rightParenthesis2 put: magentaBold;
-		at: #leftParenthesis5 put: magentaBold;
-		at: #rightParenthesis5 put: magentaBold;
-		at: #blockStart2 put: magentaBold;
-		at: #blockEnd2 put: magentaBold;
-		at: #blockStart5 put: magentaBold;
-		at: #blockEnd5 put: magentaBold;
-		at: #leftBrace2 put: magentaBold;
-		at: #rightBrace2 put: magentaBold;
-		at: #leftBrace5 put: magentaBold;
-		at: #rightBrace5 put: magentaBold;
-		yourself
-)
-cssFor: k <Symbol> ^ <String> = (
-        ^cssConverter at: k ifAbsent: [ 'color:Black; font-family: TimesNewRoman']
 )
 lexicallyLessOrEqual: a <String> than: b <String> ^ <Boolean> = (
 	1 to: (a size min: b size) do:

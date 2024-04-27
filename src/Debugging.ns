@@ -124,6 +124,12 @@ highlightSourceRange = (
 	source:: subject source.
 	nil = source ifTrue: [editor text: '<no source>'. ^self].
 	editor text: source.
+
+	(* :todo: Need mirror support to tell apart methods, transient slots, class headers and expressions. *)
+	subject methodMirror name = '[evaluate]'
+		ifTrue: [ide colorizer colorizeDoIt: source fromMixin: subject methodMirror definingMixin in: editor]
+		ifFalse: [ide colorizer colorizeMethod: source fromMixin: subject methodMirror definingMixin in: editor].
+
 	range:: subject sourceRange.
 	nil = range ifTrue: [^self].
 	nil = JSObject ifTrue: [^self].

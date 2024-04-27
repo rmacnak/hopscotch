@@ -14,6 +14,9 @@ class NewspeakColorization usingPlatform: p grammar: grammar = (
 	private TextProperties = p text TextProperties.
 	private TextString = p text TextString.
 	private TextBlock = p text TextBlock.
+	private JSObject = p js global at: 'Object'.
+
+	private cssConversionTable = computeCssConversionTable.
 	|
 ) (
 (* The colorizer maps different kinds of language constructs to different text properties via the mapping defined
@@ -48,32 +51,35 @@ class Range kind: k start: s end: e = (
 coloredText ^ <Text> = (
   ^TextBlock units: textSegments
 )
-public colorizeClassDeclaration: s <String> fromMixin: m <MixinMirror> via: cf <[:Range]> = (
+public colorizeClassDeclaration: s <String> fromMixin: m <MixinMirror> in: editor <CodeMirrorFragment> = (
       setString: s mixin: m.
-      colorizeString: s withProduction: classDeclaration via: cf
+      colorizeString: s withProduction: classDeclaration in: editor.
 )
-public colorizeDoIt: s <String> fromMixin: m <MixinMirror> via: cf <[:Range]> = (
+public colorizeDoIt: s <String> fromMixin: m <MixinMirror> in: editor <CodeMirrorFragment> = (
       setString: s mixin: m.
-      colorizeString: s withProduction: doItExpression via: cf
+      colorizeString: s withProduction: doItExpression in: editor.
 )
-public colorizeHeader: s <String> fromMixin: m <MixinMirror> via: cf <[:Range]> = (
+public colorizeHeader: s <String> fromMixin: m <MixinMirror> in: editor <CodeMirrorFragment> = (
       setString: s mixin: m.
-      colorizeString: s withProduction: classHeader via: cf
+      colorizeString: s withProduction: classHeader in: editor.
 )
-public colorizeMethod: s <String> fromMixin: m <MixinMirror> via: cf <[:Range]> = (
+public colorizeMethod: s <String> fromMixin: m <MixinMirror> in: editor <CodeMirrorFragment> = (
       setString: s mixin: m.
-      colorizeString: s withProduction: methodDecl via: cf
+      colorizeString: s withProduction: methodDecl in: editor.
 )
-colorizeString: s <String> withProduction: parser <CombinatorialParser> via: cf <[:Range]> = (
-	parser, eoi parseString: s ifError: [:msg :pos |
-		noteRange: #error from: pos to: inputSize.
-      ].
+colorizeString: s <String> withProduction: parser <CombinatorialParser> in: editor <CodeMirrorFragment> = (
+	editor clearStyles.
+	parser, eoi parseString: s ifError:
+		[:msg :pos | noteRange: #error from: pos to: inputSize].
 	consolidateRanges.
-	rangeArray do: [:r | nil = r ifFalse: [cf value: r]].
+	rangeArray do: [:r | nil = r ifFalse:
+		[| style <Alien[JSObject]> = JSObject new. |
+		 style at: 'css' put: (cssFor: r kind).
+		 editor style: style from: r start to: r end]].
 )
-public colorizeTransientSlot: s <String> fromMixin: m <MixinMirror> via: cf <[:Range]> = (
+public colorizeTransientSlot: s <String> fromMixin: m <MixinMirror> in: editor <CodeMirrorFragment> = (
       setString: s mixin: m.
-      colorizeString: s withProduction: transientSlotDecl via: cf
+      colorizeString: s withProduction: transientSlotDecl in: editor.
 )
 computePropertiesMap ^ <Map[Symbol, TextProperties]> = (
 (* compute a mapping from 'kinds', which are symbols denoting logical categories of code, to textual properties used to colorize them*)
@@ -765,6 +771,112 @@ variableName = (
 		n]
 )
 ) : (
+)
+(* Compute a mapping from 'kinds', which are symbols denoting logical categories of code, to CSS properties used to colorize them. *)
+computeCssConversionTable ^<Map[Symbol, String]> = (
+	|
+	redBoldUnderlined <String> = 'color:Red; font-weight:bold; text-decoration: underline'.
+	redUnderlined <String> = 'color:Red; text-decoration: underline'.
+	orangeBoldUnderlined <String> = 'color:Orange; font-weight:bold; text-decoration: underline'.
+	underlined <String> = 'text-decoration: underline'.
+	gray <String> = 'color:Gray'.
+	blue <String> = 'color:Blue'.
+	grayBold <String> = 'color:Gray; font-weight:bold'.
+	blackBold <String> = 'color:Black; font-weight:bold'.
+	blueBold <String> = 'color:Blue; font-weight:bold'.
+	magentaBold <String> = 'color:Magenta; font-weight:bold'.
+	bold <String> = 'font-weight:bold'.
+	|
+	^Map new
+		at: #error put: redBoldUnderlined;
+		at: #undefinedUnary put: redUnderlined;
+		at: #undefinedBinary put: redUnderlined;
+		at: #undefinedKeyword put: redUnderlined;
+		at: #shadowingTempVar put: orangeBoldUnderlined;
+		at: #obsoleteMessage put: orangeBoldUnderlined;
+		at: #whitespaceWarning put: orangeBoldUnderlined;
+		at: #incompleteUnary put: underlined;
+		at: #incompleteBinary put: underlined;
+		at: #incompleteKeyword put: underlined;
+		at: #self put: gray;
+		at: #super put: gray;
+		at: #outer put: gray;
+		at: #true put: gray;
+		at: #false put: gray;
+		at: #nil put: gray;
+		at: #string put: gray;
+		at: #symbol put: gray;
+		at: #number put: gray;
+		at: #character put: gray;
+		at: #public put: gray;
+		at: #protected put: gray;
+		at: #private put: gray;
+		at: #tempVar put: grayBold;
+		at: #blockTempVar put: grayBold;
+		at: #blockPatternArg put: grayBold;
+		at: #patternArg put: grayBold;
+		at: #slotDecl put: grayBold;
+		at: #patternTempVar put: grayBold;
+		at: #methodTempBar put: blackBold;
+		at: #leftParenthesis put: blackBold;
+		at: #rightParenthesis put: blackBold;
+		at: #leftParenthesis3 put: blackBold;
+		at: #rightParenthesis3 put: blackBold;
+		at: #leftParenthesis6 put: blackBold;
+		at: #rightParenthesis6 put: blackBold;
+		at: #blockStart put: blackBold;
+		at: #blockEnd put: blackBold;
+		at: #blockStart3 put: blackBold;
+		at: #blockEnd3 put: blackBold;
+		at: #blockStart6 put: blackBold;
+		at: #blockEnd6 put: blackBold;
+		at: #leftBrace put: blackBold;
+		at: #rightBrace put: blackBold;
+		at: #leftBrace3 put: blackBold;
+		at: #rightBrace3 put: blackBold;
+		at: #leftBrace6 put: blackBold;
+		at: #rightBrace6 put: blackBold;
+		at: #messagePatternDecl put: bold;
+		at: #class put: gray;
+		at: #transient put: gray;
+		at: #className put: bold;
+		at: #comment put: blue;
+		at: #type put: blueBold;
+		at: #return put: blueBold;
+		at: #leftParenthesis1 put: blueBold;
+		at: #rightParenthesis1 put: blueBold;
+		at: #leftParenthesis4 put: blueBold;
+		at: #rightParenthesis4 put: blueBold;
+		at: #leftParenthesis7 put: blueBold;
+		at: #rightParenthesis7 put: blueBold;
+		at: #blockStart1 put: blueBold;
+		at: #blockEnd1 put: blueBold;
+		at: #blockStart4 put: blueBold;
+		at: #blockEnd4 put: blueBold;
+		at: #blockStart7 put: blueBold;
+		at: #blockEnd7 put: blueBold;
+		at: #leftBrace1 put: blueBold;
+		at: #rightBrace1 put: blueBold;
+		at: #leftBrace4 put: blueBold;
+		at: #rightBrace4 put: blueBold;
+		at: #leftBrace7 put: blueBold;
+		at: #rightBrace7 put: blueBold;
+		at: #leftParenthesis2 put: magentaBold;
+		at: #rightParenthesis2 put: magentaBold;
+		at: #leftParenthesis5 put: magentaBold;
+		at: #rightParenthesis5 put: magentaBold;
+		at: #blockStart2 put: magentaBold;
+		at: #blockEnd2 put: magentaBold;
+		at: #blockStart5 put: magentaBold;
+		at: #blockEnd5 put: magentaBold;
+		at: #leftBrace2 put: magentaBold;
+		at: #rightBrace2 put: magentaBold;
+		at: #leftBrace5 put: magentaBold;
+		at: #rightBrace5 put: magentaBold;
+		yourself
+)
+cssFor: kind <Symbol> ^<String> = (
+	^cssConversionTable at: kind ifAbsent: ['color:black;font-family:TimesNewRoman']
 )
 ) : (
 )
