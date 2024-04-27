@@ -1,5 +1,13 @@
 # -*- mode: python -*-
 
+Command(target=['#out/gen/hopscotchCommit.txt'],
+        source=['.git/logs/HEAD'],
+        action='git rev-parse HEAD > $TARGETS')
+
+Command(target=['#out/gen/primordialsoupCommit.txt'],
+        source=['.git/logs/HEAD'],
+        action='git -C primordialsoup rev-parse HEAD > $TARGETS')
+
 def BuildStage1Snapshots(host_vm, triples):
   cmd = [host_vm.path]
 
@@ -29,6 +37,7 @@ def BuildStage2Snapshots(host_vm, triples):
   sources = Glob('primordialsoup/newspeak/*.ns')
   sources += Glob('src/*.ns')
   sources += Glob('src/*.webp')
+  sources += Glob('#out/gen/*.txt')
   sources += [File('CodeMirror/lib/codemirror.js')]
   sources += [File('CodeMirror/lib/codemirror_css.css')]
   cmd += [source.path for source in sources]

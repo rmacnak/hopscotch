@@ -15,6 +15,9 @@ class HopscotchIDE packageUsing: manifest = (
 	private allModules = manifest allModules.
 
 	private imagesOuter = HopscotchImages packageUsing: manifest.
+
+	private hopscotchCommit = manifest hopscotchCommit.
+	private primordialsoupCommit = manifest primordialsoupCommit.
 	|
 
 	manifest codemirror.
@@ -96,6 +99,8 @@ public addToNamespace: ns = (
 class IDE usingPlatform: p = (
 	|
 	public images = imagesOuter.
+	public hopscotchCommit = outer HopscotchIDE hopscotchCommit.
+	public primordialsoupCommit = outer HopscotchIDE primordialsoupCommit.
 	public browsing = Browsing usingPlatform: p ide: self.
 	public debugging = Debugging usingPlatform: p ide: self.
 	public namespacing = Namespacing usingPlatform: p ide: self.

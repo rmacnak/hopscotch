@@ -626,6 +626,7 @@ definition = (
 				link: 'Workspaces' action: [navigateToWorkspaces].
 			}
 			column3: {
+				link: 'Under the Hood' action: [navigateToInternals].
 				link: 'Selectors' action: [navigateToSelectors].
 				link: 'Metadata' action: [navigateToMetadata].
 				link: 'Literals' action: [navigateToLiterals].
@@ -655,6 +656,9 @@ didYouKnow = (
 	nil = wisdom image ifFalse:
 		[^textAndImageWisdom: wisdom].
 	^textDisplay: wisdom text
+)
+navigateToInternals = (
+	enterSubject:: InternalsSubject new.
 )
 navigateToLiterals = (
 	ide namespacing reindex.
@@ -781,6 +785,42 @@ label: label radix: radix = (
 		(label: (subject objectMirror reflectee asStringRadix: radix))
 			width: 0 elasticity: detailAreaRatio.
 	}
+)
+) : (
+)
+class InternalsPresenter onSubject: s = ProgrammingPresenter onSubject: s (
+) (
+definition = (
+	^column: {
+		majorHeadingBlock: (label: 'Under the Hood').
+		mediumBlank.
+		slot: 'platform' value: cachedPlatform.
+		slot: 'ide' value: ide.
+		slot: 'hopscotchCommit' value: ide hopscotchCommit.
+		slot: 'primordialsoupCommit' value: ide primordialsoupCommit.
+	}
+)
+slot: name value: value = (
+	^(SlotSubject name: name value: (ObjectMirror reflecting: value)) presenter.
+)
+) : (
+)
+class InternalsSubject new = Subject onModel: nil (
+) (
+public = other = (
+	^other isKindOfInternalsSubject
+)
+public createPresenter = (
+	^InternalsPresenter onSubject: self
+)
+public hash = (
+	^self class hash
+)
+public isKindOfInternalsSubject ^<Boolean> = (
+	^true
+)
+public title = (
+	^'Under the Hood'
 )
 ) : (
 )
