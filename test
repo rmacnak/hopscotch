@@ -1,2 +1,2 @@
 #!/bin/sh -ex
-emrun --browser=firefox --serve_root=out "out/primordialsoup-emrun.html?snapshot=snapshots/HopscotchTestRunner.vfuel"
+emrun --serve_root out "ReleaseEmscriptenWASM/primordialsoup-emrun.html?snapshot=../snapshots/HopscotchTestRunner.vfuel"

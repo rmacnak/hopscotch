@@ -1,2 +1,2 @@
 #!/bin/sh -e
-python3 -m http.server --directory out 1984
+python3 -m http.server --directory out/site 1984

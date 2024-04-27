@@ -19,7 +19,6 @@ class HopscotchIDE packageUsing: manifest = (
 
 	manifest codemirror.
 	manifest codemirror_css.
-	manifest autorefresh.
 ) (
 (* :exemplar: ide images *)
 class HopscotchImages packageUsing: manifest = (

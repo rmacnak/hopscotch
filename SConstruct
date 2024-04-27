@@ -31,7 +31,6 @@ def BuildStage2Snapshots(host_vm, triples):
   sources += Glob('src/*.webp')
   sources += [File('CodeMirror/lib/codemirror.js')]
   sources += [File('CodeMirror/lib/codemirror_css.css')]
-  sources += [File('CodeMirror/addon/display/autorefresh.js')]
   cmd += [source.path for source in sources]
 
   snapshots = []

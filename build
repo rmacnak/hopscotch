@@ -9,10 +9,9 @@ esac
 # All this moving outputs around is to make load-time relative paths agree with
 # build-time relative paths. Eventually this should be handled by WebCompiler
 # when we have I/O libraries.
-cp out/ReleaseEmscriptenWASM/primordialsoup.* out
-cp out/ReleaseEmscriptenWASM/primordialsoup-emrun.* out
-cp out/snapshots/*.vfuel out
-mkdir -p out/src
-cp src/*.webp out/src
-cp src/index.html out
-cp -r CodeMirror out/CodeMirror
+mkdir -p out/site/src
+cp out/ReleaseEmscriptenWASM/primordialsoup.* out/site
+cp out/snapshots/*.vfuel out/site
+cp src/*.webp out/site/src
+cp src/index.html out/site
+cp -r CodeMirror out/site/CodeMirror

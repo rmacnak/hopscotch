@@ -1,10 +1,68 @@
+<!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Hopscotch IDE</title>
+  </head>
   <body>
-    <ul>
-      <li><a href="primordialsoup.html?snapshot=HopscotchIDE.vfuel">HopscotchIDE</a></li>
-      <li><a href="primordialsoup.html?snapshot=Particles.vfuel">Particles</a></li>
-      <li><a href="primordialsoup.html?snapshot=TestRunner.vfuel">TestRunner</a></li>
-      <li><a href="primordialsoup.html?snapshot=BenchmarkRunner.vfuel">BenchmarkRunner</a></li>
-    </ul>
+    <script type="text/javascript">
+      function scheduleTurn(timeout) {
+        if (timeout >= 0) {
+          setTimeout(function() {
+            var timeout = Module._handle_message();
+            scheduleTurn(timeout);
+          }, timeout);
+        }
+      }
+
+      var Module = {
+        noInitialRun: true,
+        onRuntimeInitialized: function() {
+          var path = "HopscotchIDE.vfuel";
+          var request = new XMLHttpRequest();
+          request.open("GET", path, true);
+          request.responseType = "arraybuffer";
+          request.onload = function (event) {
+            if (request.status != 200) {
+              Module.printErr("Failed to load " + path + ": " +
+                              request.status + " " + request.statusText);
+              return;
+            }
+            var jsBuffer = new Uint8Array(request.response);
+            var cBuffer = _malloc(jsBuffer.length);
+            writeArrayToMemory(jsBuffer, cBuffer);
+            Module._load_snapshot(cBuffer, jsBuffer.length);
+            _free(cBuffer);
+            scheduleTurn(0);
+          };
+          request.send();
+        },
+        print: function(text) {
+          if (arguments.length > 1) {
+            text = Array.prototype.slice.call(arguments).join(" ");
+          }
+          console.log(text);
+
+          var pre = document.createElement("pre");
+          pre.textContent = text;
+          pre.style.color = "black";
+          document.body.appendChild(pre);
+          window.scrollTo(0, document.body.scrollHeight);
+        },
+        printErr: function(text) {
+          if (arguments.length > 1) {
+            text = Array.prototype.slice.call(arguments).join(" ");
+          }
+          console.error(text);
+
+          var pre = document.createElement("pre");
+          pre.textContent = text;
+          pre.style.color = "red";
+          document.body.appendChild(pre);
+          window.scrollTo(0, document.body.scrollHeight);
+        },
+      };
+    </script>
+    <script async type="text/javascript" src="primordialsoup.js"></script>
   </body>
 </html>
