@@ -8,6 +8,9 @@ class Manifest forNamespace: ns = (
 public allModules = (
 	^(namespace values select: [:ea | ea isKindOfBehavior]) asArray
 )
+public allResources = (
+	^namespace select: [:ea | true]
+)
 protected doesNotUnderstand: message = (
 	^namespace at: message selector
 )
@@ -198,6 +201,10 @@ public allModules = (
 	resources:: namespace values select: [:resource | (resource at: 3) isKindOfBehavior].
 	accessedResources addAll: resources.
 	^(resources collect: [:resource | resource at: 3]) asArray
+)
+public allResources = (
+	accessedResources addAll: namespace values.
+	^namespace collect: [:resource | resource at: 3]
 )
 protected doesNotUnderstand: message = (
 	| resource = namespace at: message selector. |

@@ -12,7 +12,7 @@ class HopscotchIDE packageUsing: manifest = (
 	private NewspeakGrammar = manifest NewspeakGrammar.
 	private WorkspaceManager = manifest WorkspaceManager.
 
-	private allModules = manifest allModules.
+	private allResources = manifest allResources.
 
 	private imagesOuter = HopscotchImages packageUsing: manifest.
 
@@ -59,40 +59,6 @@ class HopscotchImages packageUsing: manifest = (
 	public disclosureTransitionImage = manifest disclosureTransitionImage.
 	public disclosureOpenImage = manifest disclosureOpenImage.
 |) (
-public addToNamespace: ns = (
-	ns at: #publicImage put: publicAccessImage.
-	ns at: #protectedImage put: protectedAccessImage.
-	ns at: #privateImage put: privateAccessImage.
-	ns at: #hsAddImage put: addImage.
-	ns at: #hsAddOutImage put: addOutImage.
-	ns at: #hsAddOverImage put: addOverImage.
-	ns at: #hsDropdownImage put: dropDownImage.
-	ns at: #hsDropdownOutImage put: dropDownOutImage.
-	ns at: #hsDropdownOverImage put: dropDownOverImage.
-	ns at: #itemReferencesImage put: itemReferencesImage.
-	ns at: #hsExpandImage put: expandImage.
-	ns at: #hsExpandOverImage put: expandOverImage.
-	ns at: #hsExpandDownImage put: expandDownImage.
-	ns at: #hsCollapseImage put: collapseImage.
-	ns at: #hsCollapseOverImage put: collapseOverImage.
-	ns at: #hsCollapseDownImage put: collapseDownImage.
-	ns at: #hsHomeImage put: homeImage.
-	ns at: #hsHomeOverImage put: homeOverImage.
-	ns at: #hsHomeOutImage put: homeOutImage.
-	ns at: #hsHomeDownImage put: homeDownImage.
-	ns at: #hsRefreshImage put: refreshImage.
-	ns at: #hsRefreshOverImage put: refreshOverImage.
-	ns at: #hsRefreshOutImage put: refreshOutImage.
-	ns at: #hsRefreshDownImage put: refreshDownImage.
-	ns at: #classPresenterImage put: classPresenterIcon.
-	ns at: #classUnknownImage put: classUnknownIcon.
-	ns at: #languageNewspeak3 put: classIcon.
-	ns at: #accept16px put: accept16px.
-	ns at: #cancel16px put: cancel16px.
-	ns at: #disclosureClosedImage put: disclosureClosedImage.
-	ns at: #disclosureTransitionImage put: disclosureTransitionImage.
-	ns at: #disclosureOpenImage put: disclosureOpenImage.
-)
 ) : (
 )
 (* :exemplar: ide *)
@@ -117,8 +83,7 @@ populateNamespace = (
 	|
 	Root <Namespace> = namespacing Root.
 	|
-	images addToNamespace: Root.
-	allModules do: [:module | Root at: module name put: module].
+	allResources keysAndValuesDo: [:k :v | Root at: k put: v].
 )
 ) : (
 )
