@@ -38,9 +38,6 @@
           request.send();
         },
         print: function(text) {
-          if (arguments.length > 1) {
-            text = Array.prototype.slice.call(arguments).join(" ");
-          }
           console.log(text);
 
           var pre = document.createElement("pre");
@@ -50,9 +47,6 @@
           window.scrollTo(0, document.body.scrollHeight);
         },
         printErr: function(text) {
-          if (arguments.length > 1) {
-            text = Array.prototype.slice.call(arguments).join(" ");
-          }
           console.error(text);
 
           var pre = document.createElement("pre");

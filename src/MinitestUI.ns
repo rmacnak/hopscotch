@@ -142,7 +142,7 @@ classDeclarationMirror = (
 	^testCase environment classDeclarationMirror
 )
 public className = (
-	^classDeclarationMirror qualifiedName
+	^classDeclarationMirror name
 )
 public exception = (
 	(* If the model is a test error, return the exception associated with the result. Otherwise return nil. *)

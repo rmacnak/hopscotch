@@ -747,7 +747,7 @@ lateNightWisdom = (
 	|
 	now = DateTime nowLocal.
 	hour = now hour - 1 \\ 12 + 1. (* 0 -> 12 *)
-	minute = now minutes.
+	minute = now minute.
 	time = hour asString, (minute < 10 ifTrue: [':0'] ifFalse: [':']), minute asString.
 	|
 	^BitOfWisdom text: 'It''s ', time, '. Go get some rest!'
@@ -1459,10 +1459,6 @@ public addNewItemTemplate = (
 				[:template | prefixes remove: template]).
 	prefixes refresh.
 )
-public deleteClassInPresenter: presenter <Presenter> ifSuccess: successResponse <[]> ifFailure: failureResponse <[]> = (
-	subject deleteClassWithSubject: presenter subject.
-	successResponse value
-)
 elementPresenterClass ^ <ProgrammingPresenter class> = (
 	^NestedClassPresenter
 )
@@ -2000,10 +1996,6 @@ createNewTransientSlotFromTemplate: template <DefinitionTemplate> = (
 			newPresenter expand]
 		ifFailure:
 			[:message | template editor showMessage: message]
-)
-public deleteTransientSlotInPresenter: presenter <Presenter> ifSuccess: successResponse <[]> ifFailure: failureResponse <[]> = (
-	subject deleteTransientSlotWithSubject: presenter subject.
-	successResponse value
 )
 elementPresenterClass ^ <ProgrammingPresenter class> = (
 	^TransientSlotPresenter

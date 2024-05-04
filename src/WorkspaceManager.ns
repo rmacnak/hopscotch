@@ -144,7 +144,6 @@ public class Workspace = (
 public workspaceText
 |) (
 public actors = ( ^platform actors )
-public aliens = ( ^platform aliens )
 public collections = ( ^platform collections )
 protected doesNotUnderstand: message = (
 	^Root
