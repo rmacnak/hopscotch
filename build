@@ -1,17 +1,7 @@
-#!/bin/sh -ex
+#!/bin/sh -e
 
 case $(uname -s) in
   Darwin) scons -Q --jobs $(sysctl -n hw.ncpu) os=emscripten arch=wasm ;;
   Linux) scons -Q --jobs $(nproc) os=emscripten arch=wasm ;;
   *) echo Unknown OS $(uname -s)
 esac
-
-# All this moving outputs around is to make load-time relative paths agree with
-# build-time relative paths. Eventually this should be handled by WebCompiler
-# when we have I/O libraries.
-mkdir -p out/site/src
-cp out/ReleaseEmscriptenWASM/primordialsoup.* out/site
-cp out/snapshots/*.vfuel out/site
-cp src/*.webp out/site/src
-cp src/index.html out/site
-cp -r CodeMirror out/site/CodeMirror
