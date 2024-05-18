@@ -45,7 +45,7 @@ BuildStage1Snapshots([
 
 BuildStage2Snapshots([
     ['Runtime', 'Particles', 'Particles.vfuel'],
-    ['RuntimeWithMirrors', 'HopscotchIDE', 'HopscotchIDE.vfuel'],
+    ['RuntimeWithMirrors', 'HopscotchIDE', 'HopscotchIDE.vfuel.bmp'],
     ['RuntimeWithMirrors', 'HopscotchTestRunner', 'HopscotchTestRunner.vfuel'],
 ])
 
@@ -55,7 +55,7 @@ BuildStage2Snapshots([
 Install("#out/site",
         ["#out/ReleaseEmscriptenWASM/primordialsoup.wasm",
          "#out/ReleaseEmscriptenWASM/primordialsoup.js",
-         "#out/snapshots/HopscotchIDE.vfuel",
+         "#out/snapshots/HopscotchIDE.vfuel.bmp",
          "#out/snapshots/Particles.vfuel",
          "src/index.html",
          "CodeMirror"])
