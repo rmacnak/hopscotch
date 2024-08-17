@@ -295,7 +295,6 @@ class NS3Colorizer = TypedNS3Grammar (
 	mixin <MixinMirror>
 	rangeMap <List[Range]>
 	inputSize <Integer>
-	startComment
 	braceDepth <Integer>
 	bracketDepth <Integer>
 	parenDepth <Integer>
