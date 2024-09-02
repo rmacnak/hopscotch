@@ -10,11 +10,13 @@ class Browsing usingPlatform: p ide: webIde = (
 	private TextEditorFragment = p hopscotch fragments TextEditorFragment.
 	private Color = p graphics Color.
 	private Gradient = p hopscotch Gradient.
+	private Closure = p kernel Closure.
 	private WeakArray = p kernel WeakArray.
 	private List = p collections List.
 	private Map = p collections Map.
 	private Set = p collections Set.
 	private ClassMirror = p mirrors ClassMirror.
+	private ClosureMirror = p mirrors ClosureMirror.
 	private ObjectMirror = p mirrors ObjectMirror.
 	private ClassDeclarationBuilder = p mirrors ClassDeclarationBuilder.
 	private JSObject = [p js global at: 'Object'] on: Exception do: [:e | nil].
@@ -392,6 +394,22 @@ public title = (
 )
 public transientSlotsSubject ^ <TransientSlotGroupSubject> = (
 	^TransientSlotGroupSubject onModel: classMirror instanceSide transientSlots within: classMirror instanceSide
+)
+) : (
+)
+class ClosureView onSubject: s = ProgrammingPresenter onSubject: s (
+) (
+definition = (
+	^column: {
+		subject closureMethod presenter
+			showClassName: true;
+			highlightSourceRange: subject closureSourceRange.
+		column: (subject closureSlots collect:
+			[:slot <SlotSubject> | slot presenter]).
+	}
+)
+public title = (
+	^'Closure'
 )
 ) : (
 )
@@ -1030,6 +1048,7 @@ modelMirrorCollection ^ <Collection[MethodMirror]> = (
 )
 (* A presenter for a single method. *)
 class MethodPresenter onSubject: s <MethodSubject> = MemberPresenter onSubject: s (
+	| public highlightSourceRange |
 ) (
 acceptResponse ^ <[:CodeMirrorFragment :Event]> = (
 	^[:ed <CodeMirrorFragment> :event <Event> |
@@ -1040,8 +1059,18 @@ acceptResponse ^ <[:CodeMirrorFragment :Event]> = (
 		ed leaveEditState.
 		]
 )
-colorizeSource: s <String> withEditor: cm <CodeMirrorFragment> = (
-	ide colorizer colorizeMethod: s fromMixin: subject methodMirror definingMixin in: cm.
+colorizeSource: source <String> withEditor: editor <CodeMirrorFragment> = (
+	| style |
+
+	subject methodMirror name = '[evaluate]'
+		ifTrue: [ide colorizer colorizeDoIt: source fromMixin: subject methodMirror definingMixin in: editor]
+		ifFalse: [ide colorizer colorizeMethod: source fromMixin: subject methodMirror definingMixin in: editor].
+
+	nil = highlightSourceRange ifTrue: [^self].
+	nil = JSObject ifTrue: [^self].
+	style:: JSObject new.
+	style at: 'css' put: 'color:blue; font-weight:bold; text-decoration: underline'.
+	editor style: style from: highlightSourceRange start to: highlightSourceRange stop.
 )
 ) : (
 )
@@ -1554,6 +1583,9 @@ availableObjectViews = (
 	subject isModelKindOfSet ifTrue:
 		[^{DoView title: 'Set' onSubject: subject. BasicView onSubject: subject}].
 
+	subject isModelKindOfClosure ifTrue:
+		[^{ClosureView onSubject: subject. BasicView onSubject: subject}].
+
 	^{BasicView onSubject: subject}
 )
 captionBar: body = (
@@ -1631,6 +1663,21 @@ public className ^<String> = (
 public classSubject = (
 	^ClassSubject onModel: classMirror mixin declaration
 )
+public closureMethod ^<MethodSubject> = (
+	^MethodSubject onModel: closureMirror method
+)
+public closureMirror ^<ClosureMirror> = (
+	^ClosureMirror reflecting: model reflectee
+)
+public closureSlots ^<Collection[SlotSubject]> = (
+	| result = List new. |
+	result add: (SlotSubject name: #self value: closureMirror receiver).
+	closureMirror slots do: [:s | result add: (SlotSubject name: s name value: s value)].
+	^result
+)
+public closureSourceRange ^<Interval> = (
+	^closureMirror sourceRange
+)
 public createPresenter = (
 	^ObjectPresenter onSubject: self
 )
@@ -1658,6 +1705,9 @@ public isModelKindOfArray ^<Boolean> = (
 	classMirror = (ClassMirror reflecting: Array) ifTrue: [^true].
 	classMirror = (ClassMirror reflecting: WeakArray) ifTrue: [^true].
 	^false
+)
+public isModelKindOfClosure ^<Boolean> = (
+	^classMirror = (ClassMirror reflecting: Closure)
 )
 public isModelKindOfInteger ^<Boolean> = (
 	(* bogus - should not send message to inspectee *)
