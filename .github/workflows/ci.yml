@@ -9,6 +9,7 @@ on:
 jobs:
   linux:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,6 +28,7 @@ jobs:
            path: 'out/site'
   macos:
     runs-on: macos-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -48,6 +50,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

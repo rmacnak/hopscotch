@@ -53,10 +53,13 @@ BuildStage2Snapshots([
 # build-time relative paths. Eventually this should be handled by WebCompiler
 # when we have I/O libraries.
 Install("#out/site",
-        ["#out/ReleaseEmscriptenWASM/primordialsoup.wasm",
+        ["#out/ReleaseEmscriptenWASM/primordialsoup.html",
+         "#out/ReleaseEmscriptenWASM/primordialsoup.wasm",
          "#out/ReleaseEmscriptenWASM/primordialsoup.js",
          "#out/snapshots/HopscotchIDE.vfuel.bmp",
          "#out/snapshots/Particles.vfuel",
+         "#out/snapshots/TestRunner.vfuel",
+         "#out/snapshots/BenchmarkRunner.vfuel",
          "src/index.html",
          "CodeMirror"])
 Install("#out/site/src", Glob("src/*.webp"))

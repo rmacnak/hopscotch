@@ -1,2 +1,5 @@
 #!/bin/sh -ex
-emrun --serve_root out "ReleaseEmscriptenWASM/primordialsoup-emrun.html?snapshot=../snapshots/HopscotchTestRunner.vfuel"
+case $(uname -s) in
+  Linux) BROWSER=--browser=firefox ;;
+esac
+emrun --serve_root=out $BROWSER "ReleaseEmscriptenWASM/primordialsoup-emrun.html?snapshot=../snapshots/HopscotchTestRunner.vfuel"
