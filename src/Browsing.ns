@@ -1069,7 +1069,7 @@ colorizeSource: source <String> withEditor: editor <CodeMirrorFragment> = (
 	nil = highlightSourceRange ifTrue: [^self].
 	nil = JSObject ifTrue: [^self].
 	style:: JSObject new.
-	style at: 'css' put: 'color:blue; font-weight:bold; text-decoration: underline'.
+	style at: 'css' put: 'background-color:yellow'.
 	editor style: style from: highlightSourceRange start to: highlightSourceRange stop.
 )
 ) : (
@@ -1958,6 +1958,9 @@ details ^<Fragment> = (
 ) : (
 )
 class SlotPresenter onSubject: s <SlotSubject> = ProgrammingPresenter onSubject: s (
+	|
+	public returnActivation
+	|
 ) (
 caption ^<Fragment> = (
 	^row: {
@@ -1965,8 +1968,13 @@ caption ^<Fragment> = (
 			width: 0 elasticity: 1;
 			color: actionLinkColor.
 		smallBlank.
-		(link: subject reflecteePrintString action: [inspectObjectMirror: subject objectMirror])
-			width: 0 elasticity: detailAreaRatio.
+		(row: {
+			(link: subject reflecteePrintString action: [inspectObjectMirror: subject objectMirror])
+				width: 0 elasticity: 1.
+			nil = returnActivation
+				ifTrue: [nothing]
+				ifFalse: [button: '^', subject name action: [respondToReturnIt]].
+		}) width: 0 elasticity: detailAreaRatio.
 	}
 )
 definition ^<Fragment> = (
@@ -1974,6 +1982,9 @@ definition ^<Fragment> = (
 )
 details ^<Fragment> = (
 	^(objectSubjectForMirror: subject objectMirror) presenter selfCaption: subject name
+)
+respondToReturnIt = (
+	returnActivation respondToReturnSlot: self.
 )
 ) : (
 )
@@ -1989,7 +2000,7 @@ public objectMirror ^<ObjectMirror> = (
 	^model
 )
 public reflecteePrintString = (
-	^model reflectee printString
+	^[model reflectee printString] on: Exception do: [:e | '<printString error>'].
 )
 ) : (
 )

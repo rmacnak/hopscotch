@@ -1239,11 +1239,11 @@ public crossAxisAlignToCenter = (
 )
 public crossAxisAlignToEnd = (
 	alignItems:: 'flex-end'.
-	childAlignSelf:: nil.
+	childAlignSelf:: 'end'.
 )
 public crossAxisAlignToStart = (
 	alignItems:: 'flex-start'.
-	childAlignSelf:: nil.
+	childAlignSelf:: 'start'.
 )
 public crossAxisStretch = (
 	alignItems:: 'stretch'.
@@ -1642,7 +1642,7 @@ public childrenDo: aBlock = (
 )
 public collapse = (
 	isExpanded:: false.
-	installCollapsedPresenter
+	hasVisual ifTrue: [installCollapsedPresenter].
 )
 createVisual = (
 	| toggleDiv div |
@@ -1678,7 +1678,7 @@ createVisual = (
 )
 public expand = (
 	isExpanded:: true.
-	installExpandedPresenter
+	hasVisual ifTrue: [installExpandedPresenter].
 )
 installCollapsedPresenter = (
 	nil = collapsedPresenter ifTrue:

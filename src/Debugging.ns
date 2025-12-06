@@ -39,7 +39,7 @@ public collapse = (
 computeSlotPresenters = (
 	| presenters = List new. |
 	subject slotsDo:
-		[:slot <LocalSubject> | presenters add: slot presenter].
+		[:slot <LocalSubject> | presenters add: (slot presenter returnActivation: self)].
 	^presenters
 )
 definition ^<Fragment> = (
@@ -62,8 +62,6 @@ definitionForControls = (
 		button: 'Over' action: [respondToStepOver].
 		smallBlank.
 		button: 'Out' action: [respondToStepOut].
-		smallBlank.
-		button: '^self' action: [respondToReturnSelf].
 		smallBlank.
 		button: '^nil' action: [respondToReturnNil].
 		smallBlank.
@@ -124,6 +122,7 @@ highlightSourceRange = (
 	source:: subject source.
 	nil = source ifTrue: [editor text: '<no source>'. ^self].
 	editor text: source.
+	editor leaveEditState. (* Editor confused about event from its own update? *)
 
 	(* :todo: Need mirror support to tell apart methods, transient slots, class headers and expressions. *)
 	subject methodMirror name = '[evaluate]'
@@ -134,7 +133,7 @@ highlightSourceRange = (
 	nil = range ifTrue: [^self].
 	nil = JSObject ifTrue: [^self].
 	style:: JSObject new.
-	style at: 'css' put: 'color:blue; font-weight:bold; text-decoration: underline'.
+	style at: 'css' put: 'background-color:yellow'.
 	editor style: style from: range start to: range stop.
 )
 methodReferencesMenu = (
@@ -170,8 +169,8 @@ respondToReturnNil = (
 	subject returnNil.
 	refreshThreadPresenter.
 )
-respondToReturnSelf = (
-	subject returnSelf.
+public respondToReturnSlot: slot <SlotPresenter> = (
+	subject returnSlot: slot subject.
 	refreshThreadPresenter.
 )
 respondToReturnTrue = (
@@ -289,8 +288,8 @@ public returnFalse = (
 public returnNil = (
 	model return: (ObjectMirror reflecting: nil).
 )
-public returnSelf = (
-	model return: model receiver.
+public returnSlot: slot <SlotSubject> = (
+	model return: slot objectMirror.
 )
 public returnTrue = (
 	model return: (ObjectMirror reflecting: true).
@@ -357,7 +356,7 @@ definitionForActivations = (
 			collapseButtonWithAction: [respondToCollapseAll].
 		}).
 		smallBlank.
-		activations:: list: (subject refreshActivationChain collect: [:s | s presenter]).
+		expandFirst:: activations:: list: (subject refreshActivationChain collect: [:s | s presenter]).
 		largeBlank.
 	}
 )
@@ -383,6 +382,9 @@ definitionForResult = (
 	nil = result ifTrue: [^nothing].
 	^result presenter
 )
+expandFirst: presenterList = (
+	presenterList presenters do: [:first | ^first expand].
+)
 failureHeadingColor = (
 	^Gradient from: (Color h: 0 s: 0.5 v: 0.8) to: (Color h: 0 s: 0.5 v: 0.6)
 )
@@ -396,7 +398,7 @@ mainHeadingBlock: body = (
 public refresh = (
 	substance refresh.
 	activations setPresenters: (subject refreshActivationChain collect: [:s | s presenter refresh]).
-	activations presenters do: [:first | ^first expand].
+	expandFirst: activations.
 )
 respondToCollapseAll = (
 	activations presenters do: [:activation <ActivationPresenter> | activation collapse].
