@@ -11,9 +11,6 @@ class HopscotchForHTML5 usingPlatform: p images: images = (
 	private List = p collections List.
 	private Map = p collections Map.
 	private Set = p collections Set.
-	private TextBlock = p text TextBlock.
-	private TextProperties = p text TextProperties.
-	private TextString = p text TextString.
 	private window = p js global.
 	private document = window at: 'document'.
 	JSObject = p js global at: 'Object'.
@@ -996,12 +993,6 @@ textField: initialText onAccept: blk = (
 	  text: initialText;
 	  acceptResponse: blk (*[:editor | blk valueWithPossibleArgument: editor. editor defaultAcceptResponse] *)
 )
-textString: string <String> = (
-	^TextStringFragment forString: string
-)
-textString: string <String> properties: tps <TextProperties> = (
-	^TextStringFragment forString: string properties: tps
-)
 public title ^<String> = (
 	^subject title
 )
@@ -1585,43 +1576,6 @@ public isKindOfTextFragment ^ <Boolean> = (
 	^true
 )
 ) : (
-)
-(*A formatted string.*)
-class TextStringFragment onText: t <Text> = TextFragment onText: t (
-) (
-public createVisual = (
-	| span = document createElement: 'span'. |
-	text textProperties applyTo: span.
-	span at: 'textContent' put: text string.
-	^span
-)
-public cursorPosition ^ <Integer> = (
- | sel = window getSelection. |
-  sel isNil ifFalse: [
-	(*(visual at: 'firstChild') = (sel at: 'focusNode') ifTrue: [*)
-		^(sel getRangeAt: 0) at: 'endOffset'
-		(*]*)
-	].
-  'textStringFragment cursorPosition is nil!' out.
-	^nil
-)
-public cursorPosition: position <Integer> = (
- | textNode = visual at: 'firstChild'. range = document createRange. |
-
-  range setStart: textNode to: position;
-	  setEnd: textNode to: position.
-  window getSelection removeAllRanges; addRange: range
-)
-public isKindOfTextStringFragment ^ <Boolean> = (
-	^true
-)
-) : (
-public forString: s <String> ^ <Instance> = (
-	^onText: (TextString forString: s properties: TextProperties new)
-)
-public forString: s <String> properties: tps <TextProperties> ^<Instance> = (
-	^onText: (TextString forString: s properties: tps)
-)
 )
 class ToggleComposer collapsedDefinition: collapsed <[Fragment]>
  expandedDefinition: expanded <[Fragment]>

@@ -11,9 +11,6 @@ class NewspeakColorization usingPlatform: p grammar: grammar = (
 	private ClassMirror = p mirrors ClassMirror.
 	private TypedNS3Grammar = grammar TypedNS3Grammar.
 	private StringBuilder = p kernel StringBuilder.
-	private TextProperties = p text TextProperties.
-	private TextString = p text TextString.
-	private TextBlock = p text TextBlock.
 	private JSObject = p js global at: 'Object'.
 
 	private cssConversionTable = computeCssConversionTable.
@@ -30,10 +27,7 @@ We then traverse the range array and, using propertiesMap, compute a correspondi
 *)
 public class NS3BrowserColorizer = NS3Colorizer (
 |
-	propertiesMap <Map[Symbol, TextProperties]> = computePropertiesMap.
-	textSegments <List[TextString]>
 	inputString <String>
-	priorSegmentEnd <Integer>
 	rangeArray <Array>
 |) (
 (*
@@ -47,9 +41,6 @@ class Range kind: k start: s end: e = (
 	public end <Integer> = e.
 |) (
 ) : (
-)
-coloredText ^ <Text> = (
-  ^TextBlock units: textSegments
 )
 public colorizeClassDeclaration: s <String> fromMixin: m <MixinMirror> in: editor <CodeMirrorFragment> = (
       setString: s mixin: m.
@@ -81,132 +72,6 @@ public colorizeTransientSlot: s <String> fromMixin: m <MixinMirror> in: editor <
       setString: s mixin: m.
       colorizeString: s withProduction: transientSlotDecl in: editor.
 )
-computePropertiesMap ^ <Map[Symbol, TextProperties]> = (
-(* compute a mapping from 'kinds', which are symbols denoting logical categories of code, to textual properties used to colorize them*)
-  |
-  redBoldUnderlined <TextProperties> = TextProperties new color: Color red; weight: #bold; underline: true; yourself.
-  redUnderlined <TextProperties> = TextProperties new color: Color red; underline: true; yourself.
-  orangeBoldUnderlined <TextProperties> = TextProperties new color: Color orange;  weight: #bold; underline: true; yourself.
-  underlined <TextProperties> = TextProperties new  underline: true; yourself.
-  gray <TextProperties> = TextProperties new color: Color gray; yourself.
-  blue <TextProperties> = TextProperties new color: Color blue; yourself.
-  grayBold <TextProperties> = TextProperties new color: Color gray; weight: #bold; yourself.
-  blackBold <TextProperties> = TextProperties new color: Color black;  weight: #bold; yourself.
-  blueBold <TextProperties> = TextProperties new color: Color blue;  weight: #bold; yourself.
-  magentaBold <TextProperties> = TextProperties new color: Color magenta;  weight: #bold; yourself.
-  bold <TextProperties> = TextProperties new  weight: #bold; yourself.
- |
-
-      ^Map new
-		 at: #error put: redBoldUnderlined;
-             at: #undefinedUnary put: redUnderlined;
-             at: #undefinedBinary put: redUnderlined;
-             at: #undefinedKeyword put: redUnderlined;
-             at: #shadowingTempVar put: orangeBoldUnderlined;
-             at: #obsoleteMessage put: orangeBoldUnderlined;
-             at: #whitespaceWarning put: orangeBoldUnderlined;
-             at: #incompleteUnary put: underlined;
-             at: #incompleteBinary put: underlined;
-             at: #incompleteKeyword put: underlined;
-             at: #self put: gray;
-             at: #super put: gray;
-             at: #outer put: gray;
-             at: #true put: gray;
-             at: #false put: gray;
-             at: #nil put: gray;
-             at: #string put: gray;
-             at: #symbol put: gray;
-             at: #number put: gray;
-             at: #character put: gray;
-             at: #public put: gray;
-             at: #protected put: gray;
-             at: #private put: gray;
-             at: #tempVar put: grayBold;
-             at: #blockTempVar put: grayBold;
-             at: #blockPatternArg put: grayBold;
-             at: #patternArg put: grayBold;
-             at: #slotDecl put: grayBold;
-             at: #patternTempVar put: grayBold;
-             at: #methodTempBar put: blackBold;
-             at: #leftParenthesis put: blackBold;
-             at: #rightParenthesis put: blackBold;
-             at: #leftParenthesis3 put: blackBold;
-             at: #rightParenthesis3 put: blackBold;
-             at: #leftParenthesis6 put: blackBold;
-             at: #rightParenthesis6 put: blackBold;
-             at: #blockStart put: blackBold;
-             at: #blockEnd put: blackBold;
-             at: #blockStart3 put: blackBold;
-             at: #blockEnd3 put: blackBold;
-             at: #blockStart6 put: blackBold;
-             at: #blockEnd6 put: blackBold;
-             at: #leftBrace put: blackBold;
-             at: #rightBrace put: blackBold;
-             at: #leftBrace3 put: blackBold;
-             at: #rightBrace3 put: blackBold;
-             at: #leftBrace6 put: blackBold;
-             at: #rightBrace6 put: blackBold;
-             at: #messagePatternDecl put: bold;
-             at: #class put: gray;
-             at: #transient put: gray;
-             at: #className put: bold;
-             at: #comment put: blue;
-             at: #type put: blueBold;
-             at: #return put: blueBold;
-             at: #leftParenthesis1 put: blueBold;
-             at: #rightParenthesis1 put: blueBold;
-             at: #leftParenthesis4 put: blueBold;
-             at: #rightParenthesis4 put: blueBold;
-             at: #leftParenthesis7 put: blueBold;
-             at: #rightParenthesis7 put: blueBold;
-             at: #blockStart1 put: blueBold;
-             at: #blockEnd1 put: blueBold;
-             at: #blockStart4 put: blueBold;
-             at: #blockEnd4 put: blueBold;
-             at: #blockStart7 put: blueBold;
-             at: #blockEnd7 put: blueBold;
-             at: #leftBrace1 put: blueBold;
-             at: #rightBrace1 put: blueBold;
-             at: #leftBrace4 put: blueBold;
-             at: #rightBrace4 put: blueBold;
-             at: #leftBrace7 put: blueBold;
-             at: #rightBrace7 put: blueBold;
-             at: #leftParenthesis2 put: magentaBold;
-             at: #rightParenthesis2 put: magentaBold;
-             at: #leftParenthesis5 put: magentaBold;
-             at: #rightParenthesis5 put: magentaBold;
-             at: #blockStart2 put: magentaBold;
-             at: #blockEnd2 put: magentaBold;
-             at: #blockStart5 put: magentaBold;
-             at: #blockEnd5 put: magentaBold;
-             at: #leftBrace2 put: magentaBold;
-             at: #rightBrace2 put: magentaBold;
-             at: #leftBrace5 put: magentaBold;
-             at: #rightBrace5 put: magentaBold;
-             yourself
-)
-computeTextSegments = (
-      | textString <TextString> |
-  consolidateRanges.
-  rangeArray do: [:r <Range> |
-	nil = r ifFalse: [
-      	r start > priorSegmentEnd ifTrue: [ (* add a segment for unmarked text between identified ranges *)
-			textString:: TextString forString: (inputString copyFrom: priorSegmentEnd to: r start - 1).
-			textSegments add: textString.
-		].
-	(* The range 0..size is degenerate and leads to errors in Squeak 5.0 Morphic layout of paragraphs. *)
-		textString:: TextString
-			forString: (inputString copyFrom: (r start max: 1) to: r end)
-			properties: (propertiesMap at: r kind ifAbsent: [TextProperties new color: Color black; yourself]).
-		textSegments add: textString.
-		priorSegmentEnd:: r end + 1.	(* remember last marked range *)
-		]
-	].
-      priorSegmentEnd < inputSize ifTrue: [ (* create a segment for the tail end of the source *)
-			textString:: TextString forString: (inputString copyFrom: priorSegmentEnd to: inputSize).
-			textSegments add: textString.
-	]
-)
 consolidateRanges = (
    | index <Integer> ::= 1.  |
 	rangeArray:: rangeMap asArray. (*BOGUS - work around broken List>>sort on web*)
@@ -232,42 +97,6 @@ consolidateRangesAt: index <Integer> = (
 noteRange: kind <Symbol> from: start <Integer> to: end <Integer> = (
    rangeMap add: (Range kind: kind start: (start max: 1) end: end).
 )
-public parseClassDecl: s <String> fromMixin: m <MixinMirror> ^<Text> = (
-	setString: s mixin: m.
-	^parseString: s withProduction: classDecl
-)
-public parseClassDeclaration: s <String> fromMixin: m <MixinMirror> ^<Text> = (
-	setString: s mixin: m.
-	^parseString: s withProduction: classDeclaration
-)
-public parseClassHeader: s <String> fromMixin: m <MixinMirror> ^<Text> = (
-	setString: s mixin: m.
-	^parseString: s withProduction: classHeader
-)
-public parseCodeBody: s <String> fromMixin: m <MixinMirror> ^<Text> = (
-	setString: s mixin: m.
-	^parseString: s withProduction: codeBody
-)
-public parseDoIt: s <String> fromMixin: m <MixinMirror> ^<Text> = (
-	setString: s mixin: m.
-	^parseString: s withProduction: doItExpression
-)
-public parseMethod: s <String> fromMixin: m <MixinMirror> ^<Text> = (
-	setString: s mixin: m.
-	^parseString: s withProduction: methodDecl
-)
-public parseSlotDeclaration: s <String> fromMixin: m <MixinMirror> ^<Text> = (
-	setString: s mixin: m.
-	^parseString: s withProduction: slotDef, eoi
-)
-parseString: s <String> withProduction: parser <CombinatorialParser> ^ <Text> = (
-	parser, eoi parseString: s ifError: [:msg :pos |
-		noteRange: #error from: pos to: inputSize.
-		computeTextSegments.
-		^coloredText ].
-	computeTextSegments.
-	^coloredText
-)
 setString: s <String> mixin: m <MixinMirror> = (
 	inputSize:: s size.
 	inputString:: s.
@@ -276,8 +105,6 @@ setString: s <String> mixin: m <MixinMirror> = (
 	braceDepth:: 0.
 	parenDepth:: 0.
 	rangeMap:: List new.
-	textSegments:: List new.
-	priorSegmentEnd:: 1.
 	cachedScopeStack: nil.
 )
 ) : (
