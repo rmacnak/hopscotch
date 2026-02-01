@@ -159,6 +159,9 @@ public js = ( ^platform js )
 public kernel = ( ^platform kernel )
 public mirrors = ( ^platform mirrors )
 public platform = ( ^retainedPlatform )
+public random = ( ^platform random )
+public serialization = ( ^platform serialization )
+public time = ( ^platform time )
 ) : (
 )
 defaultWorkspaceText ^<String> = (

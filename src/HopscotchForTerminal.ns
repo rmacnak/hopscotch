@@ -2385,7 +2385,7 @@ public childrenDo: aBlock <[:Fragment]> = (
 )
 public collapse = (
 	isExpanded:: false.
-	installCollapsedPresenter
+	hasVisual ifTrue: [installCollapsedPresenter].
 )
 createVisual = (
 	row:: SequenceVisual new.
@@ -2410,7 +2410,7 @@ createVisual = (
 )
 public expand = (
 	isExpanded:: true.
-	installExpandedPresenter
+	hasVisual ifTrue: [installExpandedPresenter].
 )
 installCollapsedPresenter = (
 	nil = collapsedPresenter ifTrue:

@@ -160,6 +160,8 @@ public enclosingClasses ^<List[MixinMirror]> = (
 			 currentClass:: currentClass enclosingClass].
 	^classes
 )
+public isAnOverride ^<Boolean> = ( ^false )
+public isOverridden ^<Boolean> = ( ^false )
 public messages = (
 	| result sent |
 	result:: List new.
@@ -332,11 +334,13 @@ public enclosingClassSubjects = (
 	[c isNil] whileFalse: [them add: (ClassSubject onModel: c). c:: c enclosingClass].
 	^them
 )
+public isAnOverride ^<Boolean> = ( ^false )
 public isApplicationConfiguration = (
 	isTopLevel ifFalse: [^false].
 	model header primaryFactorySelector = #packageUsing: ifTrue: [^true].
 	^model classSide methods anySatisfy: [:method | method name = #packageUsing:].
 )
+public isOverridden ^<Boolean> = ( ^false )
 public isTestConfiguration = (
 	isTopLevel ifFalse: [^false].
 	model header primaryFactorySelector = #packageTestsUsing: ifTrue: [^true].
@@ -734,6 +738,10 @@ bitsOfWisdom = (
 	(* This defines the bits of wisdom displayed at the bottom of the Hopscotch home page. Each time a page opens a new element is selected at random. An element may evaluate to nil, which will select another element at random. *)
 	^{
 	[BitOfWisdom
+		text: 'The Refresh toolbar button rebuilds the current page from scratch. Use it if you suspect the current page got out of sync with the data it displays.'
+		image: ide images refreshImage].
+
+	[BitOfWisdom
 		text: 'This is the "expand all" button which appears in headers of expandable item groups.'
 		image: ide images expandImage].
 
@@ -744,6 +752,18 @@ bitsOfWisdom = (
 	[BitOfWisdom
 		text: 'This is the "add" button which appears in headers of groups of items you can add to, such as methods of a class or classes of a package.'
 		image: ide images addImage].
+
+	[BitOfWisdom
+		text: 'This icon indicates that the method is overridden in one of the subclasses.'
+		image: ide images itemSubOverride].
+
+	[BitOfWisdom
+		text: 'This icon indicates that the method overrides one defined in a superclass.'
+		image: ide images itemSuperOverride].
+
+	[BitOfWisdom
+		text: 'This icon indicates that the method both overrides one defined in a superclass and is overridden in one of the subclasses.'
+		image: ide images itemBothOverride].
 
 	[BitOfWisdom
 		text: 'Expressions evaluated in debuggers and inspectors can access a workspace via the name _. This allows you to bypass modularity during development and access values you forgot to import, e.g. _ collections List.'].
@@ -933,10 +953,11 @@ heading: action ^<Fragment> = (
 		accessIndicator.
 		smallBlank.
 		(link: subject name action: action) color: actionLinkColor.
+		mediumBlank.
+		overrideIcon.
 	} row2: {
 		(label: subject commentSummary)
-			expansibility: 1;
-			compressibility: 1;
+			elasticity: 1;
 			color: secondaryTextColor;
 			smallFont.
 		mediumBlank.
@@ -945,6 +966,11 @@ heading: action ^<Fragment> = (
 		actionMenu.
 		smallBlank.
 	}
+)
+inheritanceLinkWithIcon: i = (
+	^image: i
+	(* ^linkImage: image action:
+		[enterSubject: subject asMethodInheritanceSubject] *)
 )
 linkToBrowseEnclosing: mixin <MixinMirror> = (
 	^(link: mixin name
@@ -961,6 +987,17 @@ nestingInformationLine = (
 		rowElements add: (linkToBrowseEnclosing: each)].
 	^row: rowElements asArray
 )
+overrideIcon = (
+	^subject isAnOverride
+		ifTrue:
+			[subject isOverridden
+				ifTrue: [inheritanceLinkWithIcon: ide images itemBothOverride]
+				ifFalse: [inheritanceLinkWithIcon: ide images itemSuperOverride]]
+		ifFalse:
+			[subject isOverridden
+				ifTrue: [inheritanceLinkWithIcon: ide images itemSubOverride]
+				ifFalse: [nothing]]
+)
 referencesMenu = (
 	^referencesMenu:
 		[menuWithLabelsAndActions:
@@ -972,6 +1009,50 @@ row1: row1 row2: row2 = (
 		(row: row1) width: 0 elasticity: 1.
 		(row: {mediumBlank}, row2) width: 0 elasticity: 2.
 	}
+)
+) : (
+)
+public class MemberSubject onModel: m = Subject onModel: m (
+) (
+public isAnOverride ^<Boolean> = (
+	#private = model accessModifier ifTrue: [^false].
+	^model definingMixin applications anySatisfy: [:app | superclass: app canUnderstand: name]
+)
+public isOverridden ^<Boolean> = (
+	#private = model accessModifier ifTrue: [^false].
+	^model definingMixin applications anySatisfy: [:app | subclass: app canUnderstand: name]
+)
+mixin: mixin <MixinMirror> canUnderstand: selector <String> ^<Boolean> = (
+	(mixin methods includesMirrorNamed: selector)
+		ifTrue: [^true].
+
+	(mixin nestedClasses includesMirrorNamed: selector)
+		ifTrue: [^true].
+
+	mixin slots do:
+		[:slot |
+		 slot name = selector ifTrue: [^true].
+		 slot isMutable ifTrue: [slot name, ':' = selector ifTrue: [^true]]].
+
+	mixin transientSlots do:
+		[:slot |
+		 slot name = selector ifTrue: [^true].
+		 slot isMutable ifTrue: [slot name, ':' = selector ifTrue: [^true]]].
+
+	^false
+)
+subclass: klass <ClassMirror> canUnderstand: selector <String> ^<Boolean> = (
+	klass subclasses do: [:sub |
+		(mixin: sub mixin canUnderstand: selector) ifTrue: [^true].
+		(subclass: sub canUnderstand: selector) ifTrue: [^true]].
+	^false
+)
+superclass: klass <ClassMirror> canUnderstand: selector <String> ^<Boolean> = (
+	| k <ClassMirror> ::= klass superclass. |
+	[nil = k] whileFalse:
+		[(mixin: k canUnderstand: selector) ifTrue: [^true].
+		 k:: k superclass].
+	^false
 )
 ) : (
 )
@@ -1079,7 +1160,7 @@ colorizeSource: source <String> withEditor: editor <CodeMirrorFragment> = (
 ) : (
 )
 (* Manages the UI for a method. *)
-public class MethodSubject onModel: mm <MethodMirror> = Subject onModel: mm (
+public class MethodSubject onModel: mm <MethodMirror> = MemberSubject onModel: mm (
 ) (
 public accessModifier ^<Symbol> = (
 	^methodMirror accessModifier
@@ -1182,8 +1263,7 @@ collapsedDefinition = (
 		link: subject name action: [enterSubject:: ClassSubject onModel: subject classMirror].
 	} row2: {
 		(label: subject commentSummary)
-			expansibility: 1;
-			compressibility: 1;
+			elasticity: 1;
 			color: secondaryTextColor;
 			smallFont.
 		ClassActionsPresenter onSubject: subject.
@@ -1204,15 +1284,13 @@ collapsedDefinition = (
 	^row1: {
 		image: ide images classPresenterIcon.
 		smallBlank.
-		smallBlank.
 		row: {link: subject key action: [
 			(*ide defaultPopularityRecord
 			rememberNamespaceVisit: subject key. (* Should be the namespace itself, but non-strings break the home page. *)*)
 			enterSubject:: subject refreshmentSubject]}.
 	} row2: {
 		(label: subject summaryText)
-			expansibility: 1;
-			compressibility: 1;
+			elasticity: 1;
 			color: secondaryTextColor;
 			smallFont.
 		mediumBlank.
@@ -1236,8 +1314,7 @@ collapsedDefinition = (
 		link: key action: [enterSubject:: subject].
 	} row2: {
 		(label: subject title)
-			expansibility: 1;
-			compressibility: 1;
+			elasticity: 1;
 			color: secondaryTextColor;
 			smallFont.
 		mediumBlank.
@@ -1548,8 +1625,7 @@ collapsedDefinition = (
 		link: subject name action: [enterSubject:: subject].
 	} row2: {
 		(label: subject commentSummary)
-			expansibility: 1;
-			compressibility: 1;
+			elasticity: 1;
 			color: secondaryTextColor;
 			smallFont.
 		mediumBlank.
@@ -1648,8 +1724,7 @@ selfInfoLine = (
 	^row: {
 		(label: selfCaption (*asText allBold*)) width: 0 elasticity: 1.
 		(row: {
-			(link: subject title action: [navigateToSelf]) compressibility: 1.
-			filler compressibility: 0.
+			(link: subject title action: [navigateToSelf]) elasticity: 1.
 			mediumBlank.
 			dropDownMenu: [actionsMenu].
 		}) width: 0 elasticity: detailAreaRatio.
@@ -2116,7 +2191,7 @@ colorizeSource: s <String> withEditor: cm <CodeMirrorFragment> = (
 )
 ) : (
 )
-public class TransientSlotSubject onModel: tsm <TransientSlotMirror> = Subject onModel: tsm (
+public class TransientSlotSubject onModel: tsm <TransientSlotMirror> = MemberSubject onModel: tsm (
 ) (
 public accessModifier ^<Symbol> = (
 	^transientSlotMirror accessModifier
