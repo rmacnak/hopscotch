@@ -92,10 +92,12 @@ populateNamespace = (
 ) : (
 )
 public main: platform <Platform> args: args <Tuple[String]> = (
-	| hopscotchPlatform ide |
+	| hopscotchPlatform ide shell |
 	hopscotchPlatform:: hopscotchRuntime using: platform.
 	ide:: IDE usingPlatform: hopscotchPlatform.
-	hopscotchPlatform hopscotch core HopscotchWindow openSubject: ide browsing HomeSubject new.
+	shell:: hopscotchPlatform hopscotch core HopscotchWindow openSubject: ide browsing HomeSubject new.
+	platform mirrors onUnhandledException:
+		[:thread | shell enterSubject: (ide debugging ThreadSubject onModel: thread)].
 )
 ) : (
 )
