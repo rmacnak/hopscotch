@@ -3,7 +3,7 @@
 *)
 (* :exemplar: ide browsing *)
 class Browsing usingPlatform: p ide: webIde = (
-|
+	|
 	private StringBuilder = p kernel StringBuilder.
 	private Subject = p hopscotch core Subject.
 	private Presenter = p hopscotch core Presenter.
@@ -27,7 +27,7 @@ class Browsing usingPlatform: p ide: webIde = (
 	private ide = webIde.
 	private detailAreaRatio = 3 asFloat.
 	private captionColor = Color h: 41 s: 0.20 v: 0.80.
-|
+	|
 ) (
 (* The subject is a collection of MethodSubjects that can come from diverse sources (in the sense that they do not have to belong to the same class). The presenter displays them as a column of expandable method presenters and takes care of reasonably handling the various creation and deletion requests coming from them.  I group my methods by their containing package.
 
@@ -35,10 +35,11 @@ Slots
 	title	<String>	The title to use for the presenter
 	methodPresenters <List[ExpandableMethodPresenter]> Because the method presenters are grouped by package, if we need to expand or collapse those presenters, we only want to expand or collapse the method presenters.  The group heading is not expandable (or collapsable). *)
 public class AssortedMethodsPresenter onSubject: s = DefinitionListPresenter onSubject: s (
-|
+	|
 	public title ::= 'Assorted Methods'.
 	methodPresenters ::= List new.
-|) (
+	|
+) (
 contentPresenters = (
 	^subject methodSubjects collect: [:each | each presenter]
 )
@@ -62,24 +63,26 @@ public title = (
 )
 ) : (
 )
-public class BitOfWisdom text: s <String> actionLabel: l <String> actionBlock: b <[]> image: i = (|
+public class BitOfWisdom text: s <String> actionLabel: l <String> actionBlock: b <[]> image: i = (
+	|
 	public text <String> = s.
-	public image = i.
+	public image <Alien[HTMLImageElement]> = i.
 	public actionLabel <String> = l.
 	public actionBlock <[]> = b.
-|) (
+	|
+) (
 ) : (
-public text: s <String> ^ <BitOfWisdom> = (
+public text: s <String> ^<BitOfWisdom> = (
 	^text: s actionLabel: nil actionBlock: nil image: nil
 )
-public text: s <String> actionLabel: l <String> actionBlock: b <[]> ^ <BitOfWisdom> = (
+public text: s <String> actionLabel: l <String> actionBlock: b <[]> ^<BitOfWisdom> = (
 	^self
 		text: s
 		actionLabel: l
 		actionBlock: b
 		image: nil
 )
-public text: s image: i ^ <BitOfWisdom> = (
+public text: s image: i ^<BitOfWisdom> = (
 	^text: s actionLabel: nil actionBlock: nil image: i
 )
 )
@@ -301,10 +304,10 @@ public classHeaderSource = (
 public classHeaderSubject = (
 	^ClassHeaderSubject onModel: classMirror header
 )
-public classMethodsSubject ^ <MethodGroupSubject> = (
+public classMethodsSubject ^<MethodGroupSubject> = (
 	^MethodGroupSubject onModel: classMirror classSide methods within: classMirror classSide
 )
-public classMirror ^ <ClassDeclarationMirror> = (
+public classMirror ^<ClassDeclarationMirror> = (
 	^model
 )
 public commentSummary ^<String> = (
@@ -359,13 +362,13 @@ public messages = (
 	result addAll: (header literals select: [:ea | ea isKindOfString]).
 	^result
 )
-public methodsSubject ^ <MethodGroupSubject> = (
+public methodsSubject ^<MethodGroupSubject> = (
 	^MethodGroupSubject onModel: classMirror instanceSide methods within: classMirror instanceSide
 )
 public name = (
 	^model name
 )
-public nestedClassesSubject ^ <NestedClassGroupSubject> = (
+public nestedClassesSubject ^<NestedClassGroupSubject> = (
 	^NestedClassGroupSubject onModel: classMirror instanceSide nestedClasses within: classMirror instanceSide
 )
 public primaryFactorySelector = (
@@ -392,7 +395,7 @@ public superclassSubjects = (
 public title = (
 	^name
 )
-public transientSlotsSubject ^ <TransientSlotGroupSubject> = (
+public transientSlotsSubject ^<TransientSlotGroupSubject> = (
 	^TransientSlotGroupSubject onModel: classMirror instanceSide transientSlots within: classMirror instanceSide
 )
 ) : (
@@ -428,13 +431,13 @@ public collapseAll = (
 		content presenters do: [:each | each collapse]
 		(*]*)
 )
-contentList ^ <PresenterList> = (
+contentList ^<PresenterList> = (
 	^list: [contentPresenters]
 )
-contentPresenters ^ <List[Presenter]> = (
+contentPresenters ^<List[Presenter]> = (
 	^List new
 )
-definition ^ <Fragment> = (
+definition ^<Fragment> = (
 	prefixes:: list.
 	content:: contentList.
 	suffixes:: list.
@@ -459,7 +462,8 @@ public class DefinitionTemplate
    colorizerBlock: cb <[:String :CodeMirrorFragment]>
    acceptResponse: onAccept <[DefinitionTemplate]>
    cancelResponse: onCancel <[DefinitionTemplate]>
- = ProgrammingPresenter onSubject: nil (|
+ = ProgrammingPresenter onSubject: nil (
+	|
 	public caption = c.
 	public initialText = t.
 	public initiallyInEditState ::= true.
@@ -467,8 +471,9 @@ public class DefinitionTemplate
 	public cancelResponse = onCancel.
 	public editor
 	public colorizerBlock = cb.
-|) (
-definition ^ <Fragment> = (
+	|
+) (
+definition ^<Fragment> = (
 	^(row: {
 		mediumBlank.
 		elastic:
@@ -481,12 +486,12 @@ definition ^ <Fragment> = (
 		smallBlank.
 		}) color: (Gradient from: (Color h: 100 s: 0.3 v: 0.9) to: (Color h: 100 s: 0.3 v: 0.8))
 )
-editorDefinition ^ <Fragment> = (
+editorDefinition ^<Fragment> = (
 	editor:: (codeMirror: initialText)
 	(*	acceptLabelText: 'save';
 		cancelLabelText: 'cancel';*)
 		acceptResponse: [acceptResponse value: self];
-		changeResponse: [:cm <CodeMirrorFragment> :event <Event>  | colorizerBlock value: cm textBeingAccepted value: cm];
+		changeResponse: [:cm <CodeMirrorFragment> :event <Event> | colorizerBlock value: cm textBeingAccepted value: cm];
 		cancelResponse: [cancelResponse value: self].
 	initiallyInEditState ifTrue: [editor enterEditState].
 	colorizerBlock value: initialText value: editor.
@@ -559,12 +564,12 @@ discardResultsDefinition = (
 		(link: 'discard results' action: [clearResults]) (* tinyFont *)
 	}
 )
-editorDefinition ^ <CodeMirrorFragment> = (
+editorDefinition ^<CodeMirrorFragment> = (
 	| initialSource cm <CodeMirrorFragment> |
 	initialSource:: ''.
 	cm:: (codeMirror: initialSource).
 	cm changeResponse:
-		[:editor <CodeMirrorFragment>  |
+		[:editor <CodeMirrorFragment> |
 		| src <String> =  editor textBeingAccepted. |
 		ide colorizer colorizeDoIt: src fromMixin: nil in: editor].
 	cm enterResponse:
@@ -721,7 +726,7 @@ textAndImageWisdom: wisdom = (
 ) : (
 )
 public class HomeSubject onModel: m = Subject onModel: m () (
-public = anotherSubject <Subject> ^ <Boolean> = (
+public = anotherSubject <Subject> ^<Boolean> = (
 	(* As there is just one possible logical home of the system, all subjects representing it are considered equal. *)
 	^anotherSubject isKindOfHomeSubject
 )
@@ -758,7 +763,7 @@ bitsOfWisdom = (
 public createPresenter = (
 	^HomePresenter onSubject: self
 )
-public isKindOfHomeSubject ^ <Boolean> = (
+public isKindOfHomeSubject ^<Boolean> = (
 	^true
 )
 lateNightWisdom = (
@@ -880,7 +885,7 @@ actionMenu = (
 			{{'Delete ', subject name. [subject delete. refresh]}.
 			 {'Inspect Presenter'. [respondToInspectPresenter]}}]
 )
-changeResponse ^ <[:CodeMirrorFragment :Event]> = (
+changeResponse ^<[:CodeMirrorFragment :Event]> = (
 	^[:ed <CodeMirrorFragment> :event <Event> | | cp <Integer> |
 		colorizeSource: ed textBeingAccepted withEditor: ed.
 		ed enterEditState.
@@ -973,13 +978,12 @@ row1: row1 row2: row2 = (
 (* Presents the subject, an NSMethodGroup, as a column of presenters for the methods in the group. Automatically gets updated after the subject mirror group. Anything that has to do with adding, editing or deleting NS methods goes here. *)
 class MethodGroupPresenter onSubject: s <Subject> = MirrorGroupPresenter onSubject: s (
 ) (
+(* Handle a user's request to create a new method by displaying a new method template. *)
 public addNewItemTemplate = (
-	(* Handle a user's request to create a new method by displaying a new method template. *)
 	addNewItemTemplate: subject methodTemplateText
 )
+(* Handle a user's request to create a new method by displaying a new method template. *)
 addNewItemTemplate: src = (
-	(* Handle a user's request to create a new method by displaying a new method template. *)
-
 	| template |
 	template:: DefinitionTemplate
 		caption: 'Adding new method:'
@@ -1009,7 +1013,7 @@ createNewMethodFromTemplate: template <DefinitionTemplate> = (
 		ifFailure:
 			[:message | template editor showMessage: message]
 )
-elementPresenterClass ^ <ProgrammingPresenter class> = (
+elementPresenterClass ^<ProgrammingPresenter class> = (
 	^MethodPresenter
 )
 ) : (
@@ -1033,15 +1037,15 @@ public compileSource: source <String> ifSuccess: successBlock <[:MethodMirror]> 
 public createPresenter = (
 	^MethodGroupPresenter onSubject: self
 )
-elementSubjectClass ^ <MethodSubject class> = (
+elementSubjectClass ^<MethodSubject class> = (
 	^MethodSubject
 )
-public methodTemplateText ^ <String> = (
+public methodTemplateText ^<String> = (
 ^
 'messageSelector = (
 )'
 )
-modelMirrorCollection ^ <Collection[MethodMirror]> = (
+modelMirrorCollection ^<Collection[MethodMirror]> = (
 	^super modelMirrorCollection (*asSortedList: [:a :b | a simpleName < b simpleName]*)
 )
 ) : (
@@ -1050,7 +1054,7 @@ modelMirrorCollection ^ <Collection[MethodMirror]> = (
 class MethodPresenter onSubject: s <MethodSubject> = MemberPresenter onSubject: s (
 	| public highlightSourceRange |
 ) (
-acceptResponse ^ <[:CodeMirrorFragment :Event]> = (
+acceptResponse ^<[:CodeMirrorFragment :Event]> = (
 	^[:ed <CodeMirrorFragment> :event <Event> |
 		| b <MixinBuilder> = subject methodMirror definingMixin asBuilder. |
 		b methods addFromSource: ed textBeingAccepted.
@@ -1077,16 +1081,16 @@ colorizeSource: source <String> withEditor: editor <CodeMirrorFragment> = (
 (* Manages the UI for a method. *)
 public class MethodSubject onModel: mm <MethodMirror> = Subject onModel: mm (
 ) (
-public accessModifier ^ <Symbol> = (
+public accessModifier ^<Symbol> = (
 	^methodMirror accessModifier
 )
-public classDeclaration ^ <ClassDeclarationMirror> = (
+public classDeclaration ^<ClassDeclarationMirror> = (
 	^methodMirror definingMixin declaration
 )
 public commentSummary ^<String> = (
 	^summarizeCommentFromMetadata: model metadata
 )
-public createPresenter ^ <Presenter> = (
+public createPresenter ^<Presenter> = (
 	^MethodPresenter onSubject: self
 )
 public delete = (
@@ -1114,13 +1118,13 @@ public messages = (
 		addFirst: methodMirror name;
 		yourself
 )
-public methodMirror ^ <MethodMirror> = (
+public methodMirror ^<MethodMirror> = (
 	^model
 )
-public name ^ <Symbol> = (
+public name ^<Symbol> = (
 	^methodMirror name
 )
-public source ^ <String> = (
+public source ^<String> = (
 	^methodMirror source
 )
 ) : (
@@ -1132,16 +1136,16 @@ public addNewItemTemplate = (
 
 	subclassResponsibility
 )
-contentPresenters ^ <Collection[ProgrammingPresenter]> = (
+contentPresenters ^<Collection[ProgrammingPresenter]> = (
 	^subject elements collect:
 		[:each <ProgrammingPresenter> | createPresenterForSubject: each]
 )
-createPresenterForSubject: aSubject <Subject> ^ <ProgrammingPresenter> = (
+createPresenterForSubject: aSubject <Subject> ^<ProgrammingPresenter> = (
 	(* Let the subject create its default unless elementPresenterClass is set to specify our preference. *)
 	nil = elementPresenterClass ifTrue: [^aSubject presenter].
 	^elementPresenterClass onSubject: aSubject
 )
-elementPresenterClass ^ <ProgrammingPresenter class> = (
+elementPresenterClass ^<ProgrammingPresenter class> = (
 	(* A subclass must redefine this to define the class of presenter it will be using. *)
 	subclassResponsibility
 )
@@ -1160,7 +1164,7 @@ public elements ^<Collection[Subject]> = (
 	(* Answer a collection of subjects on individual elements of the group which is our subject. *)
 	^modelMirrorCollection collect: [:each | elementSubjectClass onModel: each]
 )
-public mirrorGroup ^ <MirrorGroup> = (
+public mirrorGroup ^<MirrorGroup> = (
 	^model
 )
 modelMirrorCollection ^<Collection[Mirror]> = (
@@ -1220,9 +1224,11 @@ expandedDefinition = (
 )
 ) : (
 )
-class ValueEntryPresenter onSubject: s = EntryPresenter onSubject: s (|
+class ValueEntryPresenter onSubject: s = EntryPresenter onSubject: s (
+	|
 	public key
-|) (
+	|
+) (
 collapsedDefinition = (
 	^row1: {
 		image: ide images classUnknownIcon.
@@ -1302,17 +1308,17 @@ addNamespaceTemplate = (
 				[:template | prefixes remove: template]).
 	prefixes refresh.
 )
-contentList ^ <PresenterList> = (
+contentList ^<PresenterList> = (
 	^zebra: super contentList
 )
-contentPresenters ^ <List[Presenter]> = (
+contentPresenters ^<List[Presenter]> = (
 	| lexicalOrder <[:Symbol :Symbol | Boolean]> |
 	lexicalOrder:: [:a <Symbol> :b <Symbol> |
 		lexicallyLessOrEqual: a than: b
 	].
 	^(subject namespace keys asArray sort: lexicalOrder) collect: [:key | presenterForEntryAt: key]
 )
-definition ^ <Fragment> = (
+definition ^<Fragment> = (
 	^column: {
 		minorHeadingBlock: (row: {
 			label: subject key (*asText allBold*).
@@ -1345,7 +1351,7 @@ namespaceMenu = (
 		{'Inspect Presenter' . [respondToInspectPresenter]}
 	}
 )
-presenterForEntryAt: key <Symbol> ^ <EntryPresenter> = (
+presenterForEntryAt: key <Symbol> ^<EntryPresenter> = (
 	| entry = subject namespace at: key. |
 	entry isKindOfBehavior
 		ifTrue: [^ClassEntryPresenter onSubject: (ClassSubject onModel: (ClassMirror reflecting: entry) mixin declaration)].
@@ -1389,9 +1395,11 @@ respondToAddText = (
 )
 ) : (
 )
-public class NamespaceSubject onModel: m <Map[Symbol, Object]> key: k <Symbol> = Subject onModel: m (|
+public class NamespaceSubject onModel: m <Map[Symbol, Object]> key: k <Symbol> = Subject onModel: m (
+	|
 	public key = k.
-|) (
+	|
+) (
 public = other ^<Boolean> = (
 	^class = other class (* class is not public *)
 		and: [namespace = other namespace]
@@ -1416,7 +1424,7 @@ public addNamespaceFromDefinition: definition <String> ifSuccess: successBlock <
 	namespace at: selector put: (ide namespacing freshNamespace).
 	successBlock value
 )
-public classTemplateText ^ <String> = (
+public classTemplateText ^<String> = (
 ^
 'class ClassNameHere = (
 	|
@@ -1428,13 +1436,13 @@ public classTemplateText ^ <String> = (
 public colorizeClassSource: source <String> editor: cm <CodeMirrorFragment> = (
 	ide colorizer colorizeClassDeclaration: source fromMixin: nil in: cm.
 )
-public createPresenter ^ <NamespacePresenter> = (
+public createPresenter ^<NamespacePresenter> = (
 	^NamespacePresenter onSubject: self
 )
 public hash ^<Integer> = (
 	^model hash bitXor: key hash
 )
-public namespace ^ <Map[Symbol, Object]> = (
+public namespace ^<Map[Symbol, Object]> = (
 	^self model
 )
 public refreshmentSubject = (
@@ -1474,8 +1482,8 @@ acceptNewClassDefinitionFrom: aTemplate = (
 		ifFailure:
 			[:msg | aTemplate editor showMessage: msg]
 )
+(* Handle a user's request to create a new nested class by displaying a new class template. *)
 public addNewItemTemplate = (
-	(* Handle a user's request to create a new nested class by displaying a new class template. *)
 	prefixes add:
 		(DefinitionTemplate
 			caption: 'Defining a new class:'
@@ -1488,7 +1496,7 @@ public addNewItemTemplate = (
 				[:template | prefixes remove: template]).
 	prefixes refresh.
 )
-elementPresenterClass ^ <ProgrammingPresenter class> = (
+elementPresenterClass ^<ProgrammingPresenter class> = (
 	^NestedClassPresenter
 )
 ) : (
@@ -1506,7 +1514,7 @@ public addClassFromDefinition: source <String> ifSuccess: successBlock <[:ClassD
 		on: Exception
 		do: [:ex <Exception> | failureBlock value: ex printString].
 )
-public classTemplateText ^ <String> = (
+public classTemplateText ^<String> = (
 ^
 'class ClassNameHere = (
 	|
@@ -1527,7 +1535,7 @@ public deleteClassWithSubject: classSubject <ClassSubject> = (
 	builder nestedClasses removeMirrorNamed: classSubject name.
 	builder declaration install.
 )
-elementSubjectClass ^ <ClassSubject class> = (
+elementSubjectClass ^<ClassSubject class> = (
 	^ClassSubject
 )
 ) : (
@@ -1809,7 +1817,7 @@ public title = (
 (* Common superclass for presenters of programming constructs. *)
 public class ProgrammingPresenter onSubject: s <Subject> = Presenter onSubject: s (
 ) (
-actionLinkColor = (
+actionLinkColor ^<Color> = (
 	^Color h: 31 s: 0.85 v: 0.40
 )
 addButtonWithAction: aBlock = (
@@ -1861,7 +1869,7 @@ iconForAccessModifier: am = (
 	#protected = am ifTrue: [^ide images protectedAccessImage].
 	^ide images publicAccessImage
 )
-indentedBlock: body = (
+indentedBlock: body <Fragment> ^<Fragment> = (
 	^column: {
 		mediumBlank.
 		row: {
@@ -1877,7 +1885,7 @@ inspectObject: object <Object> = (
 inspectObjectMirror: object <ObjectMirror> = (
 	enterSubject:: ObjectSubject onModel: object.
 )
-majorHeadingBlock: body = (
+majorHeadingBlock: body <Fragment> ^<Fragment> = (
 	^(padded: body with: {10. 10. 10. 10.})
 		color: majorHeadingColor
 )
@@ -1887,14 +1895,14 @@ majorHeadingColor = (
 		from: (Color h: 41 s: 0.20 v: 0.85)
 		to: (Color h: 41 s: 0.20 v: 0.75)
 )
-minorHeadingBlock: body = (
+minorHeadingBlock: body <Fragment> ^<Fragment> = (
 	^(padded: body with: {10. 5. 10. 5.})
 		color: minorHeadingColor
 )
 minorHeadingColor = (
-^Gradient
-	from: (Color h: 41 s: 0.20 v: 0.90)
-	to: (Color h: 41 s: 0.20 v: 0.80)
+	^Gradient
+		from: (Color h: 41 s: 0.20 v: 0.90)
+		to: (Color h: 41 s: 0.20 v: 0.80)
 )
 navigateToSelector: selector <String> = (
 	ide namespacing reindex.
@@ -1921,10 +1929,10 @@ refreshButton = (
 respondToInspectPresenter = (
 	inspectObject: self.
 )
-secondaryTextColor ^ <Color> = (
+secondaryTextColor ^<Color> = (
 	^Color h: 31 s: 0.85 v: 0.60
 )
-tertiaryTextColor = (
+tertiaryTextColor ^<Color> = (
 	^Color h: 31 s: 0.85 v: 0.80
 )
 ) : (
@@ -2022,13 +2030,12 @@ public title = (
 (* Presents the subject, an NSMethodGroup, as a column of presenters for the methods in the group. Automatically gets updated after the subject mirror group. Anything that has to do with adding, editing or deleting NS methods goes here. *)
 class TransientSlotGroupPresenter onSubject: s <Subject> = MirrorGroupPresenter onSubject: s (
 ) (
+(* Handle a user's request to create a new method by displaying a new method template. *)
 public addNewItemTemplate = (
-	(* Handle a user's request to create a new method by displaying a new method template. *)
 	addNewItemTemplate: subject methodTemplateText
 )
+(* Handle a user's request to create a new method by displaying a new method template. *)
 addNewItemTemplate: src = (
-	(* Handle a user's request to create a new method by displaying a new method template. *)
-
 	| template |
 	template:: DefinitionTemplate
 		caption: 'Adding new transient slot'
@@ -2058,7 +2065,7 @@ createNewTransientSlotFromTemplate: template <DefinitionTemplate> = (
 		ifFailure:
 			[:message | template editor showMessage: message]
 )
-elementPresenterClass ^ <ProgrammingPresenter class> = (
+elementPresenterClass ^<ProgrammingPresenter class> = (
 	^TransientSlotPresenter
 )
 ) : (
@@ -2085,9 +2092,8 @@ public createPresenter = (
 elementSubjectClass ^<TransientSlotSubject class> = (
 	^TransientSlotSubject
 )
-public methodTemplateText ^ <String> = (
-^
-'transient slotName = initializer.'
+public methodTemplateText ^<String> = (
+	^'transient slotName = initializer.'
 )
 modelMirrorCollection ^<Collection[TransientSlotMirror]> = (
 	^super modelMirrorCollection (*asSortedList: [:a :b | a simpleName < b simpleName]*)
@@ -2096,7 +2102,7 @@ modelMirrorCollection ^<Collection[TransientSlotMirror]> = (
 )
 class TransientSlotPresenter onSubject: s <TransientSlotSubject> = MemberPresenter onSubject: s (
 ) (
-acceptResponse ^ <[:CodeMirrorFragment :Event]> = (
+acceptResponse ^<[:CodeMirrorFragment :Event]> = (
 	^[:ed <CodeMirrorFragment> :event <Event> |
 		| b <MixinBuilder> = subject transientSlotMirror definingMixin asBuilder. |
 		b transientSlots addFromSource: ed textBeingAccepted.
@@ -2161,7 +2167,7 @@ public transientSlotMirror ^<TransientSlotMirror> = (
 )
 ) : (
 )
-lexicallyLessOrEqual: a <String> than: b <String> ^ <Boolean> = (
+lexicallyLessOrEqual: a <String> than: b <String> ^<Boolean> = (
 	1 to: (a size min: b size) do:
 		[:index |
 		 (a at: index) < (b at: index) ifTrue: [^true].

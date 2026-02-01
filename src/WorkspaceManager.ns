@@ -8,7 +8,7 @@ This is also very much a work in progress. Because we don't yet support adding c
 Copyright Google Inc.  2017.
 *)
 class WorkspaceManager usingPlatform: p <Platform> ide: webIde <HopscotchIDE> = (
-|
+	|
 	(* imports *)
 	private Presenter = p hopscotch core Presenter.
 	private Subject = p hopscotch core Subject.
@@ -24,11 +24,12 @@ class WorkspaceManager usingPlatform: p <Platform> ide: webIde <HopscotchIDE> = 
 	private Root = ide namespacing Root.
 
 	public evaluationScope = Map new at: #_ put: (ObjectMirror reflecting: Workspace new); yourself.
-|) (
+	|
+) (
 (* This is the top-level presenter displayed when following the Workspaces link from the home page. It displays a list of WorkspacePresenters on all existing workspaces. *)
 class AllWorkspacesPresenter onSubject: s = DefinitionListPresenter onSubject: s (
 ) (
-contentPresenters ^ <Collection[Presenter]> = (
+contentPresenters ^<Collection[Presenter]> = (
 	^subject allWorkspaces collect: [:ws | expandableLineForWorkspace: ws]
 )
 definition = (
@@ -112,12 +113,12 @@ public addWorkspace = (
 	(* ws workspaceText: defaultWorkspaceText.*)
 	workspaces add: ws.
 )
-public allWorkspaces ^ <Collection[Workspace]> = (
+public allWorkspaces ^<Collection[Workspace]> = (
 	(* Ensure there is always a workspace to work with. *)
 	workspaces isEmpty ifTrue: [addWorkspace].
 	^workspaces
 )
-public createPresenter ^ <AllWorkspacesPresenter> = (
+public createPresenter ^<AllWorkspacesPresenter> = (
 	^AllWorkspacesPresenter onSubject: self
 )
 public deleteWorkspace: ws <Workspace> = (
@@ -126,7 +127,7 @@ public deleteWorkspace: ws <Workspace> = (
 public hash ^<Integer> = (
 	^self class hash
 )
-public isKindOfWorkspaceSubject ^ <Boolean> = (
+public isKindOfWorkspaceSubject ^<Boolean> = (
 	^true
 )
 public title ^<String> = (
@@ -140,9 +141,10 @@ public new = (
 )
 (* The superclass of workspaces. *)
 public class Workspace = (
-|
-public workspaceText
-|) (
+	|
+	public workspaceText
+	|
+) (
 public actors = ( ^platform actors )
 public collections = ( ^platform collections )
 protected doesNotUnderstand: message = (
@@ -152,16 +154,14 @@ protected doesNotUnderstand: message = (
 )
 public graphics = ( ^platform graphics )
 public hopscotch = ( ^platform hopscotch )
-public ide ^ <HopscotchWebIDE> = (
-	^outer WorkspaceManager ide
-)
+public ide = ( ^outer WorkspaceManager ide )
 public js = ( ^platform js )
 public kernel = ( ^platform kernel )
 public mirrors = ( ^platform mirrors )
 public platform = ( ^retainedPlatform )
 ) : (
 )
-defaultWorkspaceText ^ <String> = (
+defaultWorkspaceText ^<String> = (
 ^'(* Workspaces provide access to the system scope,  allowing you to bypass Newspeak''s modularity at development time. You can evaluate the current selection (or the current line if the selection is empty) by pressing [Evaluate]. *)
 
 platform.

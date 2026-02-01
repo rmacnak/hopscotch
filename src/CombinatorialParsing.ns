@@ -6,18 +6,19 @@ Copyright 2013 Ryan Macnak
 
 Licensed under the Apache License, Version 2.0 (the ''License''); you may not use this file except in compliance with the License.  You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0 *)
 class CombinatorialParsing usingPlatform: platform = (
-|
-
-private List = platform collections List.
-private Map = platform collections Map.
-private ObjectMirror = platform mirrors ObjectMirror.
-|) (
+	|
+	private List = platform collections List.
+	private Map = platform collections Map.
+	private ObjectMirror = platform mirrors ObjectMirror.
+	|
+) (
 (* A parser that parses either P or Q. *)
 class AlternatingParser either: p_ or: q_ = CombinatorialParser (
-|
-p <CombinatorialParser> = p_.
-q <CombinatorialParser> = q_.
-|) (
+	|
+	p <CombinatorialParser> = p_.
+	q <CombinatorialParser> = q_.
+	|
+) (
 combineErrors: e1 <String> and: e2 <String> at: pos <Integer> with: blk <[:String :Integer]> = (
 	| or <String> msg <String> |
 	or:: (e1 = '' or: [e2 = '']) ifTrue: [''] ifFalse: [' or '].
@@ -40,11 +41,13 @@ public parse: input <ReadStream> inContext: context <ParserContext> ifError: blk
 )
 ) : (
 )
-class CharacterRangeParser from: startChar <Character> to: endChar <Character> = CombinatorialParser (|
-startRune <Integer> = startChar at: 1.
-endRune <Integer> = endChar at: 1.
-message <String> = startChar asString, '-', endChar asString, ' expected'.
-|) (
+class CharacterRangeParser from: startChar <Character> to: endChar <Character> = CombinatorialParser (
+	|
+	startRune <Integer> = startChar at: 1.
+	endRune <Integer> = endChar at: 1.
+	message <String> = startChar asString, '-', endChar asString, ' expected'.
+	|
+) (
 public parse: input inContext: context ifError: blk = (
 	| rune |
 	input atEnd ifTrue: [^blk value: message value: input position].
@@ -89,7 +92,10 @@ If parsing fails, it is the caller''s responsibility to set the input stream bac
 (Q: is this a good idea?).
 If an error occurs, the error block passed in is called. *)
 public class CombinatorialParser = (
-| public name |) (
+	|
+	public name
+	|
+) (
 public & p <CombinatorialParser> ^<SequentialParser> = (
 	(* The sequencing combinator (implicit in BNF). *)
 	^SequentialParser withSubparsers: {self. p}
@@ -138,16 +144,16 @@ public isKindOfCombinatorialParser = (
 public not ^<CombinatorialParser> = (
 	^NegatingParser withSubparser: self
 )
-public opt ^ <CombinatorialParser> = (
+public opt ^<CombinatorialParser> = (
 	(* [P] = P | e *)
 	^self | empty
 )
-public parse: input <ReadStream> ^ <T | ParserError> = (
+public parse: input <ReadStream> ^<T | ParserError> = (
 	^self
 		parse: input
 		ifErrorNoContext: [:msg :pos | ^(ParserError message: msg position: pos) signal]
 )
-public parse: input <ReadStream> ifError: blk <[:String :Integer | X def]> ^ <T|X> = (
+public parse: input <ReadStream> ifError: blk <[:String :Integer | X def]> ^<T|X> = (
 	#FLAG.
 	^self parse: input ifErrorNoContext: blk
 (* | context |
@@ -167,7 +173,7 @@ public parse: input <ReadStream> ifError: blk <[:String :Integer | X def]> ^ <T|
 	               blk value: context errorMessage value: context errorPosition.
 	  ] *)
 )
-public parse: input <ReadStream> ifErrorNoContext: blk <[:String :Integer | X def]> ^ <T|X> = (
+public parse: input <ReadStream> ifErrorNoContext: blk <[:String :Integer | X def]> ^<T|X> = (
 	(* YK - a context-less protocol for speeding up parsing *)
 	(* Turns out maintaining a context is expensive in runtime and doesn't
 	do much for locating errors. Experimenting with other error localization
@@ -178,10 +184,10 @@ public parse: input <ReadStream> ifErrorNoContext: blk <[:String :Integer | X de
 public parse: input <ReadStream> inContext: context ifError: blk = (
 	subclassResponsibility
 )
-public parseString: input <String> ^ <T | ParserError> = (
+public parseString: input <String> ^<T | ParserError> = (
 	^self parse: (ParserStream over: input)
 )
-public parseString: input <String> ifError: blk <[:String :Integer | X def]> ^ <T|X> = (
+public parseString: input <String> ifError: blk <[:String :Integer | X def]> ^<T|X> = (
 	^self parse: (ParserStream over: input) ifError: blk
 )
 public plus ^<CombinatorialParser> = (
@@ -198,7 +204,7 @@ have no semantic value.  If one needs them, one can always build the rule direct
 	                    List new  addFirst: fst; addAll: rst; yourself (* could be optimized to reuse rst *)
 	       ]
 )
-public plusSeparatedOrTerminatedBy: separator <CombinatorialParser> ^ <CombinatorialParser> = (
+public plusSeparatedOrTerminatedBy: separator <CombinatorialParser> ^<CombinatorialParser> = (
 (* Utility for the common case of a list with separators, allowing for an optional appearance of the separator at the end. The separators are discarded, as they are usually only used to guide parsing and
 have no semantic value.  If one needs them, one can always build the rule directly *)
 
@@ -255,13 +261,14 @@ public | p <CombinatorialParser> ^<CombinatorialParser> = (
 )
 ) : (
 )
-public class CommentParser = CombinatorialParser (|
+public class CommentParser = CombinatorialParser (
+	|
 	public termBlock
-|) (
+	|
+) (
 public parse: input inContext: context ifError: blk = (
-	[termBlock value: input] whileFalse: [
-		input nextIfAbsent: [blk value:'Premature end of input' value: input position-1]
-	].
+	[termBlock value: input] whileFalse:
+		[input nextIfAbsent: [blk value: 'Premature end of input' value: input position - 1]].
 )
 ) : (
 )
@@ -301,11 +308,13 @@ If parsing fails, it is the caller''s responsibility to set the input stream bac
 (Q: is this a good idea?).
 If an error occurs, the error block passed in is called. *)
 public class ExecutableGrammar = CombinatorialParser (
-|
+	|
 	forwardReferenceTable ::= Map new.
 	protected selfMirror <ObjectMirror> = ObjectMirror reflecting: self.
-|self setupForwardReferences.
-  self bindForwardReferences) (
+	|
+	self setupForwardReferences.
+	self bindForwardReferences.
+) (
 bindForwardReferences = (
 	forwardReferenceTable keysAndValuesDo:
 		[:k :v | v bindingRoutine: [finalBindForwardReferences]].
@@ -332,7 +341,7 @@ setupForwardReferences = (
 			[forwardReferenceTable at: iv put: fref.
 			selfMirror setSlot: iv to: fref]]
 )
-tokenFor: p <CombinatorialParser> ^ <CombinatorialParser> = (
+tokenFor: p <CombinatorialParser> ^<CombinatorialParser> = (
 (* Tokenizing involves throwing away leading whitespace and comments.
 In addition, it involves associating the token with a starting position within the input stream;
 We do the latter first by wrapping p in a TokenizingParser; then we prefix it with a parser
@@ -369,11 +378,13 @@ public parse: input inContext: context ifError: blk = (
 )
 ) : (
 )
-class ForwardReferenceParser = CombinatorialParser (|
-	forwardee
-	public bindingRoutine
-|) (
-public & p <CombinatorialParser> ^ <CombinatorialParser> = (
+class ForwardReferenceParser = CombinatorialParser (
+	|
+	forwardee <CombinatorialParser>
+	public bindingRoutine <[]>
+	|
+) (
+public & p <CombinatorialParser> ^<CombinatorialParser> = (
 	^forwardee isNil
 		ifTrue: [super & p]
 		ifFalse: [forwardee & p]
@@ -412,9 +423,10 @@ public | p = (
 
 Instances of this class determiine how to act when asked to parse. At that time, the parse tree must be complete, and they can ask the ultimate parser for a wrappin parser that is suitable configured, and forward requests to it. *)
 class ForwardingWrappingParser = WrappingParser (
-|
+	|
 	wrappingParser
-|) (
+	|
+) (
 public parse: input inContext: context ifError: blk = (
 	^trueWrappingParser parse: input inContext: context ifError: blk
 )
@@ -436,7 +448,10 @@ public parse: input inContext: context ifError: blk = (
 )
 (* A parser that implements the 'not' combinator, as in Ford's PEGs. It contains a parser p, and succeeds if p fails and vice versa. It does not move the input forward if it succeeds. *)
 class NegatingParser withSubparser: p = CombinatorialParser (
-| subparser <CombinatorialParser> = p. |) (
+	|
+	subparser <CombinatorialParser> = p.
+	|
+) (
 public parse: input inContext: ctxt ifError: blk = (
 	| rewindPosition |
 	rewindPosition:: input position.
@@ -450,25 +465,30 @@ public parse: input inContext: ctxt ifError: blk = (
 In addition, this class could be used to support context-sensitive parsing.
 *)
 class ParserContext = (
-| failures ::= List new. |) (
+	|
+	failures ::= List new.
+	|
+) (
 errorMessage = (
-failures isEmpty ifTrue: [^''].
-^failures last first
+	failures isEmpty ifTrue: [^''].
+	^failures last first
 )
 errorPosition = (
-failures isEmpty ifTrue: [^-1].
-^failures last last
+	failures isEmpty ifTrue: [^-1].
+	^failures last last
 )
 recordFailure: f = (
-(failures isEmpty or: [ failures last last <= f last ])
+	(failures isEmpty or: [ failures last last <= f last ])
 		ifTrue: [ failures addLast: f]
 )
 ) : (
 )
-public class ParserError message: m position: p = Exception (|
+public class ParserError message: m position: p = Exception (
+	|
 	public message <String> = m.
 	public position <Integer> = p.
-|) (
+	|
+) (
 public description = (
 	^'ParserError: ', message
 )
@@ -477,10 +497,12 @@ public printString = (
 )
 ) : (
 )
-class ParserStream over: string = (|
-public contents = string.
-public position ::= 0.
-|) (
+class ParserStream over: string = (
+	|
+	public contents = string.
+	public position ::= 0.
+	|
+) (
 public atEnd = (
 	^position >= contents size
 )
@@ -497,7 +519,10 @@ public peek = (
 )
 (* An attempt to optimize the + operator by having a dedicated parser for it. *)
 class PlusParser withSubparser: p = CombinatorialParser (
-| subparser = p. |) (
+	|
+	subparser <CombinatorialParser> = p.
+	|
+) (
 public parse: input inContext: context ifError: blk = (
 	| rewindPosition results nextResult |
 	results:: List new.
@@ -523,7 +548,10 @@ operator, just like AlternatingParser corresponds to the | operator.
 However, grammar productions typically involve several elements, so
 the typical sequencing operation is n-ary *)
 class SequentialParser withSubparsers: s = CombinatorialParser (
-| subparsers <Array[CombinatorialParser]> = s. |) (
+	|
+	subparsers <Array[CombinatorialParser]> = s.
+	|
+) (
 public , p <CombinatorialParser> ^<SequentialParser> = (
 	^SequentialParser withSubparsers: (subparsers copyWith: p)
 )
@@ -539,7 +567,10 @@ public wrapper: block = (
 )
 (* An attempt to optimize the * operator by having a dedicated parser for it. *)
 class StarParser withSubparser: p = CombinatorialParser (
-| subparser = p. |) (
+	|
+	subparser <CombinatorialParser> = p.
+	|
+) (
 public parse: input inContext: context ifError: blk = (
 	| rewindPosition results nextResult |
 	results:: List new.
@@ -558,7 +589,10 @@ public parse: input inContext: context ifError: blk = (
 )
 (* Parses a given symbol.  One could derive this as an alternation of character parsers, but the derivation is more verbose than defining it directly, and less efficient, so why bother? *)
 class StringParser for: s <String> = CombinatorialParser (
-| string = s. |) (
+	|
+	string = s.
+	|
+) (
 public parse: input inContext: context ifError: blk = (
 	| pos |
 	pos:: input position.
@@ -578,14 +612,19 @@ typesafe. Until we have tuples, we'll use this class.
 
 It's not yet clear if we should bother adding token codes or values here. *)
 public class Token value: v start: s end: e = (
-|
+	|
 	public value = v.
-	public start = s.
-	public end = e.
-|) (
+	public start <Integer> = s.
+	public end <Integer> = e.
+	|
+) (
 ) : (
 )
-public class TokenizingParser withSubparser: p = CombinatorialParser (| subparser = p. |) (
+public class TokenizingParser withSubparser: p = CombinatorialParser (
+	|
+	subparser <CombinatorialParser> = p.
+	|
+) (
 public parse: input inContext: context ifError: blk = (
 	| pos res |
 	pos:: input position + 1.
@@ -618,7 +657,11 @@ parser. A typical use is to build nodes of an abstract syntax tree.
 The output type of the wrapped parser, S, is also the input to the wrapper. The output type of the wrapper is the output of this
 (the wrapping) parser. *)
 class WrappingParser = CombinatorialParser (
-| parser wrapperBlock |) (
+	|
+	parser <CombinatorialParser>
+	wrapperBlock
+	|
+) (
 public parse: input inContext: context ifError: blk = (
 	^wrapperBlock value: (parser parse: input inContext: context ifError: [:msg :pos | ^blk value: msg value: pos])
 )

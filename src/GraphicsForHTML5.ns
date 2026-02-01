@@ -4,13 +4,14 @@ Core graphics support for Newspeak.
 Copyright Google Inc. 2015 - 2017
 *)
 class GraphicsForHTML5 usingPlatform: p = (
-|
-document = p js global at: 'document'.
-|) (
+	|
+	document <Alien[Document]> = p js global at: 'document'.
+	|
+) (
 public class Canvas width: w height: h = (
-|
+	|
 	private alien ::= document createElement: 'canvas'.
-|
+	|
 	alien at: 'width' put: w.
 	alien at: 'height' put: h.
 	(alien at: 'style') at: 'position' put: 'relative'.
@@ -28,12 +29,14 @@ public mouseMovedAction: onMouseMoved <[:Point]> = (
 )
 ) : (
 )
-public class Color scaledR: r g: g b: b a: a = (|
-public red <Integer> = r.
-public green <Integer> = g.
-public blue <Integer> = b.
-public alpha <Integer> = a.
-|) (
+public class Color scaledR: r g: g b: b a: a = (
+	|
+	public red <Integer> = r.
+	public green <Integer> = g.
+	public blue <Integer> = b.
+	public alpha <Integer> = a.
+	|
+) (
 public applyToStyle: style = (
 	style setProperty: 'background-color' to: self asCSSString
 )
@@ -105,9 +108,11 @@ public white = (
 	^self scaledR: 255 g: 255 b: 255 a: 255
 )
 )
-public class Context on: a = (|
-alien = a.
-|) (
+public class Context on: a = (
+	|
+	alien <Alien[CanvasRenderingContext2D]> = a.
+	|
+) (
 public arcAt: center radius: radius from: startAngle to: stopAngle = (
 	alien arc: center x with: center y with: radius with: startAngle with: stopAngle
 )
@@ -140,10 +145,12 @@ public strokeStyle: c <Color> = (
 )
 ) : (
 )
-public class Point x: xCoord y: yCoord = (|
-public x <Number> = xCoord.
-public y <Number> = yCoord.
-|) (
+public class Point x: xCoord y: yCoord = (
+	|
+	public x <Number> = xCoord.
+	public y <Number> = yCoord.
+	|
+) (
 public = other <Object> ^<Boolean> = (
 	^other isKindOfPoint and: [x = other x and: [y = other y]]
 )
@@ -176,10 +183,12 @@ public zero ^<Point> = (
 	^self x: 0 y: 0
 )
 )
-public class Rectangle origin: o corner: c = (|
-public origin <Point> = o.
-public corner <Point> = c.
-|) (
+public class Rectangle origin: o corner: c = (
+	|
+	public origin <Point> = o.
+	public corner <Point> = c.
+	|
+) (
 public = other ^<Boolean> = (
 	^other isRectangle and: [origin = other origin and: [corner = other corner]]
 )

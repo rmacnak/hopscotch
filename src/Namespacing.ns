@@ -9,7 +9,7 @@ Licensed under the Apache License, Version 2.0 (the ''License''); you may not us
 *)
 (* :exemplar: ide namespacing *)
 class Namespacing usingPlatform: p ide: ide = (
-|
+	|
 	private ClassMirror = p mirrors ClassMirror.
 	private ObjectMirror = p mirrors ObjectMirror.
 	private List = p collections List.
@@ -25,7 +25,8 @@ class Namespacing usingPlatform: p ide: ide = (
 	public manifest = Manifest forNamespace: Root.
 
 	selectors ::= Map new.
-|) (
+	|
+) (
 public class AllLiteralsSubject = SelectorSetSubject (
 ) (
 filter: selector <Selector> = (
@@ -62,9 +63,10 @@ protected doesNotUnderstand: message <Message> = (
 )
 (* A mapping between unary selectors and Values. *)
 class Namespace = (
-|
-	protected _dictionary ::= Map new.
-|) (
+	|
+	protected _dictionary <Map[String,Value]> ::= Map new.
+	|
+) (
 public at: symbol <Symbol> ^<Value> = (
 	^_dictionary at: symbol
 )
@@ -80,10 +82,10 @@ public at: symbol <Symbol> put: value <Value> ^<Value> = (
 public includesKey: symbol <Symbol> ^<Boolean> = (
 	^_dictionary includesKey: symbol
 )
-public isKindOfNamespace ^ <Boolean> = (
+public isKindOfNamespace ^<Boolean> = (
 	^true
 )
-public keys ^ <Collection[Symbol]> = (
+public keys ^<Collection[Symbol]> = (
 	^_dictionary keys
 )
 public keysAndValuesDo: binaryBlock <[:Symbol :Value]> = (
@@ -116,13 +118,15 @@ filter: selector <Selector> = (
 public title = ( ^'No Senders' )
 ) : (
 )
-class Selector name: n = (|
-	public name = n.
+class Selector name: n = (
+	|
+	public name <String> = n.
 	public senders = Set new.
 	public implementors = Set new.
 	public metadata = Set new.
 	public literals = Set new.
-|) (
+	|
+) (
 ) : (
 )
 class SelectorPresenter onSubject: s = ProgrammingPresenter onSubject: s (
@@ -281,7 +285,7 @@ indexTransientSlot: slot <MethodMirror> = (
 	note: slot hasMetadata: slot metadata.
 	note: slot hasLiterals: slot literals.
 )
-lexicallyLessOrEqual: a <String> than: b <String> ^ <Boolean> = (
+lexicallyLessOrEqual: a <String> than: b <String> ^<Boolean> = (
 	1 to: (a size min: b size) do:
 		[:index |
 		 (a at: index) < (b at: index) ifTrue: [^true].
@@ -342,7 +346,7 @@ public reindex = (
 	selectors:: Map new.
 	Root do: [:member | member isKindOfBehavior ifTrue: [indexClass: member]].
 )
-public removeKey: key <Symbol> ^ <Object> = (
+public removeKey: key <Symbol> ^<Object> = (
 	| value <Object> |
 	#NAMESPACEBOGUS.
 	value:: Root removeKey: key.

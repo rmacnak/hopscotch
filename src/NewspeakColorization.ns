@@ -26,20 +26,20 @@ The ranges in the range list may overlap.  In consolidateRanges,  overlaps are e
 We then traverse the range array and, using propertiesMap, compute a corresponding set of text objects that have the appropriate properties, and filling in the gaps with text objects that have default properties, as described above.
 *)
 public class NS3BrowserColorizer = NS3Colorizer (
-|
+	|
 	inputString <String>
 	rangeArray <Array>
-|) (
-(*
-Instances of this class describe a range of text in the source. The start and end of the range are given as indices into the source.
-The kind is a descriptor for what sort of element the code describes - a type, an error, a literal etc. The kind will serve as a key for the colorizer to decide what color to use for the text described by the range.
-*)
+	|
+) (
+(* Instances of this class describe a range of text in the source. The start and end of the range are given as indices into the source.
+The kind is a descriptor for what sort of element the code describes - a type, an error, a literal etc. The kind will serve as a key for the colorizer to decide what color to use for the text described by the range. *)
 class Range kind: k start: s end: e = (
-|
+	|
 	public kind <Symbol> = k.
 	public start <Integer> = s.
 	public end <Integer> = e.
-|) (
+	|
+) (
 ) : (
 )
 public colorizeClassDeclaration: s <String> fromMixin: m <MixinMirror> in: editor <CodeMirrorFragment> = (
@@ -82,7 +82,7 @@ consolidateRanges = (
 	]
 )
 consolidateRangesAt: index <Integer> = (
-| e1 <Range> e2 <Range>  |
+	| e1 <Range> e2 <Range> |
 	e1:: rangeArray at: index.
 	e2:: rangeArray at: index + 1.
       e2 start > e1 end
@@ -117,7 +117,7 @@ Because colorization is used to identify shadowing and undefined names, a notion
 It might be better to produce an actual AST (or a subset thereof) and visit it in order to colorize. In the existing scheme, subexpressions may induce colorizations that are subsumed by their enclosing expressions or statements, and we are forced to explicitly account for these situations and withdraw colorizations. See for example the blockType method, or worse, binaryMsgPattern.
 *)
 class NS3Colorizer = TypedNS3Grammar (
-|
+	|
 	cachedScopeStack
 	mixin <MixinMirror>
 	rangeMap <List[Range]>
@@ -126,7 +126,8 @@ class NS3Colorizer = TypedNS3Grammar (
 	bracketDepth <Integer>
 	parenDepth <Integer>
 	mixinMirrorForObject <MixinMirror> = (ClassMirror reflecting: Object) mixin.
-|) (
+	|
+) (
 accessModifier = (
 	^super accessModifier wrapper: [ :mod :ws |
 		noteRange: mod value asSymbol from: mod start to: mod end.
@@ -181,14 +182,12 @@ blockParameter = (
 )
 blockParameters = (
 	^super blockParameters wrapper:
-		[:ps :vb  | self pushScope.
+		[:ps :vb | self pushScope.
 		ps do: [:p | self currentScope at: p first value put: #parameter].
 		{ps. vb}]
 )
 blockType = (
-(* The brackets around the block type will colorize themselves, but their
-colorization is superceded by the surrounding type. Therefore we remove the last
-two elements from the rangeMap. *)
+	(* The brackets around the block type will colorize themselves, but their colorization is superceded by the surrounding type. Therefore we remove the last two elements from the rangeMap. *)
 	^super blockType wrapper:
 		[:lb :t :rb | rangeMap removeLast; removeLast. t ]
 )
@@ -225,16 +224,12 @@ public classHeader = (
 			tokens ]
 )
 classId = (
-  ^super classId wrap: [:cn |
-	  noteRange: #className from: cn start to: cn end.
-	  cn
-	]
+	^super classId wrap:
+		[:cn | noteRange: #className from: cn start to: cn end. cn]
 )
 classReservedWord = (
-  ^super classReservedWord wrap: [:c |
-	  noteRange: #class from: c start to: c end.
-	  c
-	]
+	^super classReservedWord wrap:
+		[:c | noteRange: #class from: c start to: c end. c]
 )
 public codeBody = (
 	^super codeBody wrapper:
@@ -378,7 +373,7 @@ nestedClassDecl = (
 		noteRange: #className from: ((tokens last) at: 2) start to: ((tokens last) at: 2) end.
 		tokens]
 )
-noteRange: kind from: start to: end  = (
+noteRange: kind from: start to: end = (
 	subclassResponsibility
 )
 number = (
@@ -493,11 +488,11 @@ symbolConstant = (
 		self noteRange: #symbol from: p start to: s end.
 		s].
 )
-symbolInScope: aString <String> ^ <Boolean> = (
+symbolInScope: aString <String> ^<Boolean> = (
 	scopeStack do: [:s | (s includesKey: aString) ifTrue: [^true]].
 
-		(extendedCanUnderstand: aString) ifTrue: [^true].
-		^false
+	(extendedCanUnderstand: aString) ifTrue: [^true].
+	^false
 )
 temporaries = (
 	|
@@ -509,19 +504,19 @@ temporaries = (
 
 	^tempSlotDecls wrap:
 		[:parts | | vb1 vb2 vds vb3 vb4 |
-		parts size = 3
+		 parts size = 3
 			ifTrue:
 				[vb1:: parts at: 1.
-				vb2:: vb1.
-				vds:: parts at: 2.
-				vb3:: parts at: 3.
-				vb4:: vb3]
+				 vb2:: vb1.
+				 vds:: parts at: 2.
+				 vb3:: parts at: 3.
+				 vb4:: vb3]
 			ifFalse:
 				[vb1:: parts at: 1.
-			vb2:: parts at: 2.
-			vds:: parts at: 3.
-			vb3:: parts at: 4.
-			vb4:: parts at: 5].
+				 vb2:: parts at: 2.
+				 vds:: parts at: 3.
+				 vb3:: parts at: 4.
+				 vb4:: parts at: 5].
 
 		noteRange: #methodTempBar from: vb1 start to: vb2 end.
 		noteRange: #methodTempBar from: vb3 start to: vb4 end.
@@ -538,10 +533,8 @@ temporaries = (
 		vds]
 )
 transientModifier = (
-  ^super transientModifier wrap: [:t |
-	  noteRange: #transient from: t start to: t end.
-	  t
-	]
+	^super transientModifier wrap:
+		[:t | noteRange: #transient from: t start to: t end. t]
 )
 transientSlotDecl = (
 	^super transientSlotDecl wrap:
@@ -550,9 +543,7 @@ transientSlotDecl = (
 		tokens]
 )
 tupleType = (
-(* The braces around the tuple type will colorize themselves, but their
-colorization is superceded by the surrounding type. Therefore we remove the last
-two elements from the rangeMap. *)
+	(* The braces around the tuple type will colorize themselves, but their colorization is superceded by the surrounding type. Therefore we remove the last two elements from the rangeMap. *)
 	^super tupleType wrapper:
 		[:lc :t :rc | rangeMap removeLast; removeLast. t ]
 )
@@ -561,9 +552,7 @@ type = (
 		[:lb :te :rb | self noteRange: #type from: lb start to: rb end. te]
 )
 typeArguments = (
-(* The brackets around the type arguments will colorize themselves, but their
-colorization is superceded by the surrounding type. Therefore we remove the last
-two elements from the rangeMap. *)
+	(* The brackets around the type arguments will colorize themselves, but their colorization is superceded by the surrounding type. Therefore we remove the last two elements from the rangeMap. *)
 	^super typeArguments wrapper:
 		[:lb :t :rb | rangeMap removeLast; removeLast. t ]
 )

@@ -1,13 +1,15 @@
-class WebTestRunner packageUsing: manifest = (|
-Minitest = manifest Minitest.
-hopscotchRuntime = manifest HopscotchForHTML5Runtime packageUsing: manifest.
-testConfigs = {
-	manifest CombinatorialParsingTestingConfiguration packageTestsUsing: manifest.
-	manifest NewspeakColorizationTestingConfiguration packageTestsUsing: manifest.
-}.
-Promise
-|) (
-private exit: code = (
+class WebTestRunner packageUsing: manifest = (
+	|
+	Minitest = manifest Minitest.
+	hopscotchRuntime = manifest HopscotchForHTML5Runtime packageUsing: manifest.
+	testConfigs = {
+		manifest CombinatorialParsingTestingConfiguration packageTestsUsing: manifest.
+		manifest NewspeakColorizationTestingConfiguration packageTestsUsing: manifest.
+	}.
+	Promise
+	|
+) (
+private exit: code <Integer> = (
 	(* :pragma: primitive: 189 *)
 	panic.
 )

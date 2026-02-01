@@ -1,7 +1,9 @@
-class CombinatorialParsingTesting usingCombinatorialParsing: c minitest: m = (|
-private TestContext = m TestContext.
-private ExecutableGrammar = c ExecutableGrammar.
-|) (
+class CombinatorialParsingTesting usingCombinatorialParsing: c minitest: m = (
+	|
+	private TestContext = m TestContext.
+	private ExecutableGrammar = c ExecutableGrammar.
+	|
+) (
 public class WrappingParserTests = TestContext () (
 public testParseString = (
 	| p |

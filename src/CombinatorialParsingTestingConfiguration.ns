@@ -1,7 +1,9 @@
-class CombinatorialParsingTestingConfiguration packageTestsUsing: manifest = (|
-private CombinatorialParsing = manifest CombinatorialParsing.
-private CombinatorialParsingTesting = manifest CombinatorialParsingTesting.
-|) (
+class CombinatorialParsingTestingConfiguration packageTestsUsing: manifest = (
+	|
+	private CombinatorialParsing = manifest CombinatorialParsing.
+	private CombinatorialParsingTesting = manifest CombinatorialParsingTesting.
+	|
+) (
 public testModulesUsingPlatform: platform minitest: minitest = (
 	^{CombinatorialParsingTesting usingCombinatorialParsing: (CombinatorialParsing usingPlatform: platform) minitest: minitest}
 )

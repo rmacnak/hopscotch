@@ -6,19 +6,19 @@ Copyright 2012 Ryan Macnak
 
 Licensed under the Apache License, Version 2.0 (the ''License''); you may not use this file except in compliance with the License.  You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0 *)
 class NewspeakGrammar usingPlatform: p parsers: parsers = (
-|
+	|
+	private List = p collections List.
 
-private List = p collections List.
-
-private ExecutableGrammar = parsers ExecutableGrammar.
-private CollectingCommentParser = parsers CollectingCommentParser.
-private CombinatorialParser = parsers CombinatorialParser.
-private Token = parsers Token.
-public ParserError = parsers ParserError.
-|) (
+	private ExecutableGrammar = parsers ExecutableGrammar.
+	private CollectingCommentParser = parsers CollectingCommentParser.
+	private CombinatorialParser = parsers CombinatorialParser.
+	private Token = parsers Token.
+	public ParserError = parsers ParserError.
+	|
+) (
 (* Grammar for Newspeak3 (without types). *)
 class NS3Grammar = ExecutableGrammar (
-|
+	|
 	whitespace = super whitespace. (* cache whitespace parser *)
 	colon = tokenFromChar: ":".
 	comma = tokenFromChar: ",".
@@ -216,7 +216,7 @@ class NS3Grammar = ExecutableGrammar (
 	           ), expression, dot.
 
 
-      public methodHeader = accessModifier opt, messagePattern.
+	public methodHeader = accessModifier opt, messagePattern.
 	public methodDecl = accessModifier opt, messagePattern, equalSign, lparen, codeBody, rparen.
 
 	optionalFactorySection = messagePattern opt, equalSign.
@@ -235,10 +235,9 @@ Originally, we split this into two branches - one using a mandatory messagePatte
 This solution seems cleaner.
 AS YET UNTESTED.
 *)
+	classReservedWord = tokenFromSymbol: #class.
 
-      classReservedWord = tokenFromSymbol: #class.
-
-      classId = identifier.
+	classId = identifier.
 
 	classPrefix = classReservedWord, classId, optionalFactorySection, superclassClause opt.
 
@@ -293,7 +292,8 @@ It would be nice to just say messagePattern opt]. Alas, because the '|' operator
 	compilationUnit = languageId, toplevelClass, eoi.
 
 	public doItExpression = codeBody, eoi.
-|) (
+	|
+) (
 _ = (
 	^char: "_"
 )
@@ -388,8 +388,7 @@ public parse: input <ReadStream> inContext: context ifError: blk = (
 )
 (* A parser for Strongtalk syntax. Adds productions for the Strongtalk type expression sublanguage, and the changes needed to use types in Newsqueak code. *)
 public class TypedNS3Grammar = NS3Grammar (
-|
-
+	|
 	arg = tokenFromSymbol: #arg.
 	for = tokenFromSymbol: #for.
 	generic = tokenFromSymbol: #generic.
@@ -433,7 +432,8 @@ public class TypedNS3Grammar = NS3Grammar (
 	returnTypeInferenceClause = of, msgSelector.
 	msgSelector = symbolConstant, mssg, of, inferenceClause.
 	typeArgInferenceClause = typeArg, number, for, generic, symbolConstant, of, inferenceClause.
- |) (
+	|
+) (
 messagePattern = (
 	^super messagePattern, returnType opt, typePattern opt. (* Type annotations *)
 )
@@ -454,7 +454,8 @@ slotDecl = (
  be tokenized as a keyword rather than as an identifier. The Strongtalk parser, DeltaParser, deals
  with this specially. In the longterm, that is probably the way to go. *)
 class UnarySelectorParser = CombinatorialParser (
-| p |) (
+	| p |
+) (
 public on: s = (
 	p: s.
 )

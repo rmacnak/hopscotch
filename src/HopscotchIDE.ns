@@ -58,7 +58,8 @@ class HopscotchImages packageUsing: manifest = (
 	public disclosureClosedImage = manifest disclosureClosedImage.
 	public disclosureTransitionImage = manifest disclosureTransitionImage.
 	public disclosureOpenImage = manifest disclosureOpenImage.
-|) (
+	|
+) (
 ) : (
 )
 (* :exemplar: ide *)

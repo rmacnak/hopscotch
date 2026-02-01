@@ -42,9 +42,11 @@ public layout: constraints = (
 public paint: context offset: offset = ()
 ) : (
 )
-class CenterComposer withContent: definition <Fragment> = Composer (|
-	public content = definition.
-|) (
+class CenterComposer withContent: definition <Fragment> = Composer (
+	|
+	public content <Fragment> = definition.
+	|
+) (
 public childrenDo: aBlock <[:Fragment]> = (
 	aBlock value: content.
 )
@@ -57,9 +59,11 @@ createVisual = (
 )
 ) : (
 )
-public class CenterVisual = Visual (|
-	public child
-|) (
+public class CenterVisual = Visual (
+	|
+	public child <Visual>
+	|
+) (
 public hitTest: offset = (
 	^child hitTest:
 		(Offset x: offset x + child parentData_x y: offset y + child parentData_y)
@@ -149,9 +153,11 @@ public minWidth: w1 maxWidth: w2 minHeight: h1 maxHeight: h2 = (
 	^self new minWidth: w1; maxWidth: w2; minHeight: h1; maxHeight: h2
 )
 )
-class FlowComposer definitions: fs = SequenceComposer definitions: fs (|
+class FlowComposer definitions: fs = SequenceComposer definitions: fs (
+	|
 	protected runAlignment ::= #start.
-|) (
+	|
+) (
 createVisual = (
 	| v = FlowVisual new. |
 	v flex: expansibility.
@@ -191,14 +197,16 @@ public runsSpaceEvenly = (
 ) : (
 )
 (* Sometimes called Wrap. *)
-class FlowVisual = Visual (|
+class FlowVisual = Visual (
+	|
 	public isColumn
 	public mainAxisAlignment
 	public crossAxisAlignment
 	public runAlignment
 	children ::= List new.
-|) (
-public appendChild: c = (
+	|
+) (
+public appendChild: c <Visual> = (
 	children add: c.
 )
 public hitTest: offset = (
@@ -382,13 +390,15 @@ public setChildren: newChildren = (
 )
 ) : (
 )
-class Fragment = (|
-	visualX
-	public parent
-	public expansibility ::= 0.
-	public compressibility ::= 0.
-	decorators
-|) (
+class Fragment = (
+	|
+	visualX <Visual>
+	public parent <Fragment>
+	public expansibility <Number> ::= 0.
+	public compressibility <Number> ::= 0.
+	decorators <Collection[Decorator]>
+	|
+) (
 public addDecorator: newDecorator <Decorator> = (
 	(* The argument is added last to the collection of our decorators, meaning it will be applied after all the other decorators we might have. *)
 	nil = decorators ifTrue: [decorators:: List new].
@@ -572,10 +582,12 @@ public title = (
 )
 ) : (
 )
-class HolderComposer withContent: definition <Fragment | [Fragment]> = Composer (|
+class HolderComposer withContent: definition <Fragment | [Fragment]> = Composer (
+	|
 	contentSource <Fragment | [Fragment]> ::= definition.
 	actualContent <Fragment>
-|) (
+	|
+) (
 public childrenDo: aBlock <[:Fragment]> = (
 	nil = actualContent ifFalse: [aBlock value: actualContent].
 )
@@ -585,7 +597,7 @@ public content ^<Fragment> = (
 		actualContent parent: self].
 	^actualContent
 )
-public content: fragment = (
+public content: fragment <Fragment> = (
 	fragment parent: self.
 	actualContent:: fragment.
 	hasVisual ifTrue: [visual content: fragment visual].
@@ -609,9 +621,11 @@ public refresh = (
 )
 ) : (
 )
-class HolderVisual = Visual (|
-	public content
-|) (
+class HolderVisual = Visual (
+	|
+	public content <Visual>
+	|
+) (
 public height = ( ^content height )
 public hitTest: offset = ( ^content hitTest: offset )
 public layout: constraints = ( content layout: constraints )
@@ -645,7 +659,7 @@ checkHit = (
 	focus:: rootVisual hitTest: (Offset x: terminal mouseX - 1 y: terminal mouseY - 1).
 	echo:: echo , '  ', focus printString.
 )
-public childrenDo: aBlock = (
+public childrenDo: aBlock <[:Fragment]> = (
 	aBlock value: currentPresenter
 )
 createChrome = (
@@ -837,13 +851,15 @@ public openSubject: s = (
 	^self new enterSubject: s
 )
 )
-class HyperlinkFragment label: l action: a = LeafFragment (|
-	label = l.
-	action = a.
+class HyperlinkFragment label: l action: a = LeafFragment (
+	|
+	label <String> = l.
+	action <[]> = a.
 	public color ::= 6.
 	public style
 	public enabled ::= true.  (* For ButtonFragment *)
-|) (
+	|
+) (
 createVisual = (
 	| v |
 	v:: LabelVisual new.
@@ -859,13 +875,15 @@ public smallFont = (
 ) : (
 )
 (* Text without line wrapping. *)
-public class LabelVisual = Visual (|
-	public text
+public class LabelVisual = Visual (
+	|
+	public text <String>
 	public color
 	public style
-	public action
-	_paintText
-|) (
+	public action <[]>
+	_paintText <String>
+	|
+) (
 asPrinting: b = (
 	b = 9 ifTrue: [^'     '].
 	b < 32 ifTrue: [^'?'].
@@ -934,7 +952,7 @@ public respondToInput: cmd = (
 ) : (
 )
 class LeafFragment = Fragment () (
-public childrenDo: aBlock = (
+public childrenDo: aBlock <[:Fragment]> = (
 	(* No children. *)
 )
 ) : (
@@ -1084,7 +1102,7 @@ public isKindOfOffset ^<Boolean> = (
 )
 ) : (
 )
-class PaintContext terminal: t x: x y: y w: w h: h  = (
+class PaintContext terminal: t x: x y: y w: w h: h = (
 	|
 	terminal = t.
 	offsetX = x.
@@ -1168,20 +1186,22 @@ public advance = (
 )
 ) : (
 )
-public class Presenter onSubject: aSubject <Subject> = Fragment (|
-public subject <Subject> ::= aSubject.
-substanceSlot <Fragment>
-|) (
-blank: size = (
+public class Presenter onSubject: aSubject <Subject> = Fragment (
+	|
+	public subject <Subject> ::= aSubject.
+	substanceSlot <Fragment>
+	|
+) (
+blank: size <Integer> ^<Fragment> = (
 	^BlankFragment new size: size
 )
-button: label <String> action: block <[]> = (
+button: label <String> action: block <[]> ^<Fragment> = (
 	^HyperlinkFragment label: '[',label,']' action: block
 )
 center: def <Fragment> = (
 	^CenterComposer withContent: def
 )
-public childrenDo: aBlock = (
+public childrenDo: aBlock <[:Fragment]> = (
 	nil = substanceSlot ifFalse: [aBlock value: substanceSlot]
 )
 codeMirror: t <Text | String> = (
@@ -1200,7 +1220,7 @@ collapsed: collapsed <[Fragment]> expanded: expanded <[Fragment]> initiallyExpan
 column: definitions <List[Fragment]> ^<ColumnComposer> = (
 	^ColumnComposer definitions: definitions
 )
-createVisual ^ <Alien[HTMLElement]> = (
+createVisual ^<Alien[HTMLElement]> = (
 (*	| substance = definition. |
 	substance parent: self.
 	^substance visual *)
@@ -1210,16 +1230,16 @@ createVisual ^ <Alien[HTMLElement]> = (
 public definition ^<Fragment> = (
 	subclassResponsibility
 )
-dropDownMenu: menu <[Menu]> ^ <DropDownMenuFragment> = (
+dropDownMenu: menu <[Menu]> ^<DropDownMenuFragment> = (
 	^label: '[menu]'.
 )
-dropDownMenu: menu <[Menu]> alignment: side <Symbol> ^ <DropDownMenuFragment> = (
+dropDownMenu: menu <[Menu]> alignment: side <Symbol> ^<DropDownMenuFragment> = (
 	^label: '[menu]'.
 )
-dropDownMenu: menu <[Menu]> images: ims <Array[Image]>  ^ <DropDownMenuFragment> = (
+dropDownMenu: menu <[Menu]> images: ims <Array[Image]> ^<DropDownMenuFragment> = (
 	^label: '[menu]'.
 )
-dropDownMenu: menu <[Menu]> images: ims <Array[Image]> alignment: side <Symbol> ^ <DropDownMenuFragment> = (
+dropDownMenu: menu <[Menu]> images: ims <Array[Image]> alignment: side <Symbol> ^<DropDownMenuFragment> = (
 	^label: '[menu]'.
 )
 elastic: aFragment = (
@@ -1273,7 +1293,7 @@ link: label <String> action: block <[]> = (
 list ^<PresenterList> = (
 	^PresenterList new
 )
-list: presenterSource <Sequence[Presenter] | [Sequence[Presenter]]> ^ <PresenterList> = (
+list: presenterSource <Sequence[Presenter] | [Sequence[Presenter]]> ^<PresenterList> = (
 	^PresenterList new presenterSource: presenterSource
 )
 mediumBlank = (
@@ -1323,10 +1343,11 @@ presenterSourceX. The presenters to display or the block providing them, as give
 presentersX. If presenterSourceX is a collection, this slot holds the same object as presenterSourceX. It it is the block, it holds the last result produced by the block.
 *)
 class PresenterList = Fragment (
-|
+	|
 	presenterSourceX <Sequence[Presenter] | [Sequence[Presenter]]> ::= List new.
 	presentersX <Sequence[Presenter]>
-|) (
+	|
+) (
 public add: aPresenter <Presenter> = (
 	(* Append the argument to the end of the list of displayed presenters. If there is an equal presenter already displayed, remove it. *)
 	| newPresenters |
@@ -1357,7 +1378,7 @@ public addFirst: aPresenter <Presenter> = (
 	newPresenters addFirst: aPresenter.
 	setPresenters: newPresenters.
 )
-public childrenDo: aBlock = (
+public childrenDo: aBlock <[:Fragment]> = (
 	nil = presentersX ifFalse: [presentersX do: aBlock].
 )
 public color: aColor = (
@@ -1387,7 +1408,7 @@ public presenterSource: niladicValuable <Sequence[Presenter] | [Sequence[Present
 	presenterSourceX:: niladicValuable.
 	nil = presentersX ifFalse: [refreshPresenterList].
 )
-public presenters ^ <Sequence[Presenter]> = (
+public presenters ^<Sequence[Presenter]> = (
 	(* Return the presenters we are currently showing, pulling them from the source if needed. *)
 
 	nil = presentersX ifTrue:
@@ -1489,13 +1510,15 @@ isColumn = (
 )
 ) : (
 )
-class SequenceComposer definitions: fs <List[Fragment]> = Composer (|
+class SequenceComposer definitions: fs <List[Fragment]> = Composer (
+	|
 	definitions <List[Fragment]> = fs.
 	public color <Color>
 	protected mainAxisAlignment ::= #start.
 	protected crossAxisAlignment ::= #center.
-|) (
-public childrenDo: aBlock = (
+	|
+) (
+public childrenDo: aBlock <[:Fragment]> = (
 	definitions do: aBlock
 )
 createVisual = (
@@ -1545,13 +1568,15 @@ public mainAxisSpaceEvenly = (
 ) : (
 )
 (* A horizontal or vertical array. Inflexible childen (flex=0) are sized first, and remaining space is divided among flexible child (flex!=0) in proportion to their flex factor. *)
-public class SequenceVisual = Visual (|
-	public isColumn
+public class SequenceVisual = Visual (
+	|
+	public isColumn <Boolean>
 	public mainAxisAlignment
 	public crossAxisAlignment
 	children ::= List new.
-|) (
-public appendChild: c = (
+	|
+) (
+public appendChild: c <Visual> = (
 	children add: c.
 )
 public childAt: index put: c = (
@@ -1711,12 +1736,12 @@ public isKindOfSize ^<Boolean> = (
 )
 class SizedBoxComposer child: c width: w height: h = Composer (
 	|
-	child = c.
-	width = w.
-	height = h.
+	child <Fragment> = c.
+	width <Integer> = w.
+	height <Integer> = h.
 	|
 ) (
-public childrenDo: aBlock = (
+public childrenDo: aBlock <[:Fragment]> = (
 	aBlock value: child.
 )
 createVisual = (
@@ -1730,11 +1755,13 @@ createVisual = (
 )
 ) : (
 )
-public class SizedBoxVisual = Visual (|
-	public child
-	public boxWidth
-	public boxHeight
-|) (
+public class SizedBoxVisual = Visual (
+	|
+	public child <Visual>
+	public boxWidth <Integer>
+	public boxHeight <Integer>
+	|
+) (
 public hitTest: offset = (
 	^child hitTest: offset
 )
@@ -1753,9 +1780,11 @@ public paint: context offset: offset = (
 )
 ) : (
 )
-class StackVisual = Visual (|
+class StackVisual = Visual (
+	|
 	children ::= List new.
-|) (
+	|
+) (
 ) : (
 public layout: constraints = (
 	| w ::= 0. h ::= 0. |
@@ -1773,11 +1802,13 @@ public paint: context offset: offset = (
 		 each paint: context offset: offset].
 )
 )
-class StaticLabelFragment text: t = LeafFragment (|
-	textX ::= t.
+class StaticLabelFragment text: t = LeafFragment (
+	|
+	textX <String> ::= t.
 	public color
 	public style
-|) (
+	|
+) (
 createVisual = (
 	| v |
 	v:: LabelVisual new.
@@ -1799,10 +1830,12 @@ public text: newText = (
 )
 ) : (
 )
-public class Subject onModel: aModel = (|
+public class Subject onModel: aModel = (
+	|
 	protected model ::= aModel.
 	protected presenterX <Presenter>
-|) (
+	|
+) (
 public createPresenter ^<Presenter> = (
 	subclassResponsibility
 )
@@ -2061,11 +2094,13 @@ public updateEnd = (
 )
 ) : (
 )
-class TextDisplayFragment text: t = LeafFragment (|
-	textX ::= t.
+class TextDisplayFragment text: t = LeafFragment (
+	|
+	textX <String> ::= t.
 	public color
 	style
-|) (
+	|
+) (
 createVisual = (
 	| v |
 	v:: TextVisual new.
@@ -2084,19 +2119,21 @@ public text: newText = (
 )
 ) : (
 )
-public class TextEditorFragment text: t = LeafFragment (|
+public class TextEditorFragment text: t = LeafFragment (
+	|
 	textX <TextFragment | String> ::= t.
 	counterfactualBarX
 	editorX <Div>
 	public textBeingAccepted <String> ::= t.
 	isInEditState ::= false.
-	public changeResponse <[TextEditorFragment]>
-	public acceptResponse <[TextEditorFragment]>
-	public cancelResponse <[TextEditorFragment]>
-	public enterResponse <[TextEditorFragment]>
+	public changeResponse <[:TextEditorFragment]>
+	public acceptResponse <[:TextEditorFragment]>
+	public cancelResponse <[:TextEditorFragment]>
+	public enterResponse <[:TextEditorFragment]>
 	public oldText <TextFragment | String>
 	point ::= t size + 1.
-|) (
+	|
+) (
 backwardChar = (
 	point:: point - 1 max: 1.
 	visual point: point.
@@ -2226,9 +2263,11 @@ public new = (
 	^self text: ''
 )
 )
-class TextEditorVisual = TextVisual (|
+class TextEditorVisual = TextVisual (
+	|
 	public onInput
-|) (
+	|
+) (
 public paint: context offset: offset = (
 	super paint: context offset: offset.
 
@@ -2248,16 +2287,18 @@ public respondToInput: input = (
 ) : (
 )
 (* Text with line wrapping. *)
-public class TextVisual = Visual (|
-	public text
+public class TextVisual = Visual (
+	|
+	public text <String>
 	public color
 	public style
-	public action
+	public action <[]>
 	public point ::= 0.
 	public mark
 	pointX
 	pointY
-|) (
+	|
+) (
 findBreakStartingAt: start width: width = (
 	| lastWhitespace ::= 0. |
 	start to: text size do: [:pos |
@@ -2325,16 +2366,18 @@ public respondToInput: cmd = (
 )
 class ToggleComposer collapsedDefinition: collapsed <[Fragment]>
  expandedDefinition: expanded <[Fragment]>
- initiallyExpanded: flag <Boolean> = Composer (|
-expandedDefinition <[Fragment]> = expanded.
-collapsedDefinition <[Fragment]> = collapsed.
-isExpanded <Boolean> ::= flag.
-expandedPresenter <Fragment>
-collapsedPresenter <Fragment>
-row
-button
-|) (
-public childrenDo: aBlock = (
+ initiallyExpanded: flag <Boolean> = Composer (
+	|
+	expandedDefinition <[Fragment]> = expanded.
+	collapsedDefinition <[Fragment]> = collapsed.
+	isExpanded <Boolean> ::= flag.
+	expandedPresenter <Fragment>
+	collapsedPresenter <Fragment>
+	row
+	button
+	|
+) (
+public childrenDo: aBlock <[:Fragment]> = (
 	nil = collapsedPresenter ifFalse:
 		[aBlock value: collapsedPresenter].
 	nil = expandedPresenter ifFalse:
@@ -2398,11 +2441,13 @@ public toggle = (
 ) : (
 )
 (* It's bigger on the inside. *)
-class ViewportVisual = Visual (|
-	public scrollX ::= 0.
-	public scrollY ::= 0.
-	public child
-|) (
+class ViewportVisual = Visual (
+	|
+	public scrollX <Integer> ::= 0.
+	public scrollY <Integer> ::= 0.
+	public child <Visual>
+	|
+) (
 constrainScroll = (
 	(* + 1 to allow a bit of overscrolling *)
 	scrollX:: (scrollX min: (child width - width + 1)) max: 0.
@@ -2444,14 +2489,16 @@ public paint: context offset: offset = (
 )
 ) : (
 )
-class Visual = (|
-	public flex ::= 0.
-	public width
-	public height
+class Visual = (
+	|
+	public flex <Number> ::= 0.
+	public width <Integer>
+	public height <Integer>
 
-	public parentData_x
-	public parentData_y
-|) (
+	public parentData_x <Integer>
+	public parentData_y <Integer>
+	|
+) (
 public layout: constraints = (
 	subclassResponsibility.
 )

@@ -1,11 +1,13 @@
-class HopscotchForTerminalTesting usingHopscotch: h minitest: m = (|
-private TestContext = m TestContext.
-private LabelVisual = h LabelVisual.
-private TextVisual = h TextVisual.
-private SequenceVisual = h SequenceVisual.
-private Constraints = h Constraints.
-private Size = h Size.
-|) (
+class HopscotchForTerminalTesting usingHopscotch: h minitest: m = (
+	|
+	private TestContext = m TestContext.
+	private LabelVisual = h LabelVisual.
+	private TextVisual = h TextVisual.
+	private SequenceVisual = h SequenceVisual.
+	private Constraints = h Constraints.
+	private Size = h Size.
+	|
+) (
 public class BlankTests = TestContext () (
 ) : (
 TEST_CONTEXT = ()

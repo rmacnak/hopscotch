@@ -1,10 +1,14 @@
-class NewspeakColorizationTesting usingNewspeakColorization: c minitest: m = (|
-private TestContext = m TestContext.
-private NS3BrowserColorizer = c NS3BrowserColorizer.
-|) (
-public class NS3BrowserColorizerTests = TestContext (|
-private colorizer = NS3BrowserColorizer new.
-|) (
+class NewspeakColorizationTesting usingNewspeakColorization: c minitest: m = (
+	|
+	private TestContext = m TestContext.
+	private NS3BrowserColorizer = c NS3BrowserColorizer.
+	|
+) (
+public class NS3BrowserColorizerTests = TestContext (
+	|
+	private colorizer = NS3BrowserColorizer new.
+	|
+) (
 public testParseClassDeclaration = ()
 public testParseClassHeader = ()
 public testParseDoIt = ()

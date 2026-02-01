@@ -27,7 +27,7 @@ class TestResultListPresenter onSubject: s = AssortedMethodsPresenter onSubject:
 public collapseAll = (
   respondToCollapse: content presenters
 )
-contentPresenters ^ <Collection[Presenter]> = (
+contentPresenters ^<Collection[Presenter]> = (
 	| sortedTestResults |
 	sortedTestResults:: subject results (* asSortedList:
 		[:a :b | a testCase selector < b testCase selector] *).
@@ -49,7 +49,7 @@ class TestResultListSubject onModel: list = Subject onModel: list (
 public createPresenter = (
 	^TestResultListPresenter onSubject: self
 )
-public isEmpty ^ <Boolean> = (
+public isEmpty ^<Boolean> = (
 	^model isEmpty
 )
 public results = (
@@ -59,10 +59,11 @@ public results = (
 )
 (* Shows a single TestResult as an expandable selector of the method defining the test. If the result is a failure, also shows the description of the failure. *)
 class TestResultPresenter onSubject: s = ProgrammingPresenter onSubject: s (
-|
+	|
 	public showIndicatorBar <Boolean> ::= true.
 	methodPresenterSlot <ExpandableMethodPresenter>
-|) (
+	|
+) (
 ancestorTestingOutcomePresenter = (
 	| ancestor ::= parent. |
 	[nil = ancestor] whileFalse:
@@ -74,12 +75,12 @@ ancestorTestingOutcomePresenter = (
 public collapse = (
 	methodPresenter collapse
 )
-definition ^ <Fragment> = (
+definition ^<Fragment> = (
 	^showIndicatorBar
 		ifTrue: [row: {indicatorBar. elastic:: resultColumn}]
 		ifFalse: [resultColumn]
 )
-exceptionFragment ^ <Fragment> = (
+exceptionFragment ^<Fragment> = (
 	| link |
 	link::
 		(link: subject exception printString
@@ -93,7 +94,7 @@ exceptionFragment ^ <Fragment> = (
 public expand = (
 	methodPresenter expand
 )
-failureFragment ^ <Fragment> = (
+failureFragment ^<Fragment> = (
 	^row: {
 		blank: 12.
 		(link: subject failureDescription
@@ -101,21 +102,21 @@ failureFragment ^ <Fragment> = (
 			color: footnoteColor
 		}
 )
-footnoteColor ^ <Color> = (
+footnoteColor ^<Color> = (
 	^Color gray: 0.7
 )
 indicatorBar = (
 	^(row: {blank: 5} ) color: statusColor.
 )
-methodPresenter ^ <ExpandableMethodPresenter> = (
+methodPresenter ^<ExpandableMethodPresenter> = (
 	methodPresenterSlot isNil ifTrue: [methodPresenterSlot:: methodPresenterDefinition].
 	^methodPresenterSlot
 )
-methodPresenterDefinition ^ <ExpandableMethodPresenter> = (
+methodPresenterDefinition ^<ExpandableMethodPresenter> = (
 	^subject methodSubject createPresenter
 		showClassName: true
 )
-resultColumn ^ <Fragment> = (
+resultColumn ^<Fragment> = (
 	^column: {
 		methodPresenter.
 		subject isFailure ifTrue: [failureFragment] ifFalse: [nothing].
@@ -123,7 +124,7 @@ resultColumn ^ <Fragment> = (
 		(* subject hasNoData ifTrue: [noDataFragment] *)
 	}
 )
-statusColor ^ <Color> = (
+statusColor ^<Color> = (
 	(* subject passed ifTrue: [^Color green].
 	subject failed ifTrue: [^Color red].
 	subject error ifTrue: [^Color black]. *)
@@ -134,7 +135,7 @@ statusColor ^ <Color> = (
 (* The subject for presenting a single TestResult. *)
 class TestResultSubject onModel: m <TestResult> = Subject onModel: m (
 ) (
-public = x <Object> ^ <Boolean> = (
+public = x <Object> ^<Boolean> = (
 	x class = class ifFalse: [^false].
 	^selector = x selector and: [className = x className]
 )
@@ -169,7 +170,7 @@ public isFailure = (
 public methodSubject = (
 	^MethodSubject onModel: (testCase environment classDeclarationMirror instanceSide methods findMirrorNamed: selector)
 )
-public selector ^ <Symbol> = (
+public selector ^<Symbol> = (
 	^testCase selector
 )
 public testCase = (
@@ -179,12 +180,13 @@ public testCase = (
 )
 (* Presents a Tester in the process of running tests. *)
 class TestingInProgressPresenter onSubject: subject = Presenter onSubject: subject (
-|
+	|
 	progressBar
 	currentSelector
 	errorCountHolder
 	failureCountHolder
-|) (
+	|
+) (
 definition = (
 	schedule: [startTests].
 
@@ -229,9 +231,10 @@ tester = (
 )
 (* Represents a Tester instance, in the process of running tests. *)
 public class TestingInProgressSubject tester: tester <Tester> configClass: configClass = Subject onModel: tester (
-|
+	|
 	public configClass = configClass.
-|) (
+	|
+) (
 public createPresenter = (
 	^TestingInProgressPresenter onSubject: self
 )
@@ -256,7 +259,7 @@ public onConfiguration: configClass <Class> platform: platform minitest: minites
 (* Shows an outcome of running a suite of tests, as a page with separate sections for errors, failures and successes. *)
 class TestingOutcomePresenter onSubject: s <TestingOutcomeSubject> = ProgrammingPresenter onSubject: s (
 ) (
-definition ^ <Fragment> = (
+definition ^<Fragment> = (
 	^column: {
 	      headingDefinition.
 		blank: 2.
@@ -270,10 +273,10 @@ definition ^ <Fragment> = (
 didAllTestsPass = (
 	^didNoTestsFail (* not tracking incomplete for now, so no difference from didNoTestsFail *)
 )
-didNoTestsFail ^ <Boolean> = (
+didNoTestsFail ^<Boolean> = (
 	^subject failures isEmpty and: [subject errors isEmpty]
 )
-errors ^ <Fragment> = (
+errors ^<Fragment> = (
 	^section: 'Errors'
 		with: subject errors
 		status: #error
@@ -285,7 +288,7 @@ errorsSectionColor = (
 failureHeadingColor = (
 	^Gradient from: (Color h: 0 s: 0.5 v: 0.8) to: (Color h: 0 s: 0.5 v: 0.6)
 )
-failures ^ <Fragment> = (
+failures ^<Fragment> = (
 	^section: 'Failures'
 		with: subject failures
 		status: #failure
@@ -297,7 +300,7 @@ failuresSectionColor = (
 headingBlock: fragment color: aColor = (
 	^(padded: fragment with: {10. 5. 5. 5}) color: aColor
 )
-headingContentsDefinition ^ <Presenter> = (
+headingContentsDefinition ^<Presenter> = (
 	| statusMessage |
 	statusMessage::
 		didAllTestsPass
@@ -317,7 +320,7 @@ headingContentsDefinition ^ <Presenter> = (
 		button: 'Forget' action: [respondToForget] *)
 		}.
 )
-headingDefinition ^ <Presenter> = (
+headingDefinition ^<Presenter> = (
 	^(majorHeadingBlock: headingContentsDefinition)
 	color: (
 		didNoTestsFail
@@ -364,7 +367,7 @@ public runWithNoExceptionHandling: testCase = (
 		[thread stepInto].
 	enterSubject:: ide debugging ThreadSubject onModel: thread.
 )
-section: label <String> with: testCases <Collection[TestCase]> status: aSymbol <Symbol> color: aColor <Color | Gradient> ^ <Fragment> = (
+section: label <String> with: testCases <Collection[TestCase]> status: aSymbol <Symbol> color: aColor <Color | Gradient> ^<Fragment> = (
 	| testedMethodsPresenter |
 	testedMethodsPresenter:: TestResultListPresenter onSubject: (TestResultListSubject onModel: testCases).
 	^column: {
@@ -381,7 +384,7 @@ section: label <String> with: testCases <Collection[TestCase]> status: aSymbol <
 		testedMethodsPresenter.
 	}
 )
-section: label <String> withHidden: testCases <Collection[TestCase]> status: aSymbol <Symbol> color: aColor <Color | Gradient> ^ <Fragment> = (
+section: label <String> withHidden: testCases <Collection[TestCase]> status: aSymbol <Symbol> color: aColor <Color | Gradient> ^<Fragment> = (
 	| contentHolder testedMethodsPresenter |
 	testedMethodsPresenter:: TestResultListPresenter onSubject: (TestResultListSubject onModel: testCases).
 	contentHolder:: holder:
@@ -416,7 +419,7 @@ section: label <String> withHidden: testCases <Collection[TestCase]> status: aSy
 successHeadingColor = (
 	^Gradient from: (Color h: 120 s: 0.5 v: 0.7) to: (Color h: 120 s: 0.5 v: 0.5)
 )
-successes ^ <Fragment> = (
+successes ^<Fragment> = (
 	^section: 'Successes'
 		withHidden: subject successes
 		status: #success
@@ -427,9 +430,11 @@ successesSectionColor = (
 )
 ) : (
 )
-class TestingOutcomeSubject tester: tester <Tester> configClass: configClass = Subject onModel: tester (|
+class TestingOutcomeSubject tester: tester <Tester> configClass: configClass = Subject onModel: tester (
+	|
 	public configClass = configClass.
-|) (
+	|
+) (
 public configurationName = (
 	^configClass name
 )

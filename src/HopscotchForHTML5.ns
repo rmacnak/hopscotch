@@ -47,11 +47,13 @@ createVisual = (
 )
 ) : (
 )
-class ButtonFragment label: l action: a = LeafFragment (|
+class ButtonFragment label: l action: a = LeafFragment (
+	|
 	label = l.
 	action = a.
 	public enabled ::= true.
-|) (
+	|
+) (
 createVisual = (
 	^(document createElement: 'button')
 		appendChild: (document createTextNode: label);
@@ -233,7 +235,7 @@ respondToEnter: event <Alien[Event]> = (
 public showMessage: message <String> = (
 	message out.
 )
-public style: style <Alien[JSObject]> from: start <Integer> to: end <Integer>  = (
+public style: style <Alien[JSObject]> from: start <Integer> to: end <Integer> = (
 	styles add: {start. end. style}.
 	applyStyles
 )
@@ -241,13 +243,16 @@ public text: t = (
       textSlot:: t.
 	hasVisual ifTrue: [editor setValue: t].
 )
-public textBeingAccepted ^ <String> = (
+public textBeingAccepted ^<String> = (
   ^editor getValue
 )
 ) : (
 )
 class ColorDecorator color: c <Color> = Decorator (
-| color <Color> = c. |) (
+	|
+	color <Color> = c.
+	|
+) (
 public decorate: aVisual = (
 	color applyToStyle: (aVisual at: 'style').
 	^aVisual
@@ -257,7 +262,7 @@ public decorate: aVisual = (
 class ColumnComposer definitions: fs <List[Fragment]> = SequenceComposer definitions: fs (
 	crossAxisStretch
 ) (
-flexDirection ^ <String> = (
+flexDirection ^<String> = (
 	^'column'
 )
 ) : (
@@ -274,13 +279,15 @@ public decorate: aVisual = (
 )
 ) : (
 )
-class DeferredContentComposer initialContent: ic contentSource: cs = Composer (|
+class DeferredContentComposer initialContent: ic contentSource: cs = Composer (
+	|
 	initialContent <Fragment> = ic.
 	contentSource <[Fragment]> = cs.
 	contentFragment <Fragment>
-|) (
-public childrenDo: aBlock = (
-	nil = contentFragment 
+	|
+) (
+public childrenDo: aBlock <[:Fragment]> = (
+	nil = contentFragment
 	  ifFalse: [aBlock value: contentFragment]
 	  ifTrue: [aBlock value: initialContent]
 )
@@ -316,7 +323,7 @@ class DropDownMenuFragment menu: ms images: ims <Array[Image]> alignment: side <
 	|
 	action:: [].
 ) (
-createVisual ^ <Alien[Element]> = (
+createVisual ^<Alien[Element]> = (
 	| column = super createVisual. |
 	column addEventListener: 'click' action: [:event | toggleContent. nil].
 	(column at: 'style')
@@ -327,7 +334,7 @@ toggleContent = (
 	menuActive ifTrue: [(visual at: 'lastChild') blur] ifFalse: [updateContent].
 	menuActive:: menuActive not.
 )
-updateContent ^ <Alien[Element]> = (
+updateContent ^<Alien[Element]> = (
 	| menuContent <Alien[Div]> |
 	menuContent:: computeContentForMenu: menuSupplier.
 	(menuContent at: 'style')
@@ -341,13 +348,13 @@ updateContent ^ <Alien[Element]> = (
 	^menuContent
 )
 ) : (
-public menu: ms  <[Tuple[Symbol | Tuple[String, []]]]> ^ <Instance> = (
+public menu: ms <[Tuple[Symbol | Tuple[String, []]]]> ^<DropDownMenuFragment> = (
    ^menu: ms images: {dropDownImage. dropDownOverImage. dropDownOutImage} alignment: #right
 )
-public menu: ms  <[Tuple[Symbol | Tuple[String, []]]]> alignment: side <Symbol> ^ <Instance> = (
+public menu: ms <[Tuple[Symbol | Tuple[String, []]]]> alignment: side <Symbol> ^<DropDownMenuFragment> = (
    ^menu: ms images: {dropDownImage. dropDownOverImage. dropDownOutImage} alignment: side
 )
-public menu: ms  <[Tuple[Symbol | Tuple[String, []]]]> images: ims <Array[Image]> ^ <Instance> = (
+public menu: ms <[Tuple[Symbol | Tuple[String, []]]]> images: ims <Array[Image]> ^<DropDownMenuFragment> = (
    ^menu: ms images: ims alignment: #right
 )
 )
@@ -394,14 +401,16 @@ public openSubject: s = (
 	^into: body openSubject: s
 )
 )
-class Fragment = (|
+class Fragment = (
+	|
 	visualX
 	public parent
 	public size ::= nil.
 	public expansibility ::= 0.
 	public compressibility ::= 0.
 	decorators
-	|) (
+	|
+) (
 public addDecorator: newDecorator <Decorator> = (
 	(* The argument is added last to the collection of our decorators, meaning it will be applied after all the other decorators we might have. *)
 	nil = decorators ifTrue: [decorators:: List new].
@@ -454,10 +463,12 @@ public width: w elasticity: e = (
 )
 ) : (
 )
-public class Gradient from: a to: b = (|
+public class Gradient from: a to: b = (
+	|
 	topColor = a.
 	bottomColor = b.
-|) (
+	|
+) (
 public applyToStyle: style = (
 	| value |
 	value:: '(top,', topColor asCSSString, ',', bottomColor asCSSString, ')'.
@@ -466,10 +477,12 @@ public applyToStyle: style = (
 )
 ) : (
 )
-class HolderComposer withContent: definition <Fragment | [Fragment]> = Composer (|
+class HolderComposer withContent: definition <Fragment | [Fragment]> = Composer (
+	|
 	contentSource <Fragment | [Fragment]> ::= definition.
 	actualContent <Fragment>
-|) (
+	|
+) (
 public childrenDo: aBlock <[:Fragment]> = (
 	nil = actualContent ifFalse: [aBlock value: actualContent].
 )
@@ -520,7 +533,7 @@ class HopscotchShell = (
 	|
 	listenForBackButton.
 ) (
-public childrenDo: aBlock = (
+public childrenDo: aBlock <[:Fragment]> = (
 	aBlock value: currentPresenter
 )
 public currentPresenter = (
@@ -580,11 +593,13 @@ public openSubject: s = (
 	^into: body openSubject: s
 )
 )
-class HyperlinkFragment label: l action: a = LeafFragment (|
-	label = l.
-	action = a.
+class HyperlinkFragment label: l action: a = LeafFragment (
+	|
+	label <String> = l.
+	action <[]> = a.
 	public color ::= Color h: 0 s: 1.0 v: 0.70.
-|) (
+	|
+) (
 createVisual = (
 	| anchor |
 	anchor:: document createElement: 'a'.
@@ -604,10 +619,12 @@ public smallFont = (
 )
 ) : (
 )
-class HyperlinkImageFragment image: i action: a = LeafFragment (|
-	image = i.
-	action = a.
-|) (
+class HyperlinkImageFragment image: i action: a = LeafFragment (
+	|
+	image <Alien[HTMLImageElement]> = i.
+	action <[]> = a.
+	|
+) (
 createVisual = (
 	| img |
 	img:: image cloneNode: false (* Not deep *).
@@ -618,12 +635,13 @@ createVisual = (
 )
 (* A button displayed as an image; or an image that acts as a button. *)
 class ImageButtonFragment images: imageArray <Array[Image]> = LeafFragment (
-|
+	|
 	public action <[]>
 	stateImages <Array[Image]> = imageArray, (Array new: 3).
 	(* Appending three nils so that we can always send #at: with an index between 1 and 4 and expect it not to fail. *)
-|) (
-createVisual ^ <Visual> = (
+	|
+) (
+createVisual ^<Visual> = (
 	| div img |
 	div:: document createElement: 'div'.
 	(div at: 'style')
@@ -638,7 +656,7 @@ createVisual ^ <Visual> = (
 ) : (
 )
 class LeafFragment = Fragment () (
-public childrenDo: aBlock = (
+public childrenDo: aBlock <[:Fragment]> = (
 	(* No children. *)
 )
 ) : (
@@ -663,7 +681,7 @@ class LocalNavigationHistory = (
 	|
 	erase.
 ) (
-public current ^ <Object> = (
+public current ^<Object> = (
 	^currentVisitSlot
 )
 public do: aBlock = (
@@ -672,7 +690,7 @@ public do: aBlock = (
 		[aBlock value: currentVisitSlot].
 	allVisits do: aBlock
 )
-public equalVisitOr: anObject ^ <Object> = (
+public equalVisitOr: anObject ^<Object> = (
 	(* Return a visit from the history equal to the argument, or the argument itself if there is no equal visit in the history. *)
 	^allVisits detect: [:some | some = anObject] ifNone: [anObject]
 )
@@ -713,31 +731,31 @@ public goToPastItem: anObject = (
 	[currentVisitSlot = anObject or: [isPastEmpty]]
 		whileFalse: [goBack]
 )
-includesVisit: anObject ^ <Boolean> = (
+includesVisit: anObject ^<Boolean> = (
 	^allVisits includes: anObject
 )
-isEmpty ^ <Boolean> = (
+isEmpty ^<Boolean> = (
 	^allVisits isEmpty
 )
-public isFutureEmpty ^ <Boolean> = (
+public isFutureEmpty ^<Boolean> = (
 	^future isEmpty
 )
-public isPastEmpty ^ <Boolean> = (
+public isPastEmpty ^<Boolean> = (
 	^past isEmpty
 )
-isTransient: anObject ^ <Boolean> = (
+isTransient: anObject ^<Boolean> = (
 	^transientTestBlock value: anObject
 )
-next ^ <Object> = (
-	(* Answer the closest visit from the future. Fail if the future is empty. *)
+(* Answer the closest visit from the future. Fail if the future is empty. *)
+next ^<Object> = (
 	^future first
 )
-previous ^ <Object> = (
-	(* Answer the most recent visit from the past. Fail if the past is empty. *)
+(* Answer the most recent visit from the past. Fail if the past is empty. *)
+previous ^<Object> = (
 	^past last
 )
+(* Replace all references to anObject that we have with references to 'replacement'. *)
 replace: anObject with: replacement = (
-	(* Replace all references to anObject that we have with references to 'replacement'. *)
 	allVisits remove: anObject ifAbsent: [].
 	(isTransient: replacement) ifFalse: [allVisits add: replacement].
 	currentVisitSlot = anObject ifTrue: [currentVisitSlot:: replacement].
@@ -749,8 +767,8 @@ replace: anObject with: replacement = (
 public replaceCurrentWith: anObject = (
 	self replace: currentVisitSlot with: anObject
 )
+(* Make the argument the current object of the history. The prior current object becomes the last object of the 'past' queue. The 'future' queue is erased, unless the visit is equal to the first element of the future. *)
 public visit: anObject = (
-	(* Make the argument the current object of the history. The prior current object becomes the last object of the 'past' queue. The 'future' queue is erased, unless the visit is equal to the first element of the future. *)
 	currentVisitSlot = anObject ifTrue: [^self].
 	((nil = currentVisitSlot) not and: [(isTransient: currentVisitSlot) not]) ifTrue:
 		[past addLast: currentVisitSlot].
@@ -766,11 +784,16 @@ public visit: anObject = (
 )
 ) : (
 )
-class NavigationHistory = (| nextId ::= 1. ids <Map[Presenter, Integer]> = Map new. |) (
-public idFor: presenter <Presenter> ^ <Integer> = (
+class NavigationHistory = (
+	|
+	nextId ::= 1.
+	ids <Map[Presenter, Integer]> = Map new.
+	|
+) (
+public idFor: presenter <Presenter> ^<Integer> = (
 	^ids at: presenter ifAbsentPut: [nextId:: nextId + 1]
 )
-public presenterFor: id <Integer> ^ <Presenter> = (
+public presenterFor: id <Integer> ^<Presenter> = (
 	ids keysAndValuesDo:
 		[:key :value | value = id ifTrue: [^key]].
 	^nil
@@ -781,12 +804,14 @@ public recordFirst: presenter = (
 )
 ) : (
 )
-class PaddedFrameComposer content: c offsets: o = Composer (|
-	content = c.
-	offsets = o.
+class PaddedFrameComposer content: c offsets: o = Composer (
+	|
+	content <Fragment> = c.
+	offsets <{Integer. Integer. Integer. Integer}> = o.
 	public color
-|) (
-public childrenDo: aBlock = (
+	|
+) (
+public childrenDo: aBlock <[:Fragment]> = (
 	nil = content ifFalse: [aBlock value: content]
 )
 createVisual = (
@@ -803,10 +828,12 @@ createVisual = (
 )
 ) : (
 )
-public class Presenter onSubject: aSubject <Subject> = Fragment (|
-public subject <Subject> ::= aSubject.
-substanceSlot <Fragment>
-|) (
+public class Presenter onSubject: aSubject <Subject> = Fragment (
+	|
+	public subject <Subject> ::= aSubject.
+	substanceSlot <Fragment>
+	|
+) (
 alert: text = (
 	window alert: text
 )
@@ -819,7 +846,7 @@ button: label <String> action: block <[]> = (
 canvas: extent <Point> = (
 	^CanvasFragment withExtent: extent
 )
-public childrenDo: aBlock = (
+public childrenDo: aBlock <[:Fragment]> = (
 	nil = substanceSlot ifFalse: [aBlock value: substanceSlot]
 )
 codeMirror: t <Text | String> = (
@@ -835,10 +862,10 @@ collapsed: collapsed <[Fragment]> expanded: expanded <[Fragment]> initiallyExpan
 		expandedDefinition: expanded
 		initiallyExpanded: flag
 )
-column: definitions <List[Fragment]> ^ <ColumnComposer> = (
+column: definitions <List[Fragment]> ^<ColumnComposer> = (
 	^ColumnComposer definitions: definitions
 )
-createVisual ^ <Alien[HTMLElement]> = (
+createVisual ^<Alien[HTMLElement]> = (
 (*	| substance = definition. |
 	substance parent: self.
 	^substance visual *)
@@ -851,16 +878,16 @@ deferred: contentSource <[Fragment]> ^<Fragment> = (
 definition ^<Fragment> = (
 	subclassResponsibility
 )
-dropDownMenu: menu <[Menu]> ^ <DropDownMenuFragment> = (
+dropDownMenu: menu <[Menu]> ^<DropDownMenuFragment> = (
 	^DropDownMenuFragment menu: menu
 )
-dropDownMenu: menu <[Menu]> alignment: side <Symbol> ^ <DropDownMenuFragment> = (
+dropDownMenu: menu <[Menu]> alignment: side <Symbol> ^<DropDownMenuFragment> = (
 	^DropDownMenuFragment menu: menu alignment: side
 )
-dropDownMenu: menu <[Menu]> images: ims <Array[Image]>  ^ <DropDownMenuFragment> = (
+dropDownMenu: menu <[Menu]> images: ims <Array[Image]> ^<DropDownMenuFragment> = (
 	^DropDownMenuFragment menu: menu images: ims
 )
-dropDownMenu: menu <[Menu]> images: ims <Array[Image]> alignment: side <Symbol> ^ <DropDownMenuFragment> = (
+dropDownMenu: menu <[Menu]> images: ims <Array[Image]> alignment: side <Symbol> ^<DropDownMenuFragment> = (
 	^DropDownMenuFragment menu: menu images: ims alignment: side
 )
 elastic: aFragment = (
@@ -919,16 +946,16 @@ link: label <String> action: block <[]> = (
 linkImage: image action: block = (
 	^HyperlinkImageFragment image: image action: block
 )
-list ^ <PresenterList> = (
+list ^<PresenterList> = (
 	^PresenterList new
 )
-list: presenterSource <Sequence[Presenter] | [Sequence[Presenter]]> ^ <PresenterList> = (
+list: presenterSource <Sequence[Presenter] | [Sequence[Presenter]]> ^<PresenterList> = (
 	^PresenterList new presenterSource: presenterSource
 )
 mediumBlank = (
 	^blank: 10
 )
-menuWithLabelsAndActions: labelsAndActions <Tuple[Symbol | Tuple[String, []]]> ^ <Menu> = (
+menuWithLabelsAndActions: labelsAndActions <Tuple[Symbol | Tuple[String, []]]> ^<Menu> = (
 	| menu |
 	^labelsAndActions
 
@@ -946,7 +973,7 @@ nothing = (
 noticeSubstanceCreation = (
 	(* Received after the #definition method of the receiver has been invoked and the result remembered as its substance. The substance hasn't been asked to create a visual yet. *)
 )
-openMenu: aMenu <Menu> ^ <Alien[Div]> = (
+openMenu: aMenu <Menu> ^<Alien[Div]> = (
 	| menuContent <Alien[Div]> |
 	menuContent:: computeContentForMenu: [aMenu].
 	visual appendChild: menuContent.
@@ -974,7 +1001,7 @@ schedule: action <[]> = (
 smallBlank = (
 	^blank: 5
 )
-substance ^ <Fragment> = (
+substance ^<Fragment> = (
 	ensureSubstance.
 	^substanceSlot
 )
@@ -996,7 +1023,7 @@ textField: initialText onAccept: blk = (
 public title ^<String> = (
 	^subject title
 )
-zebra: sequence <Sequence[Fragment]> ^ <Sequence[Fragment]> = (
+zebra: sequence <Sequence[Fragment]> ^<Sequence[Fragment]> = (
 	sequence addDecorator: ZebraDecorator lighterColorFirst.
 	^sequence
 )
@@ -1013,13 +1040,14 @@ presenterSourceX. The presenters to display or the block providing them, as give
 presentersX. If presenterSourceX is a collection, this slot holds the same object as presenterSourceX. It it is the block, it holds the last result produced by the block.
 *)
 class PresenterList = Fragment (
-|
+	|
 	presenterSourceX <Sequence[Presenter] | [Sequence[Presenter]]> ::= List new.
 	presentersX <Sequence[Presenter]>
-|) (
+	|
+) (
 public add: aPresenter <Presenter> = (
 	(* Append the argument to the end of the list of displayed presenters. If there is an equal presenter already displayed, remove it. *)
-	
+
 	| newPresenters |
 	newPresenters:: List withAll: presenters.
 	(newPresenters includes: aPresenter) ifTrue:
@@ -1048,7 +1076,7 @@ public addFirst: aPresenter <Presenter> = (
 	newPresenters addFirst: aPresenter.
 	setPresenters: newPresenters.
 )
-public childrenDo: aBlock = (
+public childrenDo: aBlock <[:Fragment]> = (
 	nil = presentersX ifFalse: [presentersX do: aBlock].
 )
 public color: aColor = (
@@ -1078,7 +1106,7 @@ public presenterSource: niladicValuable <Sequence[Presenter] | [Sequence[Present
 	presenterSourceX:: niladicValuable.
 	nil = presentersX ifFalse: [refreshPresenterList].
 )
-public presenters ^ <Sequence[Presenter]> = (
+public presenters ^<Sequence[Presenter]> = (
 	(* Return the presenters we are currently showing, pulling them from the source if needed. *)
 
 	nil = presentersX ifTrue:
@@ -1186,18 +1214,20 @@ flexDirection = (
 )
 ) : (
 )
-class SequenceComposer definitions: fs <List[Fragment]> = Composer (|
+class SequenceComposer definitions: fs <List[Fragment]> = Composer (
+	|
 	definitions <List[Fragment]> = fs.
 	public color <Color>
 	protected alignItems ::= 'center'.
 	protected childAlignSelf ::= 'center'.
 	protected justifyContent ::= 'flex-start'.
 	protected flexWrap ::= ''.
-|) (
-public childrenDo: aBlock = (
+	|
+) (
+public childrenDo: aBlock <[:Fragment]> = (
 	definitions do: aBlock
 )
-createVisual ^ <Alien[HTMLElement]> = (
+createVisual ^<Alien[HTMLElement]> = (
 	| container <Alien[HTMLElement]> |
 	container:: document createElement: 'div'.
 	(container at: 'style')
@@ -1254,9 +1284,11 @@ public mainAxisAlignToStart = (
 )
 ) : (
 )
-class StaticImageFragment image: i = LeafFragment (|
-	image = i.
-|) (
+class StaticImageFragment image: i = LeafFragment (
+	|
+	image <Alien[HTMLImageElement]> = i.
+	|
+) (
 createVisual = (
 	| div img |
 	div:: document createElement: 'div'.
@@ -1270,10 +1302,12 @@ createVisual = (
 )
 ) : (
 )
-class StaticLabelFragment text: t = LeafFragment (|
-	textX ::= t.
-	public color
-|) (
+class StaticLabelFragment text: t = LeafFragment (
+	|
+	textX <String> ::= t.
+	public color <Color>
+	|
+) (
 createVisual = (
 	| div = document createElement: 'div'. |
 	(div at: 'style')
@@ -1296,10 +1330,12 @@ public text: newText = (
 )
 ) : (
 )
-public class Subject onModel: aModel = (|
+public class Subject onModel: aModel = (
+	|
 	protected model ::= aModel.
 	protected presenterX <Presenter>
-|) (
+	|
+) (
 public createPresenter ^<Presenter> = (
 	subclassResponsibility
 )
@@ -1316,9 +1352,12 @@ public title ^<String> = (
 )
 ) : (
 )
-class TextBlockFragment onText: t <Text> subfragments: sfs <List[Fragment]> = TextFragment onText: t (
 (* A fragment representing a compound text . *)
-| subfragments <List[Fragment]> = sfs. |) (
+class TextBlockFragment onText: t <Text> subfragments: sfs <List[Fragment]> = TextFragment onText: t (
+	|
+	subfragments <List[Fragment]> = sfs.
+	|
+) (
 createVisual = (
 	| span = document createElement: 'span'. |
 	text textProperties applyTo: span.
@@ -1327,7 +1366,7 @@ createVisual = (
 		].
 	^span
 )
-public cursorPosition ^ <Integer> = (
+public cursorPosition ^<Integer> = (
  |
   ca
   sel = window getSelection.
@@ -1353,14 +1392,16 @@ public cursorPosition: position <Integer> = (
 		position <= sum ifTrue: [subfragment cursorPosition: index. ^self].
 		].
 )
-public isKindOfTextBlockFragment ^ <Boolean> = (
+public isKindOfTextBlockFragment ^<Boolean> = (
 	^true
 )
 ) : (
 )
-class TextDisplayFragment text: t = LeafFragment (|
-	textX ::= t.
-|) (
+class TextDisplayFragment text: t = LeafFragment (
+	|
+	textX <String> ::= t.
+	|
+) (
 createVisual = (
 	| div = document createElement: 'div'. |
 	(div at: 'style') setProperty: 'white-space' to: 'pre-wrap'.
@@ -1379,7 +1420,8 @@ public text: newText = (
 )
 ) : (
 )
-public class TextEditorFragment = LeafFragment (|
+public class TextEditorFragment = LeafFragment (
+	|
 	textX <TextFragment | String> ::= ''.
 	counterfactualBarX
 	editorX <Div>
@@ -1389,7 +1431,8 @@ public class TextEditorFragment = LeafFragment (|
 	public acceptResponse <[TextEditorFragment]>
 	public cancelResponse <[TextEditorFragment]>
 	public oldText <TextFragment | String>
-|) (
+	|
+) (
 controlBarColor = (
 	^Color r: 0.95 g: 0.792 b: 0.475
 )
@@ -1429,7 +1472,7 @@ createVisual = (
 	(* frame appendChild: counterfactualBarX. *)
 	^frame
 )
-public cursorPosition ^ <Integer> = (
+public cursorPosition ^<Integer> = (
 (* BOGUS. This leads to quirks when cutting and pasting. We really need to get the selection from the browser and identify
 the cursor position based on that. But so far that hasn't worked. And we have issues with inserting newlines.
 *)
@@ -1473,7 +1516,7 @@ public leaveEditState = (
 		isInEditState:: false.
 		(*removeMessages*)]
 )
-reconstructText ^ <String> = (
+reconstructText ^<String> = (
   (* compute the text string from the DOM. This is necessary since the textContent attribute does not accurately reflect
 	newlines, as these are sometimes implied by div and br nodes. *)
  |
@@ -1486,7 +1529,7 @@ reconstructText ^ <String> = (
 	0 to: numberOfChildren - 1 do: [:i <Integer> | result:: result, (reconstructTextForNode: (children item: i))].
 	^result
 )
-reconstructTextForNode: n <Alien[Node]> ^ <String> = (
+reconstructTextForNode: n <Alien[Node]> ^<String> = (
   (* compute the text string from the DOM. This is necessary since the textContent attribute does not accurately reflect
 	newlines, as these are sometimes implied by div and br nodes. *)
  |
@@ -1564,31 +1607,34 @@ public updateCursor = (
 )
 ) : (
 )
-(*Abstract supertype of all texts.*)
+(* Abstract supertype of all texts. *)
 class TextFragment onText: t <Text> = Fragment (
-|
+	|
 	public text <Text> = t.
-|) (
+	|
+) (
 public cursorPosition: position <Integer> = (
 	subclassResponsibility
 )
-public isKindOfTextFragment ^ <Boolean> = (
+public isKindOfTextFragment ^<Boolean> = (
 	^true
 )
 ) : (
 )
 class ToggleComposer collapsedDefinition: collapsed <[Fragment]>
  expandedDefinition: expanded <[Fragment]>
- initiallyExpanded: flag <Boolean> = Composer (|
-expandedDefinition <[Fragment]> = expanded.
-collapsedDefinition <[Fragment]> = collapsed.
-isExpanded <Boolean> ::= flag.
-expandedPresenter <Fragment>
-collapsedPresenter <Fragment>
-contentHolder
-toggleWidget
-|) (
-public childrenDo: aBlock = (
+ initiallyExpanded: flag <Boolean> = Composer (
+	|
+	expandedDefinition <[Fragment]> = expanded.
+	collapsedDefinition <[Fragment]> = collapsed.
+	isExpanded <Boolean> ::= flag.
+	expandedPresenter <Fragment>
+	collapsedPresenter <Fragment>
+	contentHolder
+	toggleWidget
+	|
+) (
+public childrenDo: aBlock <[:Fragment]> = (
 	nil = collapsedPresenter ifFalse:
 		[aBlock value: collapsedPresenter].
 	nil = expandedPresenter ifFalse:
@@ -1664,13 +1710,18 @@ public toggle = (
 )
 ) : (
 )
-public class ZebraDecorator firstColor: color1 secondColor: color2 = Decorator (|
-	firstColor ::= color1.
-	secondColor ::= color2.
+public class ZebraDecorator firstColor: color1 secondColor: color2 = Decorator (
+	|
+	firstColor <Color> ::= color1.
+	secondColor <Color> ::= color2.
 	sequenceDefinition
-|) (
+	|
+) (
 public decorate: aVisual = (
-| odd <Boolean> ::= false.  children = (aVisual at: 'children'). |
+	|
+	odd <Boolean> ::= false.
+	children = (aVisual at: 'children').
+	|
 	0 to: (children at: 'length') - 1 do:
 		[:index | | each = children item: index. c <Color> |
 		c:: odd ifTrue: [firstColor] ifFalse: [secondColor].
@@ -1687,7 +1738,7 @@ public lighterColorFirst = (
 	^self firstColor: (Color h: 41 s: 0.15 v: 0.90) secondColor: (Color r: 0 g: 0 b: 0 a: 0)
 )
 )
-computeContentForMenu: menuSupplier <[Menu]> ^ <Alien[Div]> = (
+computeContentForMenu: menuSupplier <[Menu]> ^<Alien[Div]> = (
 	| dropDownContent = document createElement: 'div'. |
 	(dropDownContent at: 'style')
 		at: 'color' put: 'black';
@@ -1706,7 +1757,7 @@ computeContentForMenu: menuSupplier <[Menu]> ^ <Alien[Div]> = (
 		 dropDownContent appendChild: itemContent].
 	^dropDownContent
 )
-contentFor: menuItem < MenuItem | Symbol> within: dropDownContent ^ <Alien[Element]> = (
+contentFor: menuItem <MenuItem | Symbol> within: dropDownContent ^<Alien[Element]> = (
 	| entry |
 	menuItem = #separator ifTrue:
 		[^document createElement: 'hr'].
@@ -1721,7 +1772,7 @@ contentFor: menuItem < MenuItem | Symbol> within: dropDownContent ^ <Alien[Eleme
 			[:event | menuItem last value. nil].
 	^entry
 )
-deferAction: action = (
+deferAction: action <[]> = (
 	deferredContentQueue add: action.
 	deferredContentQueue size = 1 ifTrue:
 		[nextFrameDo: [nextDeferredAction]].
@@ -1742,7 +1793,7 @@ nextFrameDo: action <[]> = (
 			[:time2 <Float> | window requestAnimationFrame:
 				[:time3 <Float> | action value. nil]]].
 )
-sharedNavigator ^ <NavigationHistory> = (
+sharedNavigator ^<NavigationHistory> = (
 	nil = sharedNavigationHistory ifTrue:
 		[sharedNavigationHistory:: NavigationHistory new].
 	^sharedNavigationHistory

@@ -1,11 +1,13 @@
-class HostTestRunner packageUsing: manifest = (|
-Minitest = manifest Minitest.
-testConfigs = {
-	manifest HopscotchForTerminalTestingConfiguration packageTestsUsing: manifest.
-}.
-Promise
-|) (
-private exit: code = (
+class HostTestRunner packageUsing: manifest = (
+	|
+	Minitest = manifest Minitest.
+	testConfigs = {
+		manifest HopscotchForTerminalTestingConfiguration packageTestsUsing: manifest.
+	}.
+	Promise
+	|
+) (
+private exit: code <Integer> = (
 	(* :pragma: primitive: 189 *)
 	panic.
 )

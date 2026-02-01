@@ -3,25 +3,29 @@ class Particles packageUsing: manifest = (
 	private hopscotchRuntime = manifest HopscotchForHTML5Runtime packageUsing: manifest.
 	|
 ) (
-class World usingPlatform: p = (|
-Timer = p actors Timer.
-Point = p graphics Point.
-Color = p graphics Color.
-List = p collections List.
-Subject = p hopscotch core Subject.
-Presenter = p hopscotch core Presenter.
-Math = p js global at: 'Math'.
-tau = 6.28318530718 asFloat.
-|) (
-class Atom = (|
-public x ::= Math random * 800.
-public y ::= Math random * 600.
-public vx ::= (Math random - 0.5) * 6.
-public vy ::= (Math random - 0.5) * 6.
-public m = Math random * 150 + 5.
-public r = m sqrt + 1.
-public color = Color r: Math random g: Math random b: Math random.
-|) (
+class World usingPlatform: p = (
+	|
+	private Timer = p actors Timer.
+	private Point = p graphics Point.
+	private Color = p graphics Color.
+	private List = p collections List.
+	private Subject = p hopscotch core Subject.
+	private Presenter = p hopscotch core Presenter.
+	private Math = p js global at: 'Math'.
+	private tau = 6.28318530718 asFloat.
+	|
+) (
+class Atom = (
+	|
+	public x ::= Math random * 800.
+	public y ::= Math random * 600.
+	public vx ::= (Math random - 0.5) * 6.
+	public vy ::= (Math random - 0.5) * 6.
+	public m = Math random * 150 + 5.
+	public r = m sqrt + 1.
+	public color = Color r: Math random g: Math random b: Math random.
+	|
+) (
 public collideWith: b = (
 	| a = self. dx dy R distance overlap ox oy e dvx dvy top bottom j |
 
