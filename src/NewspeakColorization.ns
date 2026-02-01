@@ -3,7 +3,7 @@ Newspeak code colorizer.
 
 Copyright Google Inc. 2016 - 2017.
 *)
-class NewspeakColorization usingPlatform: p grammar: grammar = (
+class NewspeakColorization usingPlatform: p grammar: grammar namespacing: namespacing = (
 	|
 	private Color = p graphics Color.
 	private Map = p collections Map.
@@ -12,6 +12,7 @@ class NewspeakColorization usingPlatform: p grammar: grammar = (
 	private TypedNS3Grammar = grammar TypedNS3Grammar.
 	private StringBuilder = p kernel StringBuilder.
 	private JSObject = p js global at: 'Object'.
+	private namespacing = namespacing.
 
 	private cssConversionTable = computeCssConversionTable.
 	|
@@ -210,6 +211,13 @@ checkKeyword: kwd <Token> = (
 	(inputString at: kwd end + 1) <= 32 ifTrue: [^self].
 	self noteRange: #whitespaceWarning from: kwd start to: kwd end
 )
+class: klass <ClassMirror> canUnderstand: selector <String> ^<Boolean> = (
+	| k <ClassMirror> ::= klass. |
+	[nil = k] whileFalse:
+		[(mixin: k canUnderstand: selector) ifTrue: [^true].
+		 k:: k superclass].
+	^false
+)
 public classHeader = (
 	^super classHeader
 		wrap:
@@ -263,7 +271,9 @@ extendedCanUnderstand: selector <String> ^<Boolean> = (
 		[(mixin: m canUnderstand: selector) ifTrue: [^true].
 		 m:: m enclosingMixin].
 
-	(* klass mixin applications do: [:any | ^any canUnderstand: sel].*)
+	nil = mixin ifFalse:
+		[mixin applications do: [:any | ^class: any superclass canUnderstand: selector]].
+
 	^mixin: mixinMirrorForObject canUnderstand: selector
 )
 increaseBraceLevel = (
@@ -437,9 +447,12 @@ scopeStack = (
 		[cachedScopeStack:: List new].
 	^cachedScopeStack
 )
-selector: sel ifDefined: definedAction ifIncomplete: incompleteAction ifUndefined: undefinedAction ifObsolete: obsoleteAction = (
-	({#isKindOf:. #out. #halt. #inspect. #flag:. #instVarAt:. #isMemberOf:. #~. #!=} includes: sel) ifTrue: [^obsoleteAction value].
-      ^definedAction value
+selector: selector <String> ifDefined: defined <[]> ifIncomplete: incomplete <[]> ifUndefined: undefined <[]> ifObsolete: obsolute <[]> = (
+	#out = selector ifTrue: [^obsolute value].
+	#panic = selector ifTrue: [^obsolute value].
+	(namespacing isDefined: selector) ifTrue: [^defined value].
+	(namespacing isIncomplete: selector) ifTrue: [^incomplete value].
+	^undefined value
 )
 semicolon = (
 	^super semicolon wrap:

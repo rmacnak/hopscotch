@@ -285,6 +285,17 @@ indexTransientSlot: slot <MethodMirror> = (
 	note: slot hasMetadata: slot metadata.
 	note: slot hasLiterals: slot literals.
 )
+public isDefined: selector <String> ^<Boolean> = (
+	selectors isEmpty ifTrue: [reindex].
+	^(selectors at: selector ifAbsent: [^false]) implementors isEmpty not
+)
+public isIncomplete: selector <String> ^<Boolean> = (
+	selectors isEmpty ifTrue: [reindex].
+	selectors keysAndValuesDo:
+		[:k :v | (k startsWith: selector) ifTrue:
+			[v implementors isEmpty ifFalse: [^true]]].
+	^false
+)
 lexicallyLessOrEqual: a <String> than: b <String> ^<Boolean> = (
 	1 to: (a size min: b size) do:
 		[:index |

@@ -549,6 +549,9 @@ addDiscardIfNeeded = (
 clearResults = (
 	results presenters: {}.
 )
+colorizeSource: source <String> withEditor: editor <CodeMirrorFragment> = (
+	ide colorizer colorizeDoIt: source fromMixin: subject mixinMirror in: editor.
+)
 definition = (
 	^column: {
 		row: {
@@ -573,13 +576,11 @@ editorDefinition ^<CodeMirrorFragment> = (
 	initialSource:: ''.
 	cm:: (codeMirror: initialSource).
 	cm changeResponse:
-		[:editor <CodeMirrorFragment> |
-		| src <String> =  editor textBeingAccepted. |
-		ide colorizer colorizeDoIt: src fromMixin: nil in: editor].
+		[:editor <CodeMirrorFragment> | colorizeSource: editor textBeingAccepted withEditor: editor].
 	cm enterResponse:
 		[:editor <CodeMirrorFragment> |
 		 respondToEvaluate: false].
-	ide colorizer colorizeDoIt: initialSource fromMixin: nil in: cm.
+	colorizeSource: initialSource withEditor: cm.
 	^cm
 )
 evaluate: expression <String> suspended: suspended <Boolean> ^<Fragment> = (
@@ -603,7 +604,7 @@ respondToEvaluate: suspended <Boolean> = (
 	| src = editor textBeingAccepted. |
 	addDiscardIfNeeded.
 	results addFirst: (evaluate: src suspended: suspended).
-	ide colorizer colorizeDoIt: src fromMixin: nil in: editor.
+	colorizeSource: src withEditor: editor.
 )
 ) : (
 )
@@ -1846,6 +1847,9 @@ public keysAndValues ^<Collection[SlotSubject]> = (
 			name: 'size'
 			value: (ObjectMirror reflecting: result size)).
 	^result
+)
+public mixinMirror ^<MixinMirror> = (
+	^classMirror mixin
 )
 public objectMirror ^<ObjectMIrror> = (
 	^model

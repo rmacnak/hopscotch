@@ -267,6 +267,9 @@ public methodMirror ^<MethodMirror> = (
 public methodMixin ^<MixinMirror> = (
 	^model method definingMixin
 )
+public mixinMirror ^<MixinMirror> = (
+	^model method definingMixin
+)
 public name ^<String> = (
 	| n enclosing |
 	n:: model method name.

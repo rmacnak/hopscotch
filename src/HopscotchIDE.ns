@@ -79,7 +79,7 @@ class IDE usingPlatform: p = (
 	public minitestUI = MinitestUI usingPlatform: p minitest: minitest ide: self.
 	public parserLib = CombinatorialParsing usingPlatform: p.
 	public grammar = NewspeakGrammar usingPlatform: p parsers: parserLib.
-	public colorizer = (NewspeakColorization usingPlatform: p grammar: grammar) NS3BrowserColorizer new.
+	public colorizer = (NewspeakColorization usingPlatform: p grammar: grammar namespacing: namespacing) NS3BrowserColorizer new.
 	|
 	populateNamespace.
 ) (

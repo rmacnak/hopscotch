@@ -10,7 +10,7 @@ public testModulesUsingPlatform: platform minitest: minitest = (
 	|
 	parsing = CombinatorialParsing usingPlatform: platform.
 	grammar = NewspeakGrammar usingPlatform: platform parsers: parsing.
-	colorization = NewspeakColorization usingPlatform: platform grammar: grammar.
+	colorization = NewspeakColorization usingPlatform: platform grammar: grammar namespacing: nil.
 	|
 	^{NewspeakColorizationTesting usingNewspeakColorization: colorization minitest: minitest}
 )
