@@ -5,58 +5,13 @@
     <title>Hopscotch IDE</title>
   </head>
   <body>
+    <script type="text/javascript" src="primordialsoup.js"></script>
     <script type="text/javascript">
-      function scheduleTurn(timeout) {
-        if (timeout >= 0) {
-          setTimeout(function() {
-            var timeout = Module._handle_message();
-            scheduleTurn(timeout);
-          }, timeout);
-        }
-      }
-
-      var Module = {
-        noInitialRun: true,
-        onRuntimeInitialized: function() {
-          var path = "HopscotchIDE.vfuel.bmp";
-          var request = new XMLHttpRequest();
-          request.open("GET", path, true);
-          request.responseType = "arraybuffer";
-          request.onload = function (event) {
-            if (request.status != 200) {
-              Module.printErr("Failed to load " + path + ": " +
-                              request.status + " " + request.statusText);
-              return;
-            }
-            var jsBuffer = new Uint8Array(request.response);
-            var cBuffer = _malloc(jsBuffer.length);
-            HEAPU8.set(jsBuffer, cBuffer);
-            _load_snapshot(cBuffer, jsBuffer.length);
-            _free(cBuffer);
-            scheduleTurn(0);
-          };
-          request.send();
-        },
-        print: function(text) {
-          console.log(text);
-
-          var pre = document.createElement("pre");
-          pre.textContent = text;
-          pre.style.color = "black";
-          document.body.appendChild(pre);
-          window.scrollTo(0, document.body.scrollHeight);
-        },
-        printErr: function(text) {
-          console.error(text);
-
-          var pre = document.createElement("pre");
-          pre.textContent = text;
-          pre.style.color = "red";
-          document.body.appendChild(pre);
-          window.scrollTo(0, document.body.scrollHeight);
-        },
-      };
+      PrimordialSoup({
+        snapshot: "HopscotchIDE.vfuel.bmp",
+        print: console.log,
+        printErr: console.error,
+      });
     </script>
-    <script async type="text/javascript" src="primordialsoup.js"></script>
   </body>
 </html>
