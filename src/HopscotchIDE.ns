@@ -80,9 +80,34 @@ class IDE usingPlatform: p = (
 	public parserLib = CombinatorialParsing usingPlatform: p.
 	public grammar = NewspeakGrammar usingPlatform: p parsers: parserLib.
 	public colorizer = (NewspeakColorization usingPlatform: p grammar: grammar namespacing: namespacing) NS3BrowserColorizer new.
+	public io = IO usingPlatform: p.
 	|
 	populateNamespace.
 ) (
+class IO usingPlatform: p = (
+	|
+	private JSArray = p js global at: 'Array'.
+	private Blob = p js global at: 'Blob'.
+	private URL = p js global at: 'URL'.
+	private document = p js global at: 'document'.
+	|
+) (
+public toFile: filename writeString: string = (
+	| parts blob url link |
+	parts:: JSArray new: 1.
+	parts at: 0 put: string.
+	blob:: Blob new: parts.
+	url:: URL createObjectURL: blob.
+	link:: document createElement: 'a'.
+	link at: 'download' put: filename.
+	link at: 'href' put: url.
+	(document at: 'body') append: link.
+	link click.
+	URL revokeObjectURL: url.
+	(document at: 'body') removeChild: link.
+)
+) : (
+)
 populateNamespace = (
 	|
 	Root <Namespace> = namespacing Root.

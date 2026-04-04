@@ -190,6 +190,7 @@ class ClassPresenter onSubject: s = ProgrammingPresenter onSubject: s (
 ) (
 classActionsMenu = (
 	^menuWithLabelsAndActions: {
+		{'Save to File'. [respondToSave]}.
 		{'Inspect Mirror'. [inspectObject: subject classMirror]}.
 		{'Inspect Presenter'. [respondToInspectPresenter]}.
 		{'Inspect Instances'. [respondToInspectInstances]}.
@@ -275,6 +276,9 @@ respondToInspectInstances = (
 		[:application | application instances reflectee do:
 			[:instance | instances add: instance]].
 	inspectObject: instances.
+)
+respondToSave = (
+	ide io toFile: subject name , '.ns' writeString: subject classMirror source.
 )
 sectionLabelled: title <String> presenting: groupSubject <MirrorGroupSubject> = (
 	| groupPresenter = groupSubject presenter. |

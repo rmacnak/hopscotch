@@ -70,9 +70,21 @@ class IDE usingPlatform: p = (
 	public parserLib = CombinatorialParsing usingPlatform: p.
 	public grammar = NewspeakGrammar usingPlatform: p parsers: parserLib.
 	public colorizer = NopColorizer new.
+	public io = IO usingPlatform: p.
 	|
 	populateNamespace.
 ) (
+class IO usingPlatform: p = (
+) (
+public toFile: filename writeString: string = (
+	writeBytes: string toFileNamed: filename.
+)
+writeBytes: bytes toFileNamed: filename = (
+	(* :pragma: primitive: 511 *)
+	halt.
+)
+) : (
+)
 populateNamespace = (
 	|
 	Root <Namespace> = namespacing Root.
