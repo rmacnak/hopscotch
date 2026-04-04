@@ -121,10 +121,10 @@ public title = ( ^'No Senders' )
 class Selector name: n = (
 	|
 	public name <String> = n.
-	public senders = Set new.
-	public implementors = Set new.
-	public metadata = Set new.
-	public literals = Set new.
+	public senders = List new.
+	public implementors = List new.
+	public metadata = List new.
+	public literals = List new.
 	|
 ) (
 ) : (
