@@ -1356,7 +1356,7 @@ acceptNewNamespaceDefinitionFrom: aTemplate = (
 			[:msg | aTemplate editor text: msg]
 )
 addCategoryMenu = (
-	^ {
+	^menuWithLabelsAndActions: {
 		{'Add Class'. [addClassTemplate]}.
 		{ 'Add Namespace'. [addNamespaceTemplate]}.
 		(*{'Add Image From File'. [respondToAddImage].}.
@@ -1870,8 +1870,9 @@ public references ^<Collection[SlotSubject]> = (
 		 m slots do:
 			[:slot |
 			 slot value = objectMirror ifTrue:
-				[result add:
-					(SlotSubject name: slot name value: m)]]].
+				[ | name ::= slot name. |
+				 name isKindOfInteger ifTrue: [name:: 'at: ', name asString].
+				 result add: (SlotSubject name: name value: m)]]].
 	^result
 )
 public slots ^<Collection[SlotSubject]> = (

@@ -179,7 +179,13 @@ definition = (
 		collapsed: [label: 'Overflow, one fragment'] expanded: [overflowOne].
 		collapsed: [label: 'Overflow, many fragments'] expanded: [overflowMany].
 		collapsed: [label: 'Wrapping text'] expanded: [wrappingText].
+		row: {smallMenu. largeMenu. filler. label: 'Menus'. filler. largeMenu. smallMenu}.
 	}
+)
+largeMenu = (
+	| list = List new. |
+	1 to: 100 do: [:i | list add: {'Item ', i asString. []}].
+	^dropDownMenu: [menuWithLabelsAndActions: list]
 )
 overflowMany = (
 	^row: {
@@ -215,6 +221,14 @@ overflowMany = (
 )
 overflowOne = (
 	^label: 'START overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow overflow END'
+)
+smallMenu = (
+	^dropDownMenu: [menuWithLabelsAndActions: {
+		{'Item 1'. []}.
+		#separator.
+		{'Item 2'. []}.
+		{'Item 3'. []}.
+	}]
 )
 unicode = (
 	^column: {
