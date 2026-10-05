@@ -171,6 +171,7 @@ class HomePresenter onSubject: s = Presenter onSubject: s (
 definition = (
 	^column: {
 		center: (label: 'Center').
+		(row: {filler. label: 'Background'}) color: 1.
 		collapsed: [label: 'Unicode'] expanded: [unicode].
 		link: 'Colors' action: [enterSubject:: ColorsSubject new].
 		link: 'Rows' action: [enterSubject:: RowsSubject new].

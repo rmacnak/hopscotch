@@ -5,7 +5,7 @@ class HopscotchForTerminal usingPlatform: p = (
 	private Map = p collections Map.
 	private Set = p collections Set.
 	private ByteList = p kernel StringBuilder.
-	private DateTime = p time DateTime.
+	private Stopwatch = p time Stopwatch.
 
 	public core = self.
 	public fragments = self.
@@ -651,6 +651,10 @@ public class HopscotchShell = (
 	titleLabel
 	contentHolder
 	rootVisual
+
+	lastLayoutTime ::= 0.
+	lastPaintTime ::= 0.
+	lastWriteTime ::= 0.
 	|
 	createChrome.
 ) (
@@ -798,8 +802,9 @@ public goForward = (
 		 displayPresenter: navigator current]
 )
 layout = (
-	| constraints |
+	| constraints s |
 	needsLayout ifFalse: [^self].
+	s:: Stopwatch new start.
 	constraints:: Constraints new.
 	constraints minWidth: terminal width.
 	constraints maxWidth: terminal width.
@@ -807,6 +812,7 @@ layout = (
 	constraints maxHeight: terminal height.
 	rootVisual layout: constraints.
 	needsLayout:: false.
+	lastLayoutTime:: s elapsedMilliseconds.
 )
 public main = (
 	[terminal start.
@@ -819,15 +825,16 @@ public main = (
 		do: [:e | terminal stop. e pass].
 )
 paint = (
-	| context |
-	echoLabel text: echo.
+	| context s |
+	echoLabel text: echo, ' layout ', lastLayoutTime asString, ' paint ', lastPaintTime asString, ' write ', lastWriteTime asString.
 
-	terminal updateBegin.
-	terminal cursorColumn: nil.
-	terminal cursorRow: nil.
-	context:: terminal offsetX: 0 y: 0.
+	s:: Stopwatch new start.
+	context:: terminal updateBegin.
 	rootVisual paint: context offset: (Offset x: 0 y: 0).
-	terminal updateEnd.
+	lastPaintTime:: s elapsedMilliseconds.
+	s:: Stopwatch new start.
+	terminal updateEnd: context.
+	lastWriteTime:: s elapsedMilliseconds.
 )
 public refresh = (
 	(* Since refreshing forces a new copy of the current presenter into the browser, we need to massage it into the history as well. *)
@@ -856,7 +863,7 @@ class HyperlinkFragment label: l action: a = LeafFragment (
 	label <String> = l.
 	action <[]> = a.
 	public color ::= 6.
-	public style
+	public style ::= 0.
 	public enabled ::= true.  (* For ButtonFragment *)
 	|
 ) (
@@ -866,6 +873,7 @@ createVisual = (
 	v flex: expansibility.
 	v text: label.
 	v color: color.
+	v style: style.
 	v action: action.
 	^v
 )
@@ -1102,41 +1110,132 @@ public isKindOfOffset ^<Boolean> = (
 )
 ) : (
 )
-class PaintContext terminal: t x: x y: y w: w h: h = (
+class PaintContext width: w height: h = (
 	|
-	terminal = t.
-	offsetX = x.
-	offsetY = y.
 	width = w.
 	height = h.
+	character = Array new: w * h.
+	foreground = Array new: w * h.
+	background = Array new: w * h.
+	style = ByteArray new: w * h.
+
+	public clipL ::= 0.
+	public clipT ::= 0.
+	public clipR ::= w.
+	public clipB ::= h.
+
+	cursorRow
+	cursorColumn
 	|
 ) (
-public at: position print: string color: c style: s = (
-	| x y |
-	x:: position x + offsetX.
-	y:: position y + offsetY.
-	x < 0 ifTrue: [^self].
-	x >= width ifTrue: [^self].
-	y < 0 ifTrue: [^self].
-	y >= height ifTrue: [^self].
-	terminal
-		at: (Offset x: x y: y)
-		print: (string copyFrom: 1 to: (string size min: width - x))
-		color: c
-		style: s.
+public at: offset print: text color: color style: newS = (
+	| o pos rem |
+	offset x < clipL ifTrue: [^self].
+	offset y < clipT ifTrue: [^self].
+	offset x >= clipR ifTrue: [^self].
+	offset y >= clipB ifTrue: [^self].
+	o:: offset y * width + offset x + 1.
+	rem:: clipR - offset x.
+
+	pos:: 1.
+	[(pos <= text size) & (rem > 0)] whileTrue: [
+		| w = cellWidthFor: text at: pos. |
+		character at: o put: (cellSafe: (text copyFrom: pos to: pos + w - 1)).
+		foreground at: o put: color.
+		style at: o put: newS.
+		pos:: pos + w.
+		o:: o + 1.
+		rem:: rem - 1.
+	].
+)
+public at: offset print: text style: s = (
+	at: offset print: text color: 0 style: s
+)
+public at: offset size: size bg: bg = (
+	| l t r b |
+	l:: offset x max: clipL.
+	t:: offset y max: clipT.
+	r:: offset x + size width min: clipR - 1.
+	b:: offset y + size height - 1 min: clipB - 1.
+	l to: r do:
+		[:x | t to: b do:
+			[:y | | i = y * width + x + 1. |
+			 character at: i put: nil.
+			 background at: i put: bg]].
+)
+cellSafe: text = (
+	(* wrong: there are more non-printing characters *)
+	text size = 1 ifTrue: [(text at: 1) < 32 ifTrue: [^'?']].
+	^text
+)
+cellWidthFor: text at: pos = (
+	(* wrong: does not account for grapheme clusters or double-width characters *)
+	| b = text at: pos. |
+	b >= 240 ifTrue: [^4].
+	b >= 224 ifTrue: [^3].
+	b >= 127 ifTrue: [^2].
+	^1
+)
+hasCursor = (
+	nil = cursorRow ifTrue: [^false].
+	nil = cursorColumn ifTrue: [^false].
+	cursorRow <= 0 ifTrue: [^false].
+	cursorColumn <= 0 ifTrue: [^false].
+	cursorRow > height ifTrue: [^false].
+	cursorColumn > width ifTrue: [^false].
+	^true
 )
 public setCursor: position = (
 	| x y |
-	terminal cursorRow: nil.
-	terminal cursorColumn: nil.
-	x:: position x + offsetX.
-	y:: position y + offsetY.
+	cursorRow: nil.
+	cursorColumn: nil.
+	x:: position x.
+	y:: position y.
 	x < 0 ifTrue: [^self].
 	x >= width ifTrue: [^self].
 	y < 0 ifTrue: [^self].
 	y >= height ifTrue: [^self].
-	terminal cursorRow: y + 1.
-	terminal cursorColumn: x + 1.
+	cursorRow: y + 1.
+	cursorColumn: x + 1.
+)
+public writeTo: b <ByteList> = (
+	| lastFg lastBg lastStyle c |
+	b add: "\x1B[?25l". (* hide cursor *)
+	b add: "\x1B[2J".   (* clear screen *)
+	b add: "\x1B[1;1H". (* move cursor *)
+	b add: "\x1B[0m".   (* reset style *)
+	lastStyle:: 0.
+	lastFg:: lastBg:: nil.
+	1 to: character size do:
+		[:index |
+		c:: style at: index.
+		c = lastStyle ifFalse:
+			[b add: "\x1B[0;"; add: c asString; add: "m".
+			 lastFg:: nil.
+			 lastBg:: nil].
+		lastStyle:: c.
+
+		c:: foreground at: index.
+		c = lastFg ifFalse:
+			[nil = c
+				ifTrue: [b add: "\x1B[39m"]
+				ifFalse: [b add: "\x1B[38;5;"; add: c asString; add: "m"]].
+		lastFg:: c.
+
+		c:: background at: index.
+		c = lastBg ifFalse:
+			[nil = c
+				ifTrue: [b add: "\x1B[49m"]
+				ifFalse: [b add: "\x1B[48;5;"; add: c asString; add: "m"]].
+		lastBg:: c.
+
+		c:: character at: index.
+		nil = c ifTrue: [c:: ' '].
+		b add: c].
+
+	hasCursor ifTrue:
+		[b add: "\x1B["; add: cursorRow asString; add: ";"; add: cursorColumn asString; add: "H". (* move cursor *)
+		 b add: "\x1B[?25h". (* show cursor *)].
 )
 ) : (
 )
@@ -1524,6 +1623,7 @@ public childrenDo: aBlock <[:Fragment]> = (
 createVisual = (
 	| v = SequenceVisual new. |
 	v flex: expansibility.
+	v color: color.
 	v isColumn: isColumn.
 	v mainAxisAlignment: mainAxisAlignment.
 	v crossAxisAlignment: crossAxisAlignment.
@@ -1570,6 +1670,7 @@ public mainAxisSpaceEvenly = (
 (* A horizontal or vertical array. Inflexible childen (flex=0) are sized first, and remaining space is divided among flexible child (flex!=0) in proportion to their flex factor. *)
 public class SequenceVisual = Visual (
 	|
+	public color
 	public isColumn <Boolean>
 	public mainAxisAlignment
 	public crossAxisAlignment
@@ -1713,6 +1814,8 @@ public layout: constraints = (
 public paint: context offset: offset = (
 	(* :todo: skip without visiting children if totally outside of viewport *)
 
+	nil = color ifFalse:
+		[context at: offset size: (Size width: width height: height) bg: color].
 
 	children do:
 		[:child | child paint: context offset:
@@ -1806,7 +1909,7 @@ class StaticLabelFragment text: t = LeafFragment (
 	|
 	textX <String> ::= t.
 	public color
-	public style
+	public style ::= 0.
 	|
 ) (
 createVisual = (
@@ -1856,9 +1959,6 @@ class Terminal = (
 	|
 	public width ::= 80.
 	public height ::= 24.
-
-	public cursorRow ::= nil.
-	public cursorColumn ::= nil.
 
 	public mouseX ::= 1.
 	public mouseY ::= 1.
@@ -1944,15 +2044,6 @@ esc: x = (
 flush = (
 	primWrite: pending asByteArray.
 	pending:: ByteList new.
-)
-hasCursor = (
-	nil = cursorRow ifTrue: [^false].
-	nil = cursorColumn ifTrue: [^false].
-	cursorRow <= 0 ifTrue: [^false].
-	cursorColumn <= 0 ifTrue: [^false].
-	cursorRow > height ifTrue: [^false].
-	cursorColumn > width ifTrue: [^false].
-	^true
 )
 isDigit: code = (
 	code < 48 ifTrue: [^false].
@@ -2055,8 +2146,6 @@ public start = (
 	dim:: primSize.
 	height:: dim at: 1.
 	width:: dim at: 2.
-	cursorRow:: 1.
-	cursorColumn:: 1.
 
 	esc: '[?1049h'. (* switch to alternate screen *)
 	esc: '[?1000h'. (* basic mouse clicks *)
@@ -2082,14 +2171,10 @@ public updateBegin = (
 	| dim = primSize. |
 	height:: dim at: 1.
 	width:: dim at: 2.
-
-	esc: '[?25l'. (* hide cursor *)
-	esc: '[2J'. (* clear screen *)
+	^PaintContext width: width height: height
 )
-public updateEnd = (
-	hasCursor ifTrue:
-		[esc: '[', cursorRow asString, ';', cursorColumn asString, 'H'. (* move cursor *)
-		 esc: '[?25h'. (* show cursor *)].
+public updateEnd: context <PaintContext> = (
+	context writeTo: pending.
 	flush.
 )
 ) : (
@@ -2098,7 +2183,7 @@ class TextDisplayFragment text: t = LeafFragment (
 	|
 	textX <String> ::= t.
 	public color
-	style
+	style ::= 0.
 	|
 ) (
 createVisual = (
@@ -2146,6 +2231,7 @@ createVisual = (
 	| v |
 	v:: TextEditorVisual new.
 	v flex: expansibility.
+	v style: 0.
 	v text: textX.
 	v point: point.
 	v onInput: [:input| respondToInput: input].
@@ -2397,6 +2483,7 @@ createVisual = (
 	button text: '?'.
 	button action: [toggle].
 	button color: 6.
+	button style: 0.
 
 	button flex: 0.
 	row appendChild: button.
@@ -2482,10 +2569,25 @@ public layout: constraints = (
 	constrainScroll.
 )
 public paint: context offset: offset = (
+	| l t r b |
+	l:: context clipL.
+	t:: context clipT.
+	r:: context clipR.
+	b:: context clipB.
+	context clipL: offset x.
+	context clipT: offset y.
+	context clipR: width + offset x.
+	context clipB: height + offset y.
+
 	child
 		paint: context
 		offset:
 			(Offset x: offset x - scrollX y: offset y - scrollY).
+
+	context clipL: l.
+	context clipT: t.
+	context clipR: r.
+	context clipB: b.
 )
 ) : (
 )
