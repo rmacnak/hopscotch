@@ -59,6 +59,7 @@ BuildStage2Snapshots([
 Install("#out/site",
         ["#out/ReleaseEmscriptenWASM/primordialsoup.html",
          "#out/ReleaseEmscriptenWASM/primordialsoup.wasm",
+         "#out/ReleaseEmscriptenWASM/primordialsoup.wasm.map",
          "#out/ReleaseEmscriptenWASM/primordialsoup.js",
          "#out/snapshots/HopscotchIDE.vfuel.bmp",
          "#out/snapshots/Particles.vfuel",
